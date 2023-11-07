@@ -27,13 +27,6 @@ contract PoolStorage {
     // It is structured as a mapping for gas savings reasons, using the reserve id as index
     mapping(uint256 => address) internal _reservesList;
 
-    // List of eMode categories as a map (eModeCategoryId => eModeCategory).
-    // It is structured as a mapping for gas savings reasons, using the eModeCategoryId as index
-    mapping(uint8 => DataTypes.EModeCategory) internal _eModeCategories;
-
-    // Map of users address and their eMode category (userAddress => eModeCategoryId)
-    mapping(address => uint8) internal _usersEModeCategory;
-
     // Fee of the protocol bridge, expressed in bps
     uint256 internal _bridgeProtocolFee;
 

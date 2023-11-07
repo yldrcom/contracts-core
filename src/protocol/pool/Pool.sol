@@ -6,7 +6,6 @@ import {Errors} from "../libraries/helpers/Errors.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {PoolLogic} from "../libraries/logic/PoolLogic.sol";
 import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
-import {EModeLogic} from "../libraries/logic/EModeLogic.sol";
 import {SupplyLogic} from "../libraries/logic/SupplyLogic.sol";
 import {FlashLoanLogic} from "../libraries/logic/FlashLoanLogic.sol";
 import {BorrowLogic} from "../libraries/logic/BorrowLogic.sol";
@@ -109,9 +108,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         override
         onlyBridge
     {
-        BridgeLogic.executeMintUnbacked(
-            _reserves, _reservesList, _usersConfig[onBehalfOf], asset, amount, onBehalfOf, referralCode
-        );
+        BridgeLogic.executeMintUnbacked(_reserves, _usersConfig[onBehalfOf], asset, amount, onBehalfOf, referralCode);
     }
 
     /// @inheritdoc IPool
@@ -129,7 +126,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) public virtual override {
         SupplyLogic.executeSupply(
             _reserves,
-            _reservesList,
             _usersConfig[onBehalfOf],
             DataTypes.ExecuteSupplyParams({
                 asset: asset,
@@ -154,7 +150,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         IERC20WithPermit(asset).permit(msg.sender, address(this), amount, deadline, permitV, permitR, permitS);
         SupplyLogic.executeSupply(
             _reserves,
-            _reservesList,
             _usersConfig[onBehalfOf],
             DataTypes.ExecuteSupplyParams({
                 asset: asset,
@@ -170,15 +165,13 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         return SupplyLogic.executeWithdraw(
             _reserves,
             _reservesList,
-            _eModeCategories,
             _usersConfig[msg.sender],
             DataTypes.ExecuteWithdrawParams({
                 asset: asset,
                 amount: amount,
                 to: to,
                 reservesCount: _reservesCount,
-                oracle: ADDRESSES_PROVIDER.getPriceOracle(),
-                userEModeCategory: _usersEModeCategory[msg.sender]
+                oracle: ADDRESSES_PROVIDER.getPriceOracle()
             })
         );
     }
@@ -192,7 +185,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         BorrowLogic.executeBorrow(
             _reserves,
             _reservesList,
-            _eModeCategories,
             _usersConfig[onBehalfOf],
             DataTypes.ExecuteBorrowParams({
                 asset: asset,
@@ -205,7 +197,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
                 maxStableRateBorrowSizePercent: _maxStableRateBorrowSizePercent,
                 reservesCount: _reservesCount,
                 oracle: ADDRESSES_PROVIDER.getPriceOracle(),
-                userEModeCategory: _usersEModeCategory[onBehalfOf],
                 priceOracleSentinel: ADDRESSES_PROVIDER.getPriceOracleSentinel()
             })
         );
@@ -220,7 +211,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     {
         return BorrowLogic.executeRepay(
             _reserves,
-            _reservesList,
             _usersConfig[onBehalfOf],
             DataTypes.ExecuteRepayParams({
                 asset: asset,
@@ -254,7 +244,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
                 onBehalfOf: onBehalfOf,
                 useYTokens: false
             });
-            return BorrowLogic.executeRepay(_reserves, _reservesList, _usersConfig[onBehalfOf], params);
+            return BorrowLogic.executeRepay(_reserves, _usersConfig[onBehalfOf], params);
         }
     }
 
@@ -267,7 +257,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     {
         return BorrowLogic.executeRepay(
             _reserves,
-            _reservesList,
             _usersConfig[msg.sender],
             DataTypes.ExecuteRepayParams({
                 asset: asset,
@@ -296,13 +285,11 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         SupplyLogic.executeUseReserveAsCollateral(
             _reserves,
             _reservesList,
-            _eModeCategories,
             _usersConfig[msg.sender],
             asset,
             useAsCollateral,
             _reservesCount,
-            ADDRESSES_PROVIDER.getPriceOracle(),
-            _usersEModeCategory[msg.sender]
+            ADDRESSES_PROVIDER.getPriceOracle()
         );
     }
 
@@ -318,7 +305,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
             _reserves,
             _reservesList,
             _usersConfig,
-            _eModeCategories,
             DataTypes.ExecuteLiquidationCallParams({
                 reservesCount: _reservesCount,
                 debtToCover: debtToCover,
@@ -327,7 +313,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
                 user: user,
                 receiveYToken: receiveYToken,
                 priceOracle: ADDRESSES_PROVIDER.getPriceOracle(),
-                userEModeCategory: _usersEModeCategory[user],
                 priceOracleSentinel: ADDRESSES_PROVIDER.getPriceOracleSentinel()
             })
         );
@@ -356,13 +341,10 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
             maxStableRateBorrowSizePercent: _maxStableRateBorrowSizePercent,
             reservesCount: _reservesCount,
             addressesProvider: address(ADDRESSES_PROVIDER),
-            userEModeCategory: _usersEModeCategory[onBehalfOf],
             isAuthorizedFlashBorrower: IACLManager(ADDRESSES_PROVIDER.getACLManager()).isFlashBorrower(msg.sender)
         });
 
-        FlashLoanLogic.executeFlashLoan(
-            _reserves, _reservesList, _eModeCategories, _usersConfig[onBehalfOf], flashParams
-        );
+        FlashLoanLogic.executeFlashLoan(_reserves, _reservesList, _usersConfig[onBehalfOf], flashParams);
     }
 
     /// @inheritdoc IPool
@@ -413,13 +395,11 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         return PoolLogic.executeGetUserAccountData(
             _reserves,
             _reservesList,
-            _eModeCategories,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: _usersConfig[user],
                 reservesCount: _reservesCount,
                 user: user,
-                oracle: ADDRESSES_PROVIDER.getPriceOracle(),
-                userEModeCategory: _usersEModeCategory[user]
+                oracle: ADDRESSES_PROVIDER.getPriceOracle()
             })
         );
     }
@@ -520,7 +500,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         SupplyLogic.executeFinalizeTransfer(
             _reserves,
             _reservesList,
-            _eModeCategories,
             _usersConfig,
             DataTypes.FinalizeTransferParams({
                 asset: asset,
@@ -530,8 +509,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
                 balanceFromBefore: balanceFromBefore,
                 balanceToBefore: balanceToBefore,
                 reservesCount: _reservesCount,
-                oracle: ADDRESSES_PROVIDER.getPriceOracle(),
-                fromEModeCategory: _usersEModeCategory[from]
+                oracle: ADDRESSES_PROVIDER.getPriceOracle()
             })
         );
     }
@@ -609,49 +587,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     }
 
     /// @inheritdoc IPool
-    function configureEModeCategory(uint8 id, DataTypes.EModeCategory memory category)
-        external
-        virtual
-        override
-        onlyPoolConfigurator
-    {
-        // category 0 is reserved for volatile heterogeneous assets and it's always disabled
-        require(id != 0, Errors.EMODE_CATEGORY_RESERVED);
-        _eModeCategories[id] = category;
-    }
-
-    /// @inheritdoc IPool
-    function getEModeCategoryData(uint8 id) external view virtual override returns (DataTypes.EModeCategory memory) {
-        return _eModeCategories[id];
-    }
-
-    /// @inheritdoc IPool
-    function setUserEMode(uint8 categoryId) external virtual override {
-        EModeLogic.executeSetUserEMode(
-            _reserves,
-            _reservesList,
-            _eModeCategories,
-            _usersEModeCategory,
-            _usersConfig[msg.sender],
-            DataTypes.ExecuteSetUserEModeParams({
-                reservesCount: _reservesCount,
-                oracle: ADDRESSES_PROVIDER.getPriceOracle(),
-                categoryId: categoryId
-            })
-        );
-    }
-
-    /// @inheritdoc IPool
-    function getUserEMode(address user) external view virtual override returns (uint256) {
-        return _usersEModeCategory[user];
-    }
-
-    /// @inheritdoc IPool
-    function resetIsolationModeTotalDebt(address asset) external virtual override onlyPoolConfigurator {
-        PoolLogic.executeResetIsolationModeTotalDebt(_reserves, asset);
-    }
-
-    /// @inheritdoc IPool
     function rescueTokens(address token, address to, uint256 amount) external virtual override onlyPoolAdmin {
         PoolLogic.executeRescueTokens(token, to, amount);
     }
@@ -665,7 +600,6 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     {
         SupplyLogic.executeSupply(
             _reserves,
-            _reservesList,
             _usersConfig[onBehalfOf],
             DataTypes.ExecuteSupplyParams({
                 asset: asset,

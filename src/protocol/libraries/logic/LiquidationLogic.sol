@@ -10,8 +10,6 @@ import {DataTypes} from "../../libraries/types/DataTypes.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
 import {ValidationLogic} from "./ValidationLogic.sol";
 import {GenericLogic} from "./GenericLogic.sol";
-import {IsolationModeLogic} from "./IsolationModeLogic.sol";
-import {EModeLogic} from "./EModeLogic.sol";
 import {UserConfiguration} from "../../libraries/configuration/UserConfiguration.sol";
 import {ReserveConfiguration} from "../../libraries/configuration/ReserveConfiguration.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
@@ -90,14 +88,12 @@ library LiquidationLogic {
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
      * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param params The additional parameters needed to execute the liquidation function
      */
     function executeLiquidationCall(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         DataTypes.ExecuteLiquidationCallParams memory params
     ) external {
         LiquidationCallLocalVars memory vars;
@@ -111,13 +107,11 @@ library LiquidationLogic {
         (,,,, vars.healthFactor,) = GenericLogic.calculateUserAccountData(
             reservesData,
             reservesList,
-            eModeCategories,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: userConfig,
                 reservesCount: params.reservesCount,
                 user: params.user,
-                oracle: params.priceOracle,
-                userEModeCategory: params.userEModeCategory
+                oracle: params.priceOracle
             })
         );
 
@@ -136,7 +130,7 @@ library LiquidationLogic {
         );
 
         (vars.collateralYToken, vars.collateralPriceSource, vars.debtPriceSource, vars.liquidationBonus) =
-            _getConfigurationData(eModeCategories, collateralReserve, params);
+            _getConfigurationData(collateralReserve, params);
 
         vars.userCollateralBalance = vars.collateralYToken.balanceOf(params.user);
 
@@ -167,12 +161,8 @@ library LiquidationLogic {
 
         debtReserve.updateInterestRates(vars.debtReserveCache, params.debtAsset, vars.actualDebtToLiquidate, 0);
 
-        IsolationModeLogic.updateIsolatedDebtIfIsolated(
-            reservesData, reservesList, userConfig, vars.debtReserveCache, vars.actualDebtToLiquidate
-        );
-
         if (params.receiveYToken) {
-            _liquidateYTokens(reservesData, reservesList, usersConfig, collateralReserve, params, vars);
+            _liquidateYTokens(usersConfig, collateralReserve, params, vars);
         } else {
             _burnCollateralYTokens(collateralReserve, params, vars);
         }
@@ -239,16 +229,12 @@ library LiquidationLogic {
      * @notice Liquidates the user yTokens by transferring them to the liquidator.
      * @dev   The function also checks the state of the liquidator and activates the yToken as collateral
      *        as in standard transfers if the isolation mode constraints are respected.
-     * @param reservesData The state of all the reserves
-     * @param reservesList The addresses of all the active reserves
      * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
      * @param collateralReserve The data of the collateral reserve
      * @param params The additional parameters needed to execute the liquidation function
      * @param vars The executeLiquidationCall() function local vars
      */
     function _liquidateYTokens(
-        mapping(address => DataTypes.ReserveData) storage reservesData,
-        mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
         DataTypes.ReserveData storage collateralReserve,
         DataTypes.ExecuteLiquidationCallParams memory params,
@@ -259,15 +245,7 @@ library LiquidationLogic {
 
         if (liquidatorPreviousYTokenBalance == 0) {
             DataTypes.UserConfigurationMap storage liquidatorConfig = usersConfig[msg.sender];
-            if (
-                ValidationLogic.validateAutomaticUseAsCollateral(
-                    reservesData,
-                    reservesList,
-                    liquidatorConfig,
-                    collateralReserve.configuration,
-                    collateralReserve.yTokenAddress
-                )
-            ) {
+            if (ValidationLogic.validateUseAsCollateral(collateralReserve.configuration)) {
                 liquidatorConfig.setUsingAsCollateral(collateralReserve.id, true);
                 emit ReserveUsedAsCollateralEnabled(params.collateralAsset, msg.sender);
             }
@@ -334,7 +312,6 @@ library LiquidationLogic {
 
     /**
      * @notice Returns the configuration data for the debt and the collateral reserves.
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param collateralReserve The data of the collateral reserve
      * @param params The additional parameters needed to execute the liquidation function
      * @return The collateral yToken
@@ -343,7 +320,6 @@ library LiquidationLogic {
      * @return The liquidation bonus to apply to the collateral
      */
     function _getConfigurationData(
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         DataTypes.ReserveData storage collateralReserve,
         DataTypes.ExecuteLiquidationCallParams memory params
     ) internal view returns (IYToken, address, address, uint256) {
@@ -352,27 +328,6 @@ library LiquidationLogic {
 
         address collateralPriceSource = params.collateralAsset;
         address debtPriceSource = params.debtAsset;
-
-        if (params.userEModeCategory != 0) {
-            address eModePriceSource = eModeCategories[params.userEModeCategory].priceSource;
-
-            if (
-                EModeLogic.isInEModeCategory(
-                    params.userEModeCategory, collateralReserve.configuration.getEModeCategory()
-                )
-            ) {
-                liquidationBonus = eModeCategories[params.userEModeCategory].liquidationBonus;
-
-                if (eModePriceSource != address(0)) {
-                    collateralPriceSource = eModePriceSource;
-                }
-            }
-
-            // when in eMode, debt will always be in the same eMode category, can skip matching category check
-            if (eModePriceSource != address(0)) {
-                debtPriceSource = eModePriceSource;
-            }
-        }
 
         return (collateralYToken, collateralPriceSource, debtPriceSource, liquidationBonus);
     }

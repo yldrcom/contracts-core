@@ -10,7 +10,6 @@ import {PercentageMath} from "../math/PercentageMath.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
-import {EModeLogic} from "./EModeLogic.sol";
 
 /**
  * @title GenericLogic library
@@ -37,13 +36,8 @@ library GenericLogic {
         uint256 totalDebtInBaseCurrency;
         uint256 avgLtv;
         uint256 avgLiquidationThreshold;
-        uint256 eModeAssetPrice;
-        uint256 eModeLtv;
-        uint256 eModeLiqThreshold;
-        uint256 eModeAssetCategory;
         address currentReserveAddress;
         bool hasZeroLtvCollateral;
-        bool isInEModeCategory;
     }
 
     /**
@@ -52,7 +46,6 @@ library GenericLogic {
      * the average Loan To Value, the average Liquidation Ratio, and the Health factor.
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param params Additional parameters needed for the calculation
      * @return The total collateral of the user in the base currency used by the price feed
      * @return The total debt of the user in the base currency used by the price feed
@@ -64,7 +57,6 @@ library GenericLogic {
     function calculateUserAccountData(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         DataTypes.CalculateUserAccountDataParams memory params
     ) internal view returns (uint256, uint256, uint256, uint256, uint256, bool) {
         if (params.userConfig.isEmpty()) {
@@ -72,12 +64,6 @@ library GenericLogic {
         }
 
         CalculateUserAccountDataVars memory vars;
-
-        if (params.userEModeCategory != 0) {
-            (vars.eModeLtv, vars.eModeLiqThreshold, vars.eModeAssetPrice) = EModeLogic.getEModeConfiguration(
-                eModeCategories[params.userEModeCategory], IPriceOracleGetter(params.oracle)
-            );
-        }
 
         while (vars.i < params.reservesCount) {
             if (!params.userConfig.isUsingAsCollateralOrBorrowing(vars.i)) {
@@ -98,16 +84,13 @@ library GenericLogic {
 
             DataTypes.ReserveData storage currentReserve = reservesData[vars.currentReserveAddress];
 
-            (vars.ltv, vars.liquidationThreshold,, vars.decimals,, vars.eModeAssetCategory) =
-                currentReserve.configuration.getParams();
+            (vars.ltv, vars.liquidationThreshold,, vars.decimals,) = currentReserve.configuration.getParams();
 
             unchecked {
                 vars.assetUnit = 10 ** vars.decimals;
             }
 
-            vars.assetPrice = vars.eModeAssetPrice != 0 && params.userEModeCategory == vars.eModeAssetCategory
-                ? vars.eModeAssetPrice
-                : IPriceOracleGetter(params.oracle).getAssetPrice(vars.currentReserveAddress);
+            vars.assetPrice = IPriceOracleGetter(params.oracle).getAssetPrice(vars.currentReserveAddress);
 
             if (vars.liquidationThreshold != 0 && params.userConfig.isUsingAsCollateral(vars.i)) {
                 vars.userBalanceInBaseCurrency =
@@ -115,16 +98,13 @@ library GenericLogic {
 
                 vars.totalCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
 
-                vars.isInEModeCategory = EModeLogic.isInEModeCategory(params.userEModeCategory, vars.eModeAssetCategory);
-
                 if (vars.ltv != 0) {
-                    vars.avgLtv += vars.userBalanceInBaseCurrency * (vars.isInEModeCategory ? vars.eModeLtv : vars.ltv);
+                    vars.avgLtv += vars.userBalanceInBaseCurrency * vars.ltv;
                 } else {
                     vars.hasZeroLtvCollateral = true;
                 }
 
-                vars.avgLiquidationThreshold += vars.userBalanceInBaseCurrency
-                    * (vars.isInEModeCategory ? vars.eModeLiqThreshold : vars.liquidationThreshold);
+                vars.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * vars.liquidationThreshold;
             }
 
             if (params.userConfig.isBorrowing(vars.i)) {

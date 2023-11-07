@@ -41,13 +41,11 @@ library SupplyLogic {
      * @dev In the first supply action, `ReserveUsedAsCollateralEnabled()` is emitted, if the asset can be enabled as
      * collateral.
      * @param reservesData The state of all the reserves
-     * @param reservesList The addresses of all the active reserves
      * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
      * @param params The additional parameters needed to execute the supply function
      */
     function executeSupply(
         mapping(address => DataTypes.ReserveData) storage reservesData,
-        mapping(uint256 => address) storage reservesList,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.ExecuteSupplyParams memory params
     ) external {
@@ -67,15 +65,7 @@ library SupplyLogic {
         );
 
         if (isFirstSupply) {
-            if (
-                ValidationLogic.validateAutomaticUseAsCollateral(
-                    reservesData,
-                    reservesList,
-                    userConfig,
-                    reserveCache.reserveConfiguration,
-                    reserveCache.yTokenAddress
-                )
-            ) {
+            if (ValidationLogic.validateUseAsCollateral(reserveCache.reserveConfiguration)) {
                 userConfig.setUsingAsCollateral(reserve.id, true);
                 emit ReserveUsedAsCollateralEnabled(params.asset, params.onBehalfOf);
             }
@@ -91,7 +81,6 @@ library SupplyLogic {
      * @dev If the user withdraws everything, `ReserveUsedAsCollateralDisabled()` is emitted.
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
      * @param params The additional parameters needed to execute the withdraw function
      * @return The actual amount withdrawn
@@ -99,7 +88,6 @@ library SupplyLogic {
     function executeWithdraw(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.ExecuteWithdrawParams memory params
     ) external returns (uint256) {
@@ -134,15 +122,7 @@ library SupplyLogic {
 
         if (isCollateral && userConfig.isBorrowingAny()) {
             ValidationLogic.validateHFAndLtv(
-                reservesData,
-                reservesList,
-                eModeCategories,
-                userConfig,
-                params.asset,
-                msg.sender,
-                params.reservesCount,
-                params.oracle,
-                params.userEModeCategory
+                reservesData, reservesList, userConfig, params.asset, msg.sender, params.reservesCount, params.oracle
             );
         }
 
@@ -159,14 +139,12 @@ library SupplyLogic {
      * @dev In case the `from` user transfers everything, `ReserveUsedAsCollateralDisabled()` is emitted for `from`.
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
      * @param params The additional parameters needed to execute the finalizeTransfer function
      */
     function executeFinalizeTransfer(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
         DataTypes.FinalizeTransferParams memory params
     ) external {
@@ -184,13 +162,11 @@ library SupplyLogic {
                     ValidationLogic.validateHFAndLtv(
                         reservesData,
                         reservesList,
-                        eModeCategories,
                         usersConfig[params.from],
                         params.asset,
                         params.from,
                         params.reservesCount,
-                        params.oracle,
-                        params.fromEModeCategory
+                        params.oracle
                     );
                 }
                 if (params.balanceFromBefore == params.amount) {
@@ -201,11 +177,7 @@ library SupplyLogic {
 
             if (params.balanceToBefore == 0) {
                 DataTypes.UserConfigurationMap storage toConfig = usersConfig[params.to];
-                if (
-                    ValidationLogic.validateAutomaticUseAsCollateral(
-                        reservesData, reservesList, toConfig, reserve.configuration, reserve.yTokenAddress
-                    )
-                ) {
+                if (ValidationLogic.validateUseAsCollateral(reserve.configuration)) {
                     toConfig.setUsingAsCollateral(reserveId, true);
                     emit ReserveUsedAsCollateralEnabled(params.asset, params.to);
                 }
@@ -221,24 +193,20 @@ library SupplyLogic {
      * @dev In case the asset is being deactivated as collateral, `ReserveUsedAsCollateralDisabled()` is emitted.
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param userConfig The users configuration mapping that track the supplied/borrowed assets
      * @param asset The address of the asset being configured as collateral
      * @param useAsCollateral True if the user wants to set the asset as collateral, false otherwise
      * @param reservesCount The number of initialized reserves
      * @param priceOracle The address of the price oracle
-     * @param userEModeCategory The eMode category chosen by the user
      */
     function executeUseReserveAsCollateral(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         DataTypes.UserConfigurationMap storage userConfig,
         address asset,
         bool useAsCollateral,
         uint256 reservesCount,
-        address priceOracle,
-        uint8 userEModeCategory
+        address priceOracle
     ) external {
         DataTypes.ReserveData storage reserve = reservesData[asset];
         DataTypes.ReserveCache memory reserveCache = reserve.cache();
@@ -250,27 +218,14 @@ library SupplyLogic {
         if (useAsCollateral == userConfig.isUsingAsCollateral(reserve.id)) return;
 
         if (useAsCollateral) {
-            require(
-                ValidationLogic.validateUseAsCollateral(
-                    reservesData, reservesList, userConfig, reserveCache.reserveConfiguration
-                ),
-                Errors.USER_IN_ISOLATION_MODE_OR_LTV_ZERO
-            );
+            require(ValidationLogic.validateUseAsCollateral(reserveCache.reserveConfiguration), Errors.LTV_ZERO);
 
             userConfig.setUsingAsCollateral(reserve.id, true);
             emit ReserveUsedAsCollateralEnabled(asset, msg.sender);
         } else {
             userConfig.setUsingAsCollateral(reserve.id, false);
             ValidationLogic.validateHFAndLtv(
-                reservesData,
-                reservesList,
-                eModeCategories,
-                userConfig,
-                asset,
-                msg.sender,
-                reservesCount,
-                priceOracle,
-                userEModeCategory
+                reservesData, reservesList, userConfig, asset, msg.sender, reservesCount, priceOracle
             );
 
             emit ReserveUsedAsCollateralDisabled(asset, msg.sender);

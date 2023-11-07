@@ -125,32 +125,6 @@ interface IPoolConfigurator {
     event UnbackedMintCapChanged(address indexed asset, uint256 oldUnbackedMintCap, uint256 newUnbackedMintCap);
 
     /**
-     * @dev Emitted when the category of an asset in eMode is changed.
-     * @param asset The address of the underlying asset of the reserve
-     * @param oldCategoryId The old eMode asset category
-     * @param newCategoryId The new eMode asset category
-     */
-    event EModeAssetCategoryChanged(address indexed asset, uint8 oldCategoryId, uint8 newCategoryId);
-
-    /**
-     * @dev Emitted when a new eMode category is added.
-     * @param categoryId The new eMode category id
-     * @param ltv The ltv for the asset category in eMode
-     * @param liquidationThreshold The liquidationThreshold for the asset category in eMode
-     * @param liquidationBonus The liquidationBonus for the asset category in eMode
-     * @param oracle The optional address of the price oracle specific for this category
-     * @param label A human readable identifier for the category
-     */
-    event EModeCategoryAdded(
-        uint8 indexed categoryId,
-        uint256 ltv,
-        uint256 liquidationThreshold,
-        uint256 liquidationBonus,
-        address oracle,
-        string label
-    );
-
-    /**
      * @dev Emitted when a reserve interest strategy contract is updated.
      * @param asset The address of the underlying asset of the reserve
      * @param oldStrategy The address of the old interest strategy contract
@@ -183,14 +157,6 @@ interface IPoolConfigurator {
     event VariableDebtTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
 
     /**
-     * @dev Emitted when the debt ceiling of an asset is set.
-     * @param asset The address of the underlying asset of the reserve
-     * @param oldDebtCeiling The old debt ceiling
-     * @param newDebtCeiling The new debt ceiling
-     */
-    event DebtCeilingChanged(address indexed asset, uint256 oldDebtCeiling, uint256 newDebtCeiling);
-
-    /**
      * @dev Emitted when the the siloed borrowing state for an asset is changed.
      * @param asset The address of the underlying asset of the reserve
      * @param oldState The old siloed borrowing state
@@ -220,13 +186,6 @@ interface IPoolConfigurator {
     event FlashloanPremiumToProtocolUpdated(
         uint128 oldFlashloanPremiumToProtocol, uint128 newFlashloanPremiumToProtocol
     );
-
-    /**
-     * @dev Emitted when the reserve is set as borrowable/non borrowable in isolation mode.
-     * @param asset The address of the underlying asset of the reserve
-     * @param borrowable True if the reserve is borrowable in isolation, false otherwise
-     */
-    event BorrowableInIsolationChanged(address asset, bool borrowable);
 
     /**
      * @notice Initializes multiple reserves.
@@ -307,17 +266,6 @@ interface IPoolConfigurator {
     function setReserveFreeze(address asset, bool freeze) external;
 
     /**
-     * @notice Sets the borrowable in isolation flag for the reserve.
-     * @dev When this flag is set to true, the asset will be borrowable against isolated collaterals and the
-     * borrowed amount will be accumulated in the isolated collateral's total debt exposure
-     * @dev Only assets of the same family (e.g. USD stablecoins) should be borrowable in isolation mode to keep
-     * consistency in the debt ceiling calculations
-     * @param asset The address of the underlying asset of the reserve
-     * @param borrowable True if the asset should be borrowable in isolation, false otherwise
-     */
-    function setBorrowableInIsolation(address asset, bool borrowable) external;
-
-    /**
      * @notice Pauses a reserve. A paused reserve does not allow any interaction (supply, borrow, repay,
      * swap interest rate, liquidate, ytoken transfers).
      * @param asset The address of the underlying asset of the reserve
@@ -375,35 +323,6 @@ interface IPoolConfigurator {
     function setUnbackedMintCap(address asset, uint256 newUnbackedMintCap) external;
 
     /**
-     * @notice Assign an efficiency mode (eMode) category to asset.
-     * @param asset The address of the underlying asset of the reserve
-     * @param newCategoryId The new category id of the asset
-     */
-    function setAssetEModeCategory(address asset, uint8 newCategoryId) external;
-
-    /**
-     * @notice Adds a new efficiency mode (eMode) category.
-     * @dev If zero is provided as oracle address, the default asset oracles will be used to compute the overall debt and
-     * overcollateralization of the users using this category.
-     * @dev The new ltv and liquidation threshold must be greater than the base
-     * ltvs and liquidation thresholds of all assets within the eMode category
-     * @param categoryId The id of the category to be configured
-     * @param ltv The ltv associated with the category
-     * @param liquidationThreshold The liquidation threshold associated with the category
-     * @param liquidationBonus The liquidation bonus associated with the category
-     * @param oracle The oracle associated with the category
-     * @param label A label identifying the category
-     */
-    function setEModeCategory(
-        uint8 categoryId,
-        uint16 ltv,
-        uint16 liquidationThreshold,
-        uint16 liquidationBonus,
-        address oracle,
-        string calldata label
-    ) external;
-
-    /**
      * @notice Drops a reserve entirely.
      * @param asset The address of the reserve to drop
      */
@@ -433,12 +352,6 @@ interface IPoolConfigurator {
      * @param newFlashloanPremiumToProtocol The part of the flashloan premium sent to the protocol treasury
      */
     function updateFlashloanPremiumToProtocol(uint128 newFlashloanPremiumToProtocol) external;
-
-    /**
-     * @notice Sets the debt ceiling for an asset.
-     * @param newDebtCeiling The new debt ceiling
-     */
-    function setDebtCeiling(address asset, uint256 newDebtCeiling) external;
 
     /**
      * @notice Sets siloed borrowing for an asset

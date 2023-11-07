@@ -31,7 +31,6 @@ library ReserveConfiguration {
     uint256 internal constant SUPPLY_CAP_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFF000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant LIQUIDATION_PROTOCOL_FEE_MASK =
         0xFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 internal constant EMODE_CATEGORY_MASK = 0xFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant UNBACKED_MINT_CAP_MASK =
         0xFFFFFFFFFFF000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant DEBT_CEILING_MASK = 0xF0000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
@@ -52,7 +51,6 @@ library ReserveConfiguration {
     uint256 internal constant BORROW_CAP_START_BIT_POSITION = 80;
     uint256 internal constant SUPPLY_CAP_START_BIT_POSITION = 116;
     uint256 internal constant LIQUIDATION_PROTOCOL_FEE_START_BIT_POSITION = 152;
-    uint256 internal constant EMODE_CATEGORY_START_BIT_POSITION = 168;
     uint256 internal constant UNBACKED_MINT_CAP_START_BIT_POSITION = 176;
     uint256 internal constant DEBT_CEILING_START_BIT_POSITION = 212;
 
@@ -64,7 +62,6 @@ library ReserveConfiguration {
     uint256 internal constant MAX_VALID_BORROW_CAP = 68719476735;
     uint256 internal constant MAX_VALID_SUPPLY_CAP = 68719476735;
     uint256 internal constant MAX_VALID_LIQUIDATION_PROTOCOL_FEE = 65535;
-    uint256 internal constant MAX_VALID_EMODE_CATEGORY = 255;
     uint256 internal constant MAX_VALID_UNBACKED_MINT_CAP = 68719476735;
     uint256 internal constant MAX_VALID_DEBT_CEILING = 1099511627775;
 
@@ -206,33 +203,6 @@ library ReserveConfiguration {
     }
 
     /**
-     * @notice Sets the borrowable in isolation flag for the reserve.
-     * @dev When this flag is set to true, the asset will be borrowable against isolated collaterals and the borrowed
-     * amount will be accumulated in the isolated collateral's total debt exposure.
-     * @dev Only assets of the same family (eg USD stablecoins) should be borrowable in isolation mode to keep
-     * consistency in the debt ceiling calculations.
-     * @param self The reserve configuration
-     * @param borrowable True if the asset is borrowable
-     */
-    function setBorrowableInIsolation(DataTypes.ReserveConfigurationMap memory self, bool borrowable) internal pure {
-        self.data = (self.data & BORROWABLE_IN_ISOLATION_MASK)
-            | (uint256(borrowable ? 1 : 0) << BORROWABLE_IN_ISOLATION_START_BIT_POSITION);
-    }
-
-    /**
-     * @notice Gets the borrowable in isolation flag for the reserve.
-     * @dev If the returned flag is true, the asset is borrowable against isolated collateral. Assets borrowed with
-     * isolated collateral is accounted for in the isolated collateral's total debt exposure.
-     * @dev Only assets of the same family (eg USD stablecoins) should be borrowable in isolation mode to keep
-     * consistency in the debt ceiling calculations.
-     * @param self The reserve configuration
-     * @return The borrowable in isolation flag
-     */
-    function getBorrowableInIsolation(DataTypes.ReserveConfigurationMap memory self) internal pure returns (bool) {
-        return (self.data & ~BORROWABLE_IN_ISOLATION_MASK) != 0;
-    }
-
-    /**
      * @notice Sets the siloed borrowing flag for the reserve.
      * @dev When this flag is set to true, users borrowing this asset will not be allowed to borrow any other asset.
      * @param self The reserve configuration
@@ -355,26 +325,6 @@ library ReserveConfiguration {
     }
 
     /**
-     * @notice Sets the debt ceiling in isolation mode for the asset
-     * @param self The reserve configuration
-     * @param ceiling The maximum debt ceiling for the asset
-     */
-    function setDebtCeiling(DataTypes.ReserveConfigurationMap memory self, uint256 ceiling) internal pure {
-        require(ceiling <= MAX_VALID_DEBT_CEILING, Errors.INVALID_DEBT_CEILING);
-
-        self.data = (self.data & DEBT_CEILING_MASK) | (ceiling << DEBT_CEILING_START_BIT_POSITION);
-    }
-
-    /**
-     * @notice Gets the debt ceiling for the asset if the asset is in isolation mode
-     * @param self The reserve configuration
-     * @return The debt ceiling (0 = isolation mode disabled)
-     */
-    function getDebtCeiling(DataTypes.ReserveConfigurationMap memory self) internal pure returns (uint256) {
-        return (self.data & ~DEBT_CEILING_MASK) >> DEBT_CEILING_START_BIT_POSITION;
-    }
-
-    /**
      * @notice Sets the liquidation protocol fee of the reserve
      * @param self The reserve configuration
      * @param liquidationProtocolFee The liquidation protocol fee
@@ -416,26 +366,6 @@ library ReserveConfiguration {
      */
     function getUnbackedMintCap(DataTypes.ReserveConfigurationMap memory self) internal pure returns (uint256) {
         return (self.data & ~UNBACKED_MINT_CAP_MASK) >> UNBACKED_MINT_CAP_START_BIT_POSITION;
-    }
-
-    /**
-     * @notice Sets the eMode asset category
-     * @param self The reserve configuration
-     * @param category The asset category when the user selects the eMode
-     */
-    function setEModeCategory(DataTypes.ReserveConfigurationMap memory self, uint256 category) internal pure {
-        require(category <= MAX_VALID_EMODE_CATEGORY, Errors.INVALID_EMODE_CATEGORY);
-
-        self.data = (self.data & EMODE_CATEGORY_MASK) | (category << EMODE_CATEGORY_START_BIT_POSITION);
-    }
-
-    /**
-     * @dev Gets the eMode asset category
-     * @param self The reserve configuration
-     * @return The eMode category for the asset
-     */
-    function getEModeCategory(DataTypes.ReserveConfigurationMap memory self) internal pure returns (uint256) {
-        return (self.data & ~EMODE_CATEGORY_MASK) >> EMODE_CATEGORY_START_BIT_POSITION;
     }
 
     /**
@@ -490,12 +420,11 @@ library ReserveConfiguration {
      * @return The state param representing liquidation bonus
      * @return The state param representing reserve decimals
      * @return The state param representing reserve factor
-     * @return The state param representing eMode category
      */
     function getParams(DataTypes.ReserveConfigurationMap memory self)
         internal
         pure
-        returns (uint256, uint256, uint256, uint256, uint256, uint256)
+        returns (uint256, uint256, uint256, uint256, uint256)
     {
         uint256 dataLocal = self.data;
 
@@ -504,8 +433,7 @@ library ReserveConfiguration {
             (dataLocal & ~LIQUIDATION_THRESHOLD_MASK) >> LIQUIDATION_THRESHOLD_START_BIT_POSITION,
             (dataLocal & ~LIQUIDATION_BONUS_MASK) >> LIQUIDATION_BONUS_START_BIT_POSITION,
             (dataLocal & ~DECIMALS_MASK) >> RESERVE_DECIMALS_START_BIT_POSITION,
-            (dataLocal & ~RESERVE_FACTOR_MASK) >> RESERVE_FACTOR_START_BIT_POSITION,
-            (dataLocal & ~EMODE_CATEGORY_MASK) >> EMODE_CATEGORY_START_BIT_POSITION
+            (dataLocal & ~RESERVE_FACTOR_MASK) >> RESERVE_FACTOR_START_BIT_POSITION
         );
     }
 

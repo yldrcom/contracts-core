@@ -91,18 +91,11 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         DataTypes.ReserveConfigurationMap memory configuration =
             IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset);
 
-        (ltv, liquidationThreshold, liquidationBonus, decimals, reserveFactor,) = configuration.getParams();
+        (ltv, liquidationThreshold, liquidationBonus, decimals, reserveFactor) = configuration.getParams();
 
         (isActive, isFrozen, borrowingEnabled, stableBorrowRateEnabled,) = configuration.getFlags();
 
         usageAsCollateralEnabled = liquidationThreshold != 0;
-    }
-
-    /// @inheritdoc IPoolDataProvider
-    function getReserveEModeCategory(address asset) external view override returns (uint256) {
-        DataTypes.ReserveConfigurationMap memory configuration =
-            IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset);
-        return configuration.getEModeCategory();
     }
 
     /// @inheritdoc IPoolDataProvider
@@ -128,16 +121,6 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
     /// @inheritdoc IPoolDataProvider
     function getUnbackedMintCap(address asset) external view override returns (uint256) {
         return IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset).getUnbackedMintCap();
-    }
-
-    /// @inheritdoc IPoolDataProvider
-    function getDebtCeiling(address asset) external view override returns (uint256) {
-        return IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset).getDebtCeiling();
-    }
-
-    /// @inheritdoc IPoolDataProvider
-    function getDebtCeilingDecimals() external pure override returns (uint256) {
-        return ReserveConfiguration.DEBT_CEILING_DECIMALS;
     }
 
     /// @inheritdoc IPoolDataProvider

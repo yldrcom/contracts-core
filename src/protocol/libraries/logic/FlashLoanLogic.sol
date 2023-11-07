@@ -63,14 +63,12 @@ library FlashLoanLogic {
      * @dev Emits the `FlashLoan()` event
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
      * @param params The additional parameters needed to execute the flashloan function
      */
     function executeFlashLoan(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.FlashloanParams memory params
     ) external {
@@ -125,7 +123,6 @@ library FlashLoanLogic {
                 BorrowLogic.executeBorrow(
                     reservesData,
                     reservesList,
-                    eModeCategories,
                     userConfig,
                     DataTypes.ExecuteBorrowParams({
                         asset: vars.currentAsset,
@@ -138,7 +135,6 @@ library FlashLoanLogic {
                         maxStableRateBorrowSizePercent: params.maxStableRateBorrowSizePercent,
                         reservesCount: params.reservesCount,
                         oracle: IPoolAddressesProvider(params.addressesProvider).getPriceOracle(),
-                        userEModeCategory: params.userEModeCategory,
                         priceOracleSentinel: IPoolAddressesProvider(params.addressesProvider).getPriceOracleSentinel()
                     })
                 );

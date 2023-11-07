@@ -31,8 +31,6 @@ library DataTypes {
         uint128 accruedToTreasury;
         //the outstanding unbacked yTokens minted through the bridging feature
         uint128 unbacked;
-        //the outstanding debt borrowed against this asset in isolation mode
-        uint128 isolationModeTotalDebt;
     }
 
     struct ReserveConfigurationMap {
@@ -66,16 +64,6 @@ library DataTypes {
          * asset is borrowed by the user.
          */
         uint256 data;
-    }
-
-    struct EModeCategory {
-        // each eMode category has a custom ltv and liquidation threshold
-        uint16 ltv;
-        uint16 liquidationThreshold;
-        uint16 liquidationBonus;
-        // each eMode category may or may not have a custom oracle to override the individual assets price oracles
-        address priceSource;
-        string label;
     }
 
     enum InterestRateMode {
@@ -115,7 +103,6 @@ library DataTypes {
         address user;
         bool receiveYToken;
         address priceOracle;
-        uint8 userEModeCategory;
         address priceOracleSentinel;
     }
 
@@ -137,7 +124,6 @@ library DataTypes {
         uint256 maxStableRateBorrowSizePercent;
         uint256 reservesCount;
         address oracle;
-        uint8 userEModeCategory;
         address priceOracleSentinel;
     }
 
@@ -155,13 +141,6 @@ library DataTypes {
         address to;
         uint256 reservesCount;
         address oracle;
-        uint8 userEModeCategory;
-    }
-
-    struct ExecuteSetUserEModeParams {
-        uint256 reservesCount;
-        address oracle;
-        uint8 categoryId;
     }
 
     struct FinalizeTransferParams {
@@ -173,7 +152,6 @@ library DataTypes {
         uint256 balanceToBefore;
         uint256 reservesCount;
         address oracle;
-        uint8 fromEModeCategory;
     }
 
     struct FlashloanParams {
@@ -189,7 +167,6 @@ library DataTypes {
         uint256 maxStableRateBorrowSizePercent;
         uint256 reservesCount;
         address addressesProvider;
-        uint8 userEModeCategory;
         bool isAuthorizedFlashBorrower;
     }
 
@@ -217,7 +194,6 @@ library DataTypes {
         uint256 reservesCount;
         address user;
         address oracle;
-        uint8 userEModeCategory;
     }
 
     struct ValidateBorrowParams {
@@ -230,11 +206,7 @@ library DataTypes {
         uint256 maxStableLoanPercent;
         uint256 reservesCount;
         address oracle;
-        uint8 userEModeCategory;
         address priceOracleSentinel;
-        bool isolationModeActive;
-        address isolationModeCollateralAddress;
-        uint256 isolationModeDebtCeiling;
     }
 
     struct ValidateLiquidationCallParams {

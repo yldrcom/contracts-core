@@ -96,20 +96,6 @@ interface IPool {
     );
 
     /**
-     * @dev Emitted on borrow(), repay() and liquidationCall() when using isolated assets
-     * @param asset The address of the underlying asset of the reserve
-     * @param totalDebt The total isolation mode debt for the reserve
-     */
-    event IsolationModeTotalDebtUpdated(address indexed asset, uint256 totalDebt);
-
-    /**
-     * @dev Emitted when the user selects a certain asset category for eMode
-     * @param user The address of the user
-     * @param categoryId The category id
-     */
-    event UserEModeSet(address indexed user, uint8 categoryId);
-
-    /**
      * @dev Emitted on setUserUseReserveAsCollateral()
      * @param reserve The address of the underlying asset of the reserve
      * @param user The address of the user enabling the usage as collateral
@@ -594,42 +580,6 @@ interface IPool {
      * @param flashLoanPremiumToProtocol The part of the premium sent to the protocol treasury, expressed in bps
      */
     function updateFlashloanPremiums(uint128 flashLoanPremiumTotal, uint128 flashLoanPremiumToProtocol) external;
-
-    /**
-     * @notice Configures a new category for the eMode.
-     * @dev In eMode, the protocol allows very high borrowing power to borrow assets of the same category.
-     * The category 0 is reserved as it's the default for volatile assets
-     * @param id The id of the category
-     * @param config The configuration of the category
-     */
-    function configureEModeCategory(uint8 id, DataTypes.EModeCategory memory config) external;
-
-    /**
-     * @notice Returns the data of an eMode category
-     * @param id The id of the category
-     * @return The configuration data of the category
-     */
-    function getEModeCategoryData(uint8 id) external view returns (DataTypes.EModeCategory memory);
-
-    /**
-     * @notice Allows a user to use the protocol in eMode
-     * @param categoryId The id of the category
-     */
-    function setUserEMode(uint8 categoryId) external;
-
-    /**
-     * @notice Returns the eMode the user is using
-     * @param user The address of the user
-     * @return The eMode id
-     */
-    function getUserEMode(address user) external view returns (uint256);
-
-    /**
-     * @notice Resets the isolation mode total debt of the given asset to zero
-     * @dev It requires the given asset has zero debt ceiling
-     * @param asset The address of the underlying asset to reset the isolationModeTotalDebt
-     */
-    function resetIsolationModeTotalDebt(address asset) external;
 
     /**
      * @notice Returns the percentage of available liquidity that can be borrowed at once at stable rate

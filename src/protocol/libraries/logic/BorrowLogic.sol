@@ -13,7 +13,6 @@ import {Helpers} from "../helpers/Helpers.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ValidationLogic} from "./ValidationLogic.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
-import {IsolationModeLogic} from "./IsolationModeLogic.sol";
 
 /**
  * @title BorrowLogic library
@@ -45,7 +44,6 @@ library BorrowLogic {
     event SwapBorrowRateMode(
         address indexed reserve, address indexed user, DataTypes.InterestRateMode interestRateMode
     );
-    event IsolationModeTotalDebtUpdated(address indexed asset, uint256 totalDebt);
 
     /**
      * @notice Implements the borrow feature. Borrowing allows users that provided collateral to draw liquidity from the
@@ -54,14 +52,12 @@ library BorrowLogic {
      * @dev  Emits the `Borrow()` event
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
-     * @param eModeCategories The configuration of all the efficiency mode categories
      * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
      * @param params The additional parameters needed to execute the borrow function
      */
     function executeBorrow(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
-        mapping(uint8 => DataTypes.EModeCategory) storage eModeCategories,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.ExecuteBorrowParams memory params
     ) public {
@@ -70,13 +66,9 @@ library BorrowLogic {
 
         reserve.updateState(reserveCache);
 
-        (bool isolationModeActive, address isolationModeCollateralAddress, uint256 isolationModeDebtCeiling) =
-            userConfig.getIsolationModeState(reservesData, reservesList);
-
         ValidationLogic.validateBorrow(
             reservesData,
             reservesList,
-            eModeCategories,
             DataTypes.ValidateBorrowParams({
                 reserveCache: reserveCache,
                 userConfig: userConfig,
@@ -87,11 +79,7 @@ library BorrowLogic {
                 maxStableLoanPercent: params.maxStableRateBorrowSizePercent,
                 reservesCount: params.reservesCount,
                 oracle: params.oracle,
-                userEModeCategory: params.userEModeCategory,
-                priceOracleSentinel: params.priceOracleSentinel,
-                isolationModeActive: isolationModeActive,
-                isolationModeCollateralAddress: isolationModeCollateralAddress,
-                isolationModeDebtCeiling: isolationModeDebtCeiling
+                priceOracleSentinel: params.priceOracleSentinel
             })
         );
 
@@ -113,15 +101,6 @@ library BorrowLogic {
 
         if (isFirstBorrowing) {
             userConfig.setBorrowing(reserve.id, true);
-        }
-
-        if (isolationModeActive) {
-            uint256 nextIsolationModeTotalDebt = reservesData[isolationModeCollateralAddress].isolationModeTotalDebt +=
-            (
-                params.amount
-                    / 10 ** (reserveCache.reserveConfiguration.getDecimals() - ReserveConfiguration.DEBT_CEILING_DECIMALS)
-            ).toUint128();
-            emit IsolationModeTotalDebtUpdated(isolationModeCollateralAddress, nextIsolationModeTotalDebt);
         }
 
         reserve.updateInterestRates(reserveCache, params.asset, 0, params.releaseUnderlying ? params.amount : 0);
@@ -149,14 +128,12 @@ library BorrowLogic {
      * reduces the isolated debt.
      * @dev  Emits the `Repay()` event
      * @param reservesData The state of all the reserves
-     * @param reservesList The addresses of all the active reserves
      * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
      * @param params The additional parameters needed to execute the repay function
      * @return The actual amount being repaid
      */
     function executeRepay(
         mapping(address => DataTypes.ReserveData) storage reservesData,
-        mapping(uint256 => address) storage reservesList,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.ExecuteRepayParams memory params
     ) external returns (uint256) {
@@ -195,10 +172,6 @@ library BorrowLogic {
         if (stableDebt + variableDebt - paybackAmount == 0) {
             userConfig.setBorrowing(reserve.id, false);
         }
-
-        IsolationModeLogic.updateIsolatedDebtIfIsolated(
-            reservesData, reservesList, userConfig, reserveCache, paybackAmount
-        );
 
         if (params.useYTokens) {
             IYToken(reserveCache.yTokenAddress).burn(

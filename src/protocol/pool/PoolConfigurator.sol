@@ -210,14 +210,6 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     }
 
     /// @inheritdoc IPoolConfigurator
-    function setBorrowableInIsolation(address asset, bool borrowable) external override onlyRiskOrPoolAdmins {
-        DataTypes.ReserveConfigurationMap memory currentConfig = _pool.getConfiguration(asset);
-        currentConfig.setBorrowableInIsolation(borrowable);
-        _pool.setConfiguration(asset, currentConfig);
-        emit BorrowableInIsolationChanged(asset, borrowable);
-    }
-
-    /// @inheritdoc IPoolConfigurator
     function setReservePause(address asset, bool paused) public override onlyEmergencyOrPoolAdmin {
         DataTypes.ReserveConfigurationMap memory currentConfig = _pool.getConfiguration(asset);
         currentConfig.setPaused(paused);
@@ -233,24 +225,6 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
         currentConfig.setReserveFactor(newReserveFactor);
         _pool.setConfiguration(asset, currentConfig);
         emit ReserveFactorChanged(asset, oldReserveFactor, newReserveFactor);
-    }
-
-    /// @inheritdoc IPoolConfigurator
-    function setDebtCeiling(address asset, uint256 newDebtCeiling) external override onlyRiskOrPoolAdmins {
-        DataTypes.ReserveConfigurationMap memory currentConfig = _pool.getConfiguration(asset);
-
-        uint256 oldDebtCeiling = currentConfig.getDebtCeiling();
-        if (oldDebtCeiling == 0) {
-            _checkNoSuppliers(asset);
-        }
-        currentConfig.setDebtCeiling(newDebtCeiling);
-        _pool.setConfiguration(asset, currentConfig);
-
-        if (newDebtCeiling == 0) {
-            _pool.resetIsolationModeTotalDebt(asset);
-        }
-
-        emit DebtCeilingChanged(asset, oldDebtCeiling, newDebtCeiling);
     }
 
     /// @inheritdoc IPoolConfigurator
@@ -295,72 +269,6 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
         currentConfig.setLiquidationProtocolFee(newFee);
         _pool.setConfiguration(asset, currentConfig);
         emit LiquidationProtocolFeeChanged(asset, oldFee, newFee);
-    }
-
-    /// @inheritdoc IPoolConfigurator
-    function setEModeCategory(
-        uint8 categoryId,
-        uint16 ltv,
-        uint16 liquidationThreshold,
-        uint16 liquidationBonus,
-        address oracle,
-        string calldata label
-    ) external override onlyRiskOrPoolAdmins {
-        require(ltv != 0, Errors.INVALID_EMODE_CATEGORY_PARAMS);
-        require(liquidationThreshold != 0, Errors.INVALID_EMODE_CATEGORY_PARAMS);
-
-        // validation of the parameters: the LTV can
-        // only be lower or equal than the liquidation threshold
-        // (otherwise a loan against the asset would cause instantaneous liquidation)
-        require(ltv <= liquidationThreshold, Errors.INVALID_EMODE_CATEGORY_PARAMS);
-        require(liquidationBonus > PercentageMath.PERCENTAGE_FACTOR, Errors.INVALID_EMODE_CATEGORY_PARAMS);
-
-        // if threshold * bonus is less than PERCENTAGE_FACTOR, it's guaranteed that at the moment
-        // a loan is taken there is enough collateral available to cover the liquidation bonus
-        require(
-            uint256(liquidationThreshold).percentMul(liquidationBonus) <= PercentageMath.PERCENTAGE_FACTOR,
-            Errors.INVALID_EMODE_CATEGORY_PARAMS
-        );
-
-        address[] memory reserves = _pool.getReservesList();
-        for (uint256 i = 0; i < reserves.length; i++) {
-            DataTypes.ReserveConfigurationMap memory currentConfig = _pool.getConfiguration(reserves[i]);
-            if (categoryId == currentConfig.getEModeCategory()) {
-                require(ltv > currentConfig.getLtv(), Errors.INVALID_EMODE_CATEGORY_PARAMS);
-                require(
-                    liquidationThreshold > currentConfig.getLiquidationThreshold(), Errors.INVALID_EMODE_CATEGORY_PARAMS
-                );
-            }
-        }
-
-        _pool.configureEModeCategory(
-            categoryId,
-            DataTypes.EModeCategory({
-                ltv: ltv,
-                liquidationThreshold: liquidationThreshold,
-                liquidationBonus: liquidationBonus,
-                priceSource: oracle,
-                label: label
-            })
-        );
-        emit EModeCategoryAdded(categoryId, ltv, liquidationThreshold, liquidationBonus, oracle, label);
-    }
-
-    /// @inheritdoc IPoolConfigurator
-    function setAssetEModeCategory(address asset, uint8 newCategoryId) external override onlyRiskOrPoolAdmins {
-        DataTypes.ReserveConfigurationMap memory currentConfig = _pool.getConfiguration(asset);
-
-        if (newCategoryId != 0) {
-            DataTypes.EModeCategory memory categoryData = _pool.getEModeCategoryData(newCategoryId);
-            require(
-                categoryData.liquidationThreshold > currentConfig.getLiquidationThreshold(),
-                Errors.INVALID_EMODE_CATEGORY_ASSIGNMENT
-            );
-        }
-        uint256 oldCategoryId = currentConfig.getEModeCategory();
-        currentConfig.setEModeCategory(newCategoryId);
-        _pool.setConfiguration(asset, currentConfig);
-        emit EModeAssetCategoryChanged(asset, uint8(oldCategoryId), newCategoryId);
     }
 
     /// @inheritdoc IPoolConfigurator

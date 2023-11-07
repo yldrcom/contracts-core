@@ -37,7 +37,6 @@ library BridgeLogic {
      * @dev Emits the `MintUnbacked` event
      * @dev Emits the `ReserveUsedAsCollateralEnabled` if asset is set as collateral
      * @param reservesData The state of all the reserves
-     * @param reservesList The addresses of all the active reserves
      * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
      * @param asset The address of the underlying asset to mint yTokens of
      * @param amount The amount to mint
@@ -47,7 +46,6 @@ library BridgeLogic {
      */
     function executeMintUnbacked(
         mapping(address => DataTypes.ReserveData) storage reservesData,
-        mapping(uint256 => address) storage reservesList,
         DataTypes.UserConfigurationMap storage userConfig,
         address asset,
         uint256 amount,
@@ -74,15 +72,7 @@ library BridgeLogic {
             IYToken(reserveCache.yTokenAddress).mint(msg.sender, onBehalfOf, amount, reserveCache.nextLiquidityIndex);
 
         if (isFirstSupply) {
-            if (
-                ValidationLogic.validateAutomaticUseAsCollateral(
-                    reservesData,
-                    reservesList,
-                    userConfig,
-                    reserveCache.reserveConfiguration,
-                    reserveCache.yTokenAddress
-                )
-            ) {
+            if (ValidationLogic.validateUseAsCollateral(reserveCache.reserveConfiguration)) {
                 userConfig.setUsingAsCollateral(reserve.id, true);
                 emit ReserveUsedAsCollateralEnabled(asset, onBehalfOf);
             }
