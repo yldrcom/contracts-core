@@ -544,6 +544,18 @@ interface IPool {
     ) external;
 
     /**
+     * @notice Validates and finalizes an nToken transfer
+     * @dev Only callable by the overlying nToken of the `asset`
+     * @param asset The address of the underlying asset of the nToken
+     * @param from The user from which the nToken are transferred
+     * @param to The user receiving the nToken
+     * @param ids The ids of tokens being transferred/withdrawn
+     * @param amounts The amounts being transferred/withdrawn
+     */
+    function finalizeERC1155Transfer(address asset, address from, address to, uint256[] calldata ids, uint256[] calldata amounts)
+        external;
+
+    /**
      * @notice Returns the list of the underlying assets of all the initialized reserves
      * @dev It does not include dropped reserves
      * @return The addresses of the underlying assets of the initialized reserves

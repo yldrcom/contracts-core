@@ -515,6 +515,13 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     }
 
     /// @inheritdoc IPool
+    function finalizeERC1155Transfer(address asset, address from, address to, uint256[] calldata ids, uint256[] calldata amounts)
+        external
+        virtual
+        override
+    {}
+
+    /// @inheritdoc IPool
     function initReserve(
         address asset,
         address yTokenAddress,
