@@ -137,6 +137,25 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     }
 
     /// @inheritdoc IPool
+    function supplyERC1155(address asset, uint256 tokenId, uint256 amount, address onBehalfOf, uint16 referralCode)
+        public
+        virtual
+        override
+    {
+        SupplyLogic.executeSupplyERC1155(
+            _erc1155Reserves,
+            _usersERC1155Config[onBehalfOf],
+            DataTypes.ExecuteSupplyERC1155Params({
+                asset: asset,
+                tokenId: tokenId,
+                amount: amount,
+                onBehalfOf: onBehalfOf,
+                referralCode: referralCode
+            })
+        );
+    }
+
+    /// @inheritdoc IPool
     function supplyWithPermit(
         address asset,
         uint256 amount,

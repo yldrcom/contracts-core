@@ -44,6 +44,24 @@ interface IPool {
     );
 
     /**
+     * @dev Emitted on supplyERC1155()
+     * @param reserve The address of the underlying asset of the reserve
+     * @param user The address initiating the supply
+     * @param onBehalfOf The beneficiary of the supply, receiving the yTokens
+     * @param tokenId The tokenId supplied
+     * @param amount The amount supplied
+     * @param referralCode The referral code used
+     */
+    event SupplyERC1155(
+        address indexed reserve,
+        address user,
+        address indexed onBehalfOf,
+        uint256 tokenId,
+        uint256 amount,
+        uint16 indexed referralCode
+    );
+
+    /**
      * @dev Emitted on withdraw()
      * @param reserve The address of the underlying asset being withdrawn
      * @param user The address initiating the withdrawal, owner of yTokens
@@ -108,6 +126,14 @@ interface IPool {
      * @param user The address of the user enabling the usage as collateral
      */
     event ReserveUsedAsCollateralDisabled(address indexed reserve, address indexed user);
+
+    /**
+     * @dev Emitted on setUserUseERC1155ReserveAsCollateral()
+     * @param reserve The address of the underlying asset of the reserve
+     * @param tokenId The tokenId of token being enabled as collateral
+     * @param user The address of the user enabling the usage as collateral
+     */
+    event ERC1155ReserveUsedAsCollateralEnabled(address indexed reserve, uint256 indexed tokenId, address indexed user);
 
     /**
      * @dev Emitted on rebalanceStableBorrowRate()
@@ -213,6 +239,20 @@ interface IPool {
      *   0 if the action is executed directly by the user, without any middle-man
      */
     function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+
+    /**
+     * @notice Supplies an `tokenId` of underlying asset into the reserve, receiving in return overlying nTokens.
+     * @param asset The address of the underlying asset to supply
+     * @param tokenId The tokenId to be supplied
+     * @param amount The amount to be supplied
+     * @param onBehalfOf The address that will receive the nTokens, same as msg.sender if the user
+     *   wants to receive them on his own wallet, or a different address if the beneficiary of nTokens
+     *   is a different wallet
+     * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
+     *   0 if the action is executed directly by the user, without any middle-man
+     */
+    function supplyERC1155(address asset, uint256 tokenId, uint256 amount, address onBehalfOf, uint16 referralCode)
+        external;
 
     /**
      * @notice Supply with transfer approval of asset to be supplied done via permit function

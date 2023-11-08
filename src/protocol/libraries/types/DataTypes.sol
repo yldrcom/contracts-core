@@ -57,6 +57,16 @@ library DataTypes {
         uint256 data;
     }
 
+    struct ERC1155ReserveData {
+        address nTokenAddress;
+        bool isActive;
+        bool isFrozen;
+        bool isPaused;
+        uint256 ltv;
+        //the id of the reserve. Represents the position in the list of the active ERC1155 reserves
+        uint16 id;
+    }
+
     struct UserConfigurationMap {
         /**
          * @dev Bitmap of the users collaterals and borrows. It is divided in pairs of bits, one pair per asset.
@@ -64,6 +74,19 @@ library DataTypes {
          * asset is borrowed by the user.
          */
         uint256 data;
+    }
+
+    struct ERC1155ReserveUsageData {
+        uint256 reserveId;
+        uint256 tokenId;
+    }
+
+    struct UserERC1155ConfigurationMap {
+        // List of ERC1155 reserves used by user
+        ERC1155ReserveUsageData[] usedERC1155Reserves;
+        // Mapping matching given reserveId and tokenId to index in usedERC1155Reserves array + 1
+        // Index 0 is used for not used reserves
+        mapping(uint256 reserveId => mapping(uint256 tokenId => uint256 indexPlus1)) usedERC1155ReservesMap;
     }
 
     enum InterestRateMode {
@@ -95,6 +118,14 @@ library DataTypes {
         uint40 stableDebtLastUpdateTimestamp;
     }
 
+    struct ERC1155ReserveCache {
+        address nTokenAddress;
+        bool isActive;
+        bool isFrozen;
+        bool isPaused;
+        uint256 ltv;
+    }
+
     struct ExecuteLiquidationCallParams {
         uint256 reservesCount;
         uint256 debtToCover;
@@ -108,6 +139,14 @@ library DataTypes {
 
     struct ExecuteSupplyParams {
         address asset;
+        uint256 amount;
+        address onBehalfOf;
+        uint16 referralCode;
+    }
+
+    struct ExecuteSupplyERC1155Params {
+        address asset;
+        uint256 tokenId;
         uint256 amount;
         address onBehalfOf;
         uint16 referralCode;

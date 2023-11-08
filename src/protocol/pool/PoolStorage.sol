@@ -20,12 +20,22 @@ contract PoolStorage {
     // Map of reserves and their data (underlyingAssetOfReserve => reserveData)
     mapping(address => DataTypes.ReserveData) internal _reserves;
 
+    // Map of ERC1155 reserves and their data (underlyingAssetOfReserve => reserveData)
+    mapping(address => DataTypes.ERC1155ReserveData) internal _erc1155Reserves;
+
     // Map of users address and their configuration data (userAddress => userConfiguration)
     mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;
+
+    // Map of users address and their configuration data for ERC1155 reserves (userAddress => userConfiguration)
+    mapping(address => DataTypes.UserERC1155ConfigurationMap) internal _usersERC1155Config;
 
     // List of reserves as a map (reserveId => reserve).
     // It is structured as a mapping for gas savings reasons, using the reserve id as index
     mapping(uint256 => address) internal _reservesList;
+
+    // List of ERC1155 reserves as a map (reserveId => reserve).
+    // It is structured as a mapping for gas savings reasons, using the reserve id as index
+    mapping(uint256 => address) internal _erc1155ReservesList;
 
     // Fee of the protocol bridge, expressed in bps
     uint256 internal _bridgeProtocolFee;

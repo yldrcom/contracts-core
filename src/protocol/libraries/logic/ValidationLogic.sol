@@ -82,6 +82,19 @@ library ValidationLogic {
     }
 
     /**
+     * @notice Validates a supply action.
+     * @param reserveCache The cached data of the reserve
+     * @param amount The amount to be supplied
+     */
+    function validateSupplyERC1155(DataTypes.ERC1155ReserveCache memory reserveCache, uint256 amount) internal pure {
+        require(amount != 0, Errors.INVALID_AMOUNT);
+
+        require(reserveCache.isActive, Errors.RESERVE_INACTIVE);
+        require(!reserveCache.isPaused, Errors.RESERVE_PAUSED);
+        require(!reserveCache.isFrozen, Errors.RESERVE_FROZEN);
+    }
+
+    /**
      * @notice Validates a withdraw action.
      * @param reserveCache The cached data of the reserve
      * @param amount The amount to be withdrawn
@@ -565,5 +578,19 @@ library ValidationLogic {
         returns (bool)
     {
         return reserveConfig.getLtv() != 0;
+    }
+
+    /**
+     * @notice Validates the action of activating the asset as collateral.
+     * @dev Only possible if the asset has non-zero LTV
+     * @param reserveCache The reserve configuration
+     * @return True if the asset can be activated as collateral, false otherwise
+     */
+    function validateUseERC1155AsCollateral(DataTypes.ERC1155ReserveCache memory reserveCache)
+        internal
+        pure
+        returns (bool)
+    {
+        return reserveCache.ltv != 0;
     }
 }

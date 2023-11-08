@@ -2,16 +2,20 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from "../../../dependencies/openzeppelin/contracts/IERC20.sol";
+import {IERC1155} from "../../../dependencies/openzeppelin/contracts/IERC1155.sol";
 import {GPv2SafeERC20} from "../../../dependencies/gnosis/contracts/GPv2SafeERC20.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
+import {INToken} from "../../../interfaces/INToken.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
+import {UserERC1155Configuration} from "../configuration/UserERC1155Configuration.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
 import {PercentageMath} from "../math/PercentageMath.sol";
 import {ValidationLogic} from "./ValidationLogic.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
+import {ERC1155ReserveLogic} from "./ERC1155ReserveLogic.sol";
 
 /**
  * @title SupplyLogic library
@@ -21,8 +25,11 @@ import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 library SupplyLogic {
     using ReserveLogic for DataTypes.ReserveCache;
     using ReserveLogic for DataTypes.ReserveData;
+    using ERC1155ReserveLogic for DataTypes.ERC1155ReserveCache;
+    using ERC1155ReserveLogic for DataTypes.ERC1155ReserveData;
     using GPv2SafeERC20 for IERC20;
     using UserConfiguration for DataTypes.UserConfigurationMap;
+    using UserERC1155Configuration for DataTypes.UserERC1155ConfigurationMap;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using WadRayMath for uint256;
     using PercentageMath for uint256;
@@ -30,9 +37,18 @@ library SupplyLogic {
     // See `IPool` for descriptions
     event ReserveUsedAsCollateralEnabled(address indexed reserve, address indexed user);
     event ReserveUsedAsCollateralDisabled(address indexed reserve, address indexed user);
+    event ERC1155ReserveUsedAsCollateralEnabled(address indexed reserve, uint256 indexed tokenId, address indexed user);
     event Withdraw(address indexed reserve, address indexed user, address indexed to, uint256 amount);
     event Supply(
         address indexed reserve, address user, address indexed onBehalfOf, uint256 amount, uint16 indexed referralCode
+    );
+    event SupplyERC1155(
+        address indexed reserve,
+        address user,
+        address indexed onBehalfOf,
+        uint256 tokenId,
+        uint256 amount,
+        uint16 indexed referralCode
     );
 
     /**
@@ -72,6 +88,44 @@ library SupplyLogic {
         }
 
         emit Supply(params.asset, msg.sender, params.onBehalfOf, params.amount, params.referralCode);
+    }
+
+    /**
+     * @notice Implements the supply ERC1155 feature. Through `supplyERC1155()`, users supply assets to the YLDR protocol.
+     * @dev Emits the `SupplyERC1155()` event.
+     * @dev In the first supply action, `ERC1155ReserveUsedAsCollateralEnabled()` is emitted, if the asset can be enabled as
+     * collateral.
+     * @param erc1155ReservesData The state of all the reserves
+     * @param userERC1155Config The user configuration mapping that tracks the supplied/borrowed ERC1155 assets
+     * @param params The additional parameters needed to execute the supply function
+     */
+    function executeSupplyERC1155(
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
+        DataTypes.ExecuteSupplyERC1155Params memory params
+    ) external {
+        DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[params.asset];
+        DataTypes.ERC1155ReserveCache memory reserveCache = reserve.cache();
+
+        ValidationLogic.validateSupplyERC1155(reserveCache, params.amount);
+
+        IERC1155(params.asset).safeTransferFrom(
+            msg.sender, reserveCache.nTokenAddress, params.tokenId, params.amount, bytes("")
+        );
+
+        bool isFirstSupply =
+            INToken(reserveCache.nTokenAddress).mint(msg.sender, params.onBehalfOf, params.tokenId, params.amount);
+
+        if (isFirstSupply) {
+            if (ValidationLogic.validateUseERC1155AsCollateral(reserveCache)) {
+                userERC1155Config.setUsingERC1155AsCollateral(reserve.id, params.tokenId, true);
+                emit ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
+            }
+        }
+
+        emit SupplyERC1155(
+            params.asset, msg.sender, params.onBehalfOf, params.tokenId, params.amount, params.referralCode
+        );
     }
 
     /**
