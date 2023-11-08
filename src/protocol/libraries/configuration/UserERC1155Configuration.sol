@@ -45,4 +45,13 @@ library UserERC1155Configuration {
             }
         }
     }
+
+    /**
+     * @notice Checks if a user has been supplying any reserve as collateral
+     * @param self The configuration object
+     * @return True if the user has been supplying as collateral any reserve, false otherwise
+     */
+    function isUsingAsCollateralAny(DataTypes.UserERC1155ConfigurationMap storage self) internal view returns (bool) {
+        return self.usedERC1155Reserves.length > 0;
+    }
 }

@@ -143,6 +143,9 @@ library ValidationLogic {
     function validateBorrow(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ValidateBorrowParams memory params
     ) internal view {
         require(params.amount != 0, Errors.INVALID_AMOUNT);
@@ -191,6 +194,9 @@ library ValidationLogic {
         GenericLogic.calculateUserAccountData(
             reservesData,
             reservesList,
+            erc1155ReservesData,
+            erc1155ReservesList,
+            userERC1155Config,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: params.userConfig,
                 reservesCount: params.reservesCount,
@@ -479,27 +485,27 @@ library ValidationLogic {
      * @notice Validates the health factor of a user.
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
-     * @param userConfig The state of the user for the specific reserve
-     * @param user The user to validate health factor of
-     * @param reservesCount The number of available reserves
-     * @param oracle The price oracle
+     * @param params Additional parameters needed for the validation
      */
     function validateHealthFactor(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
-        DataTypes.UserConfigurationMap memory userConfig,
-        address user,
-        uint256 reservesCount,
-        address oracle
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
+        DataTypes.ValidateHealthFactorParams memory params
     ) internal view returns (uint256, bool) {
         (,,,, uint256 healthFactor, bool hasZeroLtvCollateral) = GenericLogic.calculateUserAccountData(
             reservesData,
             reservesList,
+            erc1155ReservesData,
+            erc1155ReservesList,
+            userERC1155Config,
             DataTypes.CalculateUserAccountDataParams({
-                userConfig: userConfig,
-                reservesCount: reservesCount,
-                user: user,
-                oracle: oracle
+                userConfig: params.userConfig,
+                reservesCount: params.reservesCount,
+                user: params.user,
+                oracle: params.oracle
             })
         );
 
@@ -523,7 +529,10 @@ library ValidationLogic {
     function validateHFAndLtv(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap memory userConfig,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         address asset,
         address from,
         uint256 reservesCount,
@@ -531,8 +540,19 @@ library ValidationLogic {
     ) internal view {
         DataTypes.ReserveData memory reserve = reservesData[asset];
 
-        (, bool hasZeroLtvCollateral) =
-            validateHealthFactor(reservesData, reservesList, userConfig, from, reservesCount, oracle);
+        (, bool hasZeroLtvCollateral) = validateHealthFactor(
+            reservesData,
+            reservesList,
+            erc1155ReservesData,
+            erc1155ReservesList,
+            userERC1155Config,
+            DataTypes.ValidateHealthFactorParams({
+                userConfig: userConfig,
+                user: from,
+                reservesCount: reservesCount,
+                oracle: oracle
+            })
+        );
 
         require(!hasZeroLtvCollateral || reserve.configuration.getLtv() == 0, Errors.LTV_VALIDATION_FAILED);
     }

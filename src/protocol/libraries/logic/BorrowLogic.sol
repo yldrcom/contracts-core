@@ -58,7 +58,10 @@ library BorrowLogic {
     function executeBorrow(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap storage userConfig,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ExecuteBorrowParams memory params
     ) public {
         DataTypes.ReserveData storage reserve = reservesData[params.asset];
@@ -69,6 +72,9 @@ library BorrowLogic {
         ValidationLogic.validateBorrow(
             reservesData,
             reservesList,
+            erc1155ReservesData,
+            erc1155ReservesList,
+            userERC1155Config,
             DataTypes.ValidateBorrowParams({
                 reserveCache: reserveCache,
                 userConfig: userConfig,

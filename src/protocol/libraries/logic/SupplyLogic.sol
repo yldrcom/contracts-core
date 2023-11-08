@@ -128,6 +128,12 @@ library SupplyLogic {
         );
     }
 
+    struct ExecuteWithdrawLocalVars {
+        DataTypes.ReserveCache reserveCache;
+        uint256 userBalance;
+        uint256 amountToWithdraw;
+    }
+
     /**
      * @notice Implements the withdraw feature. Through `withdraw()`, users redeem their yTokens for the underlying asset
      * previously supplied in the YLDR protocol.
@@ -142,47 +148,62 @@ library SupplyLogic {
     function executeWithdraw(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap storage userConfig,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ExecuteWithdrawParams memory params
     ) external returns (uint256) {
+        ExecuteWithdrawLocalVars memory vars;
+
         DataTypes.ReserveData storage reserve = reservesData[params.asset];
-        DataTypes.ReserveCache memory reserveCache = reserve.cache();
+        vars.reserveCache = reserve.cache();
 
-        reserve.updateState(reserveCache);
+        reserve.updateState(vars.reserveCache);
 
-        uint256 userBalance =
-            IYToken(reserveCache.yTokenAddress).scaledBalanceOf(msg.sender).rayMul(reserveCache.nextLiquidityIndex);
+        vars.userBalance = IYToken(vars.reserveCache.yTokenAddress).scaledBalanceOf(msg.sender).rayMul(
+            vars.reserveCache.nextLiquidityIndex
+        );
 
-        uint256 amountToWithdraw = params.amount;
+        vars.amountToWithdraw = params.amount;
 
         if (params.amount == type(uint256).max) {
-            amountToWithdraw = userBalance;
+            vars.amountToWithdraw = vars.userBalance;
         }
 
-        ValidationLogic.validateWithdraw(reserveCache, amountToWithdraw, userBalance);
+        ValidationLogic.validateWithdraw(vars.reserveCache, vars.amountToWithdraw, vars.userBalance);
 
-        reserve.updateInterestRates(reserveCache, params.asset, 0, amountToWithdraw);
+        reserve.updateInterestRates(vars.reserveCache, params.asset, 0, vars.amountToWithdraw);
 
         bool isCollateral = userConfig.isUsingAsCollateral(reserve.id);
 
-        if (isCollateral && amountToWithdraw == userBalance) {
+        if (isCollateral && vars.amountToWithdraw == vars.userBalance) {
             userConfig.setUsingAsCollateral(reserve.id, false);
             emit ReserveUsedAsCollateralDisabled(params.asset, msg.sender);
         }
 
-        IYToken(reserveCache.yTokenAddress).burn(
-            msg.sender, params.to, amountToWithdraw, reserveCache.nextLiquidityIndex
+        IYToken(vars.reserveCache.yTokenAddress).burn(
+            msg.sender, params.to, vars.amountToWithdraw, vars.reserveCache.nextLiquidityIndex
         );
 
         if (isCollateral && userConfig.isBorrowingAny()) {
             ValidationLogic.validateHFAndLtv(
-                reservesData, reservesList, userConfig, params.asset, msg.sender, params.reservesCount, params.oracle
+                reservesData,
+                reservesList,
+                erc1155ReservesData,
+                erc1155ReservesList,
+                userConfig,
+                userERC1155Config,
+                params.asset,
+                msg.sender,
+                params.reservesCount,
+                params.oracle
             );
         }
 
-        emit Withdraw(params.asset, msg.sender, params.to, amountToWithdraw);
+        emit Withdraw(params.asset, msg.sender, params.to, vars.amountToWithdraw);
 
-        return amountToWithdraw;
+        return vars.amountToWithdraw;
     }
 
     /**
@@ -199,7 +220,10 @@ library SupplyLogic {
     function executeFinalizeTransfer(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
+        mapping(address => DataTypes.UserERC1155ConfigurationMap) storage usersERC1155Config,
         DataTypes.FinalizeTransferParams memory params
     ) external {
         DataTypes.ReserveData storage reserve = reservesData[params.asset];
@@ -216,7 +240,10 @@ library SupplyLogic {
                     ValidationLogic.validateHFAndLtv(
                         reservesData,
                         reservesList,
+                        erc1155ReservesData,
+                        erc1155ReservesList,
                         usersConfig[params.from],
+                        usersERC1155Config[params.from],
                         params.asset,
                         params.from,
                         params.reservesCount,
@@ -256,7 +283,10 @@ library SupplyLogic {
     function executeUseReserveAsCollateral(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap storage userConfig,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         address asset,
         bool useAsCollateral,
         uint256 reservesCount,
@@ -279,7 +309,16 @@ library SupplyLogic {
         } else {
             userConfig.setUsingAsCollateral(reserve.id, false);
             ValidationLogic.validateHFAndLtv(
-                reservesData, reservesList, userConfig, asset, msg.sender, reservesCount, priceOracle
+                reservesData,
+                reservesList,
+                erc1155ReservesData,
+                erc1155ReservesList,
+                userConfig,
+                userERC1155Config,
+                asset,
+                msg.sender,
+                reservesCount,
+                priceOracle
             );
 
             emit ReserveUsedAsCollateralDisabled(asset, msg.sender);

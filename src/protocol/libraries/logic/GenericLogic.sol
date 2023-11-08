@@ -2,10 +2,13 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from "../../../dependencies/openzeppelin/contracts/IERC20.sol";
+import {IERC1155Supply} from "../../../interfaces/IERC1155Supply.sol";
 import {IScaledBalanceToken} from "../../../interfaces/IScaledBalanceToken.sol";
 import {IPriceOracleGetter} from "../../../interfaces/IPriceOracleGetter.sol";
+import {INToken} from "../../../interfaces/INToken.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
+import {UserERC1155Configuration} from "../configuration/UserERC1155Configuration.sol";
 import {PercentageMath} from "../math/PercentageMath.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
 import {DataTypes} from "../types/DataTypes.sol";
@@ -22,6 +25,7 @@ library GenericLogic {
     using PercentageMath for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using UserConfiguration for DataTypes.UserConfigurationMap;
+    using UserERC1155Configuration for DataTypes.UserERC1155ConfigurationMap;
 
     struct CalculateUserAccountDataVars {
         uint256 assetPrice;
@@ -37,6 +41,7 @@ library GenericLogic {
         uint256 avgLtv;
         uint256 avgLiquidationThreshold;
         address currentReserveAddress;
+        uint256 currentReserveTokenId;
         bool hasZeroLtvCollateral;
     }
 
@@ -57,9 +62,12 @@ library GenericLogic {
     function calculateUserAccountData(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.CalculateUserAccountDataParams memory params
     ) internal view returns (uint256, uint256, uint256, uint256, uint256, bool) {
-        if (params.userConfig.isEmpty()) {
+        if (params.userConfig.isEmpty() && !userERC1155Config.isUsingAsCollateralAny()) {
             return (0, 0, 0, 0, type(uint256).max, false);
         }
 
@@ -114,6 +122,36 @@ library GenericLogic {
 
             unchecked {
                 ++vars.i;
+            }
+        }
+
+        for (vars.i = 0; vars.i < userERC1155Config.usedERC1155Reserves.length; vars.i++) {
+            vars.currentReserveAddress = erc1155ReservesList[userERC1155Config.usedERC1155Reserves[vars.i].reserveId];
+            vars.currentReserveTokenId = userERC1155Config.usedERC1155Reserves[vars.i].tokenId;
+
+            DataTypes.ERC1155ReserveData storage currentReserve = erc1155ReservesData[vars.currentReserveAddress];
+
+            vars.assetPrice = IPriceOracleGetter(params.oracle).getERC1155AssetPrice(
+                vars.currentReserveAddress, vars.currentReserveTokenId
+            );
+
+            vars.liquidationThreshold = currentReserve.liquidationThreshold;
+            vars.ltv = currentReserve.ltv;
+
+            if (vars.liquidationThreshold != 0) {
+                vars.userBalanceInBaseCurrency = INToken(currentReserve.nTokenAddress).balanceOf(
+                    params.user, vars.currentReserveTokenId
+                ) * vars.assetPrice / IERC1155Supply(vars.currentReserveAddress).totalSupply(vars.currentReserveTokenId);
+
+                vars.totalCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
+
+                if (vars.ltv != 0) {
+                    vars.avgLtv += vars.userBalanceInBaseCurrency * vars.ltv;
+                } else {
+                    vars.hasZeroLtvCollateral = true;
+                }
+
+                vars.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * vars.liquidationThreshold;
             }
         }
 

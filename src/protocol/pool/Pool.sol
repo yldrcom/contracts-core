@@ -184,7 +184,10 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         return SupplyLogic.executeWithdraw(
             _reserves,
             _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
             _usersConfig[msg.sender],
+            _usersERC1155Config[msg.sender],
             DataTypes.ExecuteWithdrawParams({
                 asset: asset,
                 amount: amount,
@@ -204,7 +207,10 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         BorrowLogic.executeBorrow(
             _reserves,
             _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
             _usersConfig[onBehalfOf],
+            _usersERC1155Config[onBehalfOf],
             DataTypes.ExecuteBorrowParams({
                 asset: asset,
                 user: msg.sender,
@@ -304,7 +310,10 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         SupplyLogic.executeUseReserveAsCollateral(
             _reserves,
             _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
             _usersConfig[msg.sender],
+            _usersERC1155Config[msg.sender],
             asset,
             useAsCollateral,
             _reservesCount,
@@ -323,7 +332,10 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         LiquidationLogic.executeLiquidationCall(
             _reserves,
             _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
             _usersConfig,
+            _usersERC1155Config,
             DataTypes.ExecuteLiquidationCallParams({
                 reservesCount: _reservesCount,
                 debtToCover: debtToCover,
@@ -363,7 +375,15 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
             isAuthorizedFlashBorrower: IACLManager(ADDRESSES_PROVIDER.getACLManager()).isFlashBorrower(msg.sender)
         });
 
-        FlashLoanLogic.executeFlashLoan(_reserves, _reservesList, _usersConfig[onBehalfOf], flashParams);
+        FlashLoanLogic.executeFlashLoan(
+            _reserves,
+            _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
+            _usersConfig[onBehalfOf],
+            _usersERC1155Config[onBehalfOf],
+            flashParams
+        );
     }
 
     /// @inheritdoc IPool
@@ -411,15 +431,14 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
             uint256 healthFactor
         )
     {
+        DataTypes.CalculateUserAccountDataParams memory params = DataTypes.CalculateUserAccountDataParams({
+            userConfig: _usersConfig[user],
+            reservesCount: _reservesCount,
+            user: user,
+            oracle: ADDRESSES_PROVIDER.getPriceOracle()
+        });
         return PoolLogic.executeGetUserAccountData(
-            _reserves,
-            _reservesList,
-            DataTypes.CalculateUserAccountDataParams({
-                userConfig: _usersConfig[user],
-                reservesCount: _reservesCount,
-                user: user,
-                oracle: ADDRESSES_PROVIDER.getPriceOracle()
-            })
+            _reserves, _reservesList, _erc1155Reserves, _erc1155ReservesList, _usersERC1155Config[user], params
         );
     }
 
@@ -519,7 +538,10 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         SupplyLogic.executeFinalizeTransfer(
             _reserves,
             _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
             _usersConfig,
+            _usersERC1155Config,
             DataTypes.FinalizeTransferParams({
                 asset: asset,
                 from: from,

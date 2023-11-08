@@ -63,6 +63,7 @@ library DataTypes {
         bool isFrozen;
         bool isPaused;
         uint256 ltv;
+        uint256 liquidationThreshold;
         //the id of the reserve. Represents the position in the list of the active ERC1155 reserves
         uint16 id;
     }
@@ -253,6 +254,13 @@ library DataTypes {
         uint256 totalDebt;
         uint256 healthFactor;
         address priceOracleSentinel;
+    }
+
+    struct ValidateHealthFactorParams {
+        UserConfigurationMap userConfig;
+        address user;
+        uint256 reservesCount;
+        address oracle;
     }
 
     struct CalculateInterestRatesParams {

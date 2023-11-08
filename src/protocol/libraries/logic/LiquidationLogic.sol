@@ -93,7 +93,10 @@ library LiquidationLogic {
     function executeLiquidationCall(
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
+        mapping(address => DataTypes.UserERC1155ConfigurationMap) storage usersERC1155Config,
         DataTypes.ExecuteLiquidationCallParams memory params
     ) external {
         LiquidationCallLocalVars memory vars;
@@ -101,12 +104,16 @@ library LiquidationLogic {
         DataTypes.ReserveData storage collateralReserve = reservesData[params.collateralAsset];
         DataTypes.ReserveData storage debtReserve = reservesData[params.debtAsset];
         DataTypes.UserConfigurationMap storage userConfig = usersConfig[params.user];
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config = usersERC1155Config[params.user];
         vars.debtReserveCache = debtReserve.cache();
         debtReserve.updateState(vars.debtReserveCache);
 
         (,,,, vars.healthFactor,) = GenericLogic.calculateUserAccountData(
             reservesData,
             reservesList,
+            erc1155ReservesData,
+            erc1155ReservesList,
+            userERC1155Config,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: userConfig,
                 reservesCount: params.reservesCount,
