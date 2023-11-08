@@ -27,4 +27,13 @@ interface IPriceOracleGetter {
      * @return The price of the asset
      */
     function getAssetPrice(address asset) external view returns (uint256);
+
+    /**
+     * @notice Returns the ERC1155 asset price in the base currency
+     * It returns the price of totalSupply of given tokenId. To calculate partial amount, use price * shares / totalSupply
+     * @param asset The address of the asset
+     * @param tokenId The tokenId of the asset
+     * @return The price of the asset
+     */
+    function getERC1155AssetPrice(address asset, uint256 tokenId) external view returns (uint256);
 }

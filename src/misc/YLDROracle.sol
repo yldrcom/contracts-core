@@ -7,6 +7,7 @@ import {IACLManager} from "../interfaces/IACLManager.sol";
 import {IPoolAddressesProvider} from "../interfaces/IPoolAddressesProvider.sol";
 import {IPriceOracleGetter} from "../interfaces/IPriceOracleGetter.sol";
 import {IYLDROracle} from "../interfaces/IYLDROracle.sol";
+import {IERC1155PriceOracle} from "../interfaces/IERC1155PriceOracle.sol";
 
 /**
  * @title YLDROracle
@@ -21,6 +22,9 @@ contract YLDROracle is IYLDROracle {
 
     // Map of asset price sources (asset => priceSource)
     mapping(address => AggregatorInterface) private assetsSources;
+
+    // Map of ERC1155 asset price sources (asset => priceSource)
+    mapping(address => IERC1155PriceOracle) private erc1155AssetsSources;
 
     IPriceOracleGetter private _fallbackOracle;
     address public immutable override BASE_CURRENCY;
@@ -111,6 +115,16 @@ contract YLDROracle is IYLDROracle {
             } else {
                 return _fallbackOracle.getAssetPrice(asset);
             }
+        }
+    }
+
+    /// @inheritdoc IPriceOracleGetter
+    function getERC1155AssetPrice(address asset, uint256 tokenId) external view returns (uint256) {
+        IERC1155PriceOracle source = erc1155AssetsSources[asset];
+        if (address(source) == address(0)) {
+            return _fallbackOracle.getERC1155AssetPrice(asset, tokenId);
+        } else {
+            return source.getAssetPrice(tokenId);
         }
     }
 
