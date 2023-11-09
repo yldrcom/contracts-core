@@ -594,23 +594,4 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     function rescueTokens(address token, address to, uint256 amount) external virtual override onlyPoolAdmin {
         PoolLogic.executeRescueTokens(token, to, amount);
     }
-
-    /// @inheritdoc IPool
-    /// @dev Deprecated: maintained for compatibility purposes
-    function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)
-        external
-        virtual
-        override
-    {
-        SupplyLogic.executeSupply(
-            _reserves,
-            _usersConfig[onBehalfOf],
-            DataTypes.ExecuteSupplyParams({
-                asset: asset,
-                amount: amount,
-                onBehalfOf: onBehalfOf,
-                referralCode: referralCode
-            })
-        );
-    }
 }

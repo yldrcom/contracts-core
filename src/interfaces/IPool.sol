@@ -624,18 +624,4 @@ interface IPool {
      * @param amount The amount of token to transfer
      */
     function rescueTokens(address token, address to, uint256 amount) external;
-
-    /**
-     * @notice Supplies an `amount` of underlying asset into the reserve, receiving in return overlying yTokens.
-     * - E.g. User supplies 100 USDC and gets in return 100 aUSDC
-     * @dev Deprecated: Use the `supply` function instead
-     * @param asset The address of the underlying asset to supply
-     * @param amount The amount to be supplied
-     * @param onBehalfOf The address that will receive the yTokens, same as msg.sender if the user
-     *   wants to receive them on his own wallet, or a different address if the beneficiary of yTokens
-     *   is a different wallet
-     * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
-     *   0 if the action is executed directly by the user, without any middle-man
-     */
-    function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
 }
