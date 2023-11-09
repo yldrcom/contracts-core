@@ -62,6 +62,8 @@ library DataTypes {
         bool isPaused;
         uint256 ltv;
         uint256 liquidationThreshold;
+        uint256 liquidationBonus;
+        uint256 liquidationProtocolFee;
         //the id of the reserve. Represents the position in the list of the active ERC1155 reserves
         uint16 id;
     }
@@ -123,6 +125,7 @@ library DataTypes {
         bool isFrozen;
         bool isPaused;
         uint256 ltv;
+        uint256 id;
     }
 
     struct ExecuteLiquidationCallParams {
@@ -132,6 +135,18 @@ library DataTypes {
         address debtAsset;
         address user;
         bool receiveYToken;
+        address priceOracle;
+        address priceOracleSentinel;
+    }
+
+    struct ExecuteERC1155LiquidationCallParams {
+        uint256 reservesCount;
+        uint256 debtToCover;
+        address collateralAsset;
+        uint256 collateralTokenId;
+        address debtAsset;
+        address user;
+        bool receiveNToken;
         address priceOracle;
         address priceOracleSentinel;
     }
@@ -175,6 +190,15 @@ library DataTypes {
 
     struct ExecuteWithdrawParams {
         address asset;
+        uint256 amount;
+        address to;
+        uint256 reservesCount;
+        address oracle;
+    }
+
+    struct ExecuteWithdrawERC1155Params {
+        address asset;
+        uint256 tokenId;
         uint256 amount;
         address to;
         uint256 reservesCount;
@@ -248,6 +272,14 @@ library DataTypes {
     }
 
     struct ValidateLiquidationCallParams {
+        ReserveCache debtReserveCache;
+        uint256 totalDebt;
+        uint256 healthFactor;
+        address priceOracleSentinel;
+    }
+
+    struct ValidateERC1155LiquidationCallParams {
+        uint256 collateralReserveTokenId;
         ReserveCache debtReserveCache;
         uint256 totalDebt;
         uint256 healthFactor;

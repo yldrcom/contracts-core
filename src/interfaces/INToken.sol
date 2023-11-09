@@ -13,17 +13,19 @@ interface INToken is IERC1155Supply {
      * @dev Emitted when an yToken is initialized
      * @param underlyingAsset The address of the underlying asset
      * @param pool The address of the associated pool
+     * @param treasury The address of the treasury
      * @param params A set of encoded parameters for additional initialization
      */
-    event Initialized(address indexed underlyingAsset, address indexed pool, bytes params);
+    event Initialized(address indexed underlyingAsset, address indexed pool, address treasury, bytes params);
 
     /**
      * @notice Initializes the nToken
      * @param pool The pool contract that is initializing this contract
      * @param underlyingAsset The address of the underlying asset of this nToken (E.g. WETH for aWETH)
+     * @param treasury The address of the treasury
      * @param params A set of encoded parameters for additional initialization
      */
-    function initialize(address pool, address underlyingAsset, bytes memory params) external;
+    function initialize(address pool, address underlyingAsset, address treasury, bytes memory params) external;
 
     /**
      * @notice Mints `tokenId` nToken to `onBehalfOf`
@@ -49,4 +51,26 @@ interface INToken is IERC1155Supply {
      * @return The address of the underlying asset
      */
     function UNDERLYING_ASSET_ADDRESS() external view returns (address);
+
+    /**
+     * @notice Returns the address of the YLDR treasury, receiving the fees on this nToken.
+     * @return Address of the YLDR treasury
+     */
+    function RESERVE_TREASURY_ADDRESS() external view returns (address);
+
+    /**
+     * @notice Transfers nTokens in the event of a borrow being liquidated, in case the liquidators reclaims the nToken
+     * @param from The address getting liquidated, current owner of the nTokens
+     * @param to The recipient
+     * @param tokenId The tokenId of tokens getting transferred
+     * @param amount The amount of underlying tokens getting transferred
+     * @param data Additional data with no specified format
+     */
+    function safeTransferFromOnLiquidation(
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 amount,
+        bytes calldata data
+    ) external;
 }

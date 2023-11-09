@@ -34,6 +34,7 @@ library ERC1155ReserveLogic {
         returns (DataTypes.ERC1155ReserveCache memory)
     {
         return DataTypes.ERC1155ReserveCache({
+            id: erc1155Reserve.id,
             isActive: erc1155Reserve.isActive,
             isPaused: erc1155Reserve.isPaused,
             isFrozen: erc1155Reserve.isFrozen,

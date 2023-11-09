@@ -16,6 +16,7 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
     uint256 public constant NTOKEN_REVISION = 0x1;
     address private _underlyingAsset;
     IPool public pool;
+    address private _treasury;
 
     modifier onlyPool() {
         require(_msgSender() == address(pool), Errors.CALLER_MUST_BE_POOL);
@@ -28,7 +29,7 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
     }
 
     /// @inheritdoc INToken
-    function initialize(address _pool, address underlyingAsset, bytes memory params)
+    function initialize(address _pool, address treasury, address underlyingAsset, bytes memory params)
         public
         virtual
         override
@@ -36,10 +37,11 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
     {
         __ERC1155_init("");
         _underlyingAsset = underlyingAsset;
+        _treasury = treasury;
 
         pool = IPool(_pool);
 
-        emit Initialized(address(underlyingAsset), address(pool), params);
+        emit Initialized(address(underlyingAsset), address(pool), treasury, params);
     }
 
     /// @inheritdoc INToken
@@ -69,6 +71,17 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
         }
     }
 
+    /// @inheritdoc INToken
+    function safeTransferFromOnLiquidation(
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 amount,
+        bytes calldata data
+    ) external virtual override onlyPool {
+        _safeTransferFrom(from, to, tokenId, amount, data);
+    }
+
     function _update(address from, address to, uint256[] memory ids, uint256[] memory values)
         internal
         virtual
@@ -76,16 +89,21 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
     {
         super._update(from, to, ids, values);
 
-        if (to == address(0) || from == address(0)) {
-            // Mints and burns are always authorized
-            return;
+        if (_msgSender() != address(pool)) {
+            pool.finalizeERC1155Transfer(_underlyingAsset, from, to, ids, values);
         }
-
-        pool.finalizeERC1155Transfer(_underlyingAsset, from, to, ids, values);
     }
 
     /// @inheritdoc INToken
     function UNDERLYING_ASSET_ADDRESS() external view override returns (address) {
         return _underlyingAsset;
+    }
+
+    /**
+     * @notice Returns the address of the YLDR treasury, receiving the fees on this nToken.
+     * @return Address of the YLDR treasury
+     */
+    function RESERVE_TREASURY_ADDRESS() external view override returns (address) {
+        return _treasury;
     }
 }

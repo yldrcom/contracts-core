@@ -50,6 +50,18 @@ interface IPool {
     event Withdraw(address indexed reserve, address indexed user, address indexed to, uint256 amount);
 
     /**
+     * @dev Emitted on withdrawERC1155()
+     * @param reserve The address of the underlying asset of the reserve
+     * @param user The address initiating the withdrawal
+     * @param onBehalfOf The beneficiary of the withdrawal, receiving the yTokens
+     * @param tokenId The tokenId withdrawn
+     * @param amount The amount withdrawn
+     */
+    event WithdrawERC1155(
+        address indexed reserve, address user, address indexed onBehalfOf, uint256 tokenId, uint256 amount
+    );
+
+    /**
      * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
      * @param reserve The address of the underlying asset being borrowed
      * @param user The address of the user initiating the borrow(), receiving the funds on borrow() or just
@@ -115,6 +127,16 @@ interface IPool {
     event ERC1155ReserveUsedAsCollateralEnabled(address indexed reserve, uint256 indexed tokenId, address indexed user);
 
     /**
+     * @dev Emitted on setUserUseERC1155ReserveAsCollateral()
+     * @param reserve The address of the underlying asset of the reserve
+     * @param tokenId The tokenId of token being disabled as collateral
+     * @param user The address of the user disabling the usage as collateral
+     */
+    event ERC1155ReserveUsedAsCollateralDisabled(
+        address indexed reserve, uint256 indexed tokenId, address indexed user
+    );
+
+    /**
      * @dev Emitted on rebalanceStableBorrowRate()
      * @param reserve The address of the underlying asset of the reserve
      * @param user The address of the user for which the rebalance has been executed
@@ -160,6 +182,29 @@ interface IPool {
         uint256 liquidatedCollateralAmount,
         address liquidator,
         bool receiveYToken
+    );
+
+    /**
+     * @dev Emitted when a borrower is liquidated.
+     * @param collateralAsset The address of the underlying asset used as collateral, to receive as result of the liquidation
+     * @param collateralTokenId The tokenId of the underlying asset used as collateral, to receive as result of the liquidation
+     * @param debtAsset The address of the underlying borrowed asset to be repaid with the liquidation
+     * @param user The address of the borrower getting liquidated
+     * @param debtToCover The debt amount of borrowed `asset` the liquidator wants to cover
+     * @param liquidatedCollateralAmount The amount of collateral received by the liquidator
+     * @param liquidator The address of the liquidator
+     * @param receiveNToken True if the liquidators wants to receive the collateral nTokens, `false` if he wants
+     * to receive the underlying collateral asset directly
+     */
+    event ERC1155LiquidationCall(
+        address indexed collateralAsset,
+        uint256 collateralTokenId,
+        address indexed debtAsset,
+        address indexed user,
+        uint256 debtToCover,
+        uint256 liquidatedCollateralAmount,
+        address liquidator,
+        bool receiveNToken
     );
 
     /**
@@ -252,6 +297,19 @@ interface IPool {
      * @return The final amount withdrawn
      */
     function withdraw(address asset, uint256 amount, address to) external returns (uint256);
+
+    /**
+     * @notice Withdraws an `amount` of underlying asset with `tokenId` from the reserve, burning the equivalent nTokens owned
+     * @param asset The address of the underlying asset to withdraw
+     * @param tokenId The tokenId to be withdrawn
+     * @param amount The underlying amount to be withdrawn
+     *   - Send the value type(uint256).max in order to withdraw the whole nToken balance
+     * @param to The address that will receive the underlying, same as msg.sender if the user
+     *   wants to receive it on his own wallet, or a different address if the beneficiary is a
+     *   different wallet
+     * @return The final amount withdrawn
+     */
+    function withdrawERC1155(address asset, uint256 tokenId, uint256 amount, address to) external returns (uint256);
 
     /**
      * @notice Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
@@ -370,6 +428,27 @@ interface IPool {
         address user,
         uint256 debtToCover,
         bool receiveYToken
+    ) external;
+
+    /**
+     * @notice Function to liquidate a non-healthy position collateral-wise, with Health Factor below 1
+     * - The caller (liquidator) covers `debtToCover` amount of debt of the user getting liquidated, and receives
+     *   a proportionally amount of the `collateralAsset` plus a bonus to cover market risk
+     * @param collateralAsset The address of the underlying asset used as collateral, to receive as result of the liquidation
+     * @param collateralTokenId The tokenId of the underlying asset used as collateral, to receive as result of the liquidation
+     * @param debtAsset The address of the underlying borrowed asset to be repaid with the liquidation
+     * @param user The address of the borrower getting liquidated
+     * @param debtToCover The debt amount of borrowed `asset` the liquidator wants to cover
+     * @param receiveNToken True if the liquidators wants to receive the collateral nTokens, `false` if he wants
+     * to receive the underlying collateral asset directly
+     */
+    function erc1155LiquidationCall(
+        address collateralAsset,
+        uint256 collateralTokenId,
+        address debtAsset,
+        address user,
+        uint256 debtToCover,
+        bool receiveNToken
     ) external;
 
     /**
@@ -552,8 +631,13 @@ interface IPool {
      * @param ids The ids of tokens being transferred/withdrawn
      * @param amounts The amounts being transferred/withdrawn
      */
-    function finalizeERC1155Transfer(address asset, address from, address to, uint256[] calldata ids, uint256[] calldata amounts)
-        external;
+    function finalizeERC1155Transfer(
+        address asset,
+        address from,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts
+    ) external;
 
     /**
      * @notice Returns the list of the underlying assets of all the initialized reserves

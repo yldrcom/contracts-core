@@ -38,7 +38,11 @@ library SupplyLogic {
     event ReserveUsedAsCollateralEnabled(address indexed reserve, address indexed user);
     event ReserveUsedAsCollateralDisabled(address indexed reserve, address indexed user);
     event ERC1155ReserveUsedAsCollateralEnabled(address indexed reserve, uint256 indexed tokenId, address indexed user);
+    event ERC1155ReserveUsedAsCollateralDisabled(
+        address indexed reserve, uint256 indexed tokenId, address indexed user
+    );
     event Withdraw(address indexed reserve, address indexed user, address indexed to, uint256 amount);
+    event WithdrawERC1155(address indexed reserve, address user, address indexed to, uint256 tokenId, uint256 amount);
     event Supply(
         address indexed reserve, address user, address indexed onBehalfOf, uint256 amount, uint16 indexed referralCode
     );
@@ -118,7 +122,7 @@ library SupplyLogic {
 
         if (isFirstSupply) {
             if (ValidationLogic.validateUseERC1155AsCollateral(reserveCache)) {
-                userERC1155Config.setUsingERC1155AsCollateral(reserve.id, params.tokenId, true);
+                userERC1155Config.setUsingAsCollateral(reserve.id, params.tokenId, true);
                 emit ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
             }
         }
@@ -202,6 +206,76 @@ library SupplyLogic {
         }
 
         emit Withdraw(params.asset, msg.sender, params.to, vars.amountToWithdraw);
+
+        return vars.amountToWithdraw;
+    }
+
+    struct ExecuteWithdrawERC1155LocalVars {
+        DataTypes.ERC1155ReserveCache reserveCache;
+        uint256 userBalance;
+        uint256 amountToWithdraw;
+    }
+
+    /**
+     * @notice Implements the withdraw feature. Through `withdraw()`, users redeem their yTokens for the underlying asset
+     * previously supplied in the YLDR protocol.
+     * @dev Emits the `Withdraw()` event.
+     * @dev If the user withdraws everything, `ReserveUsedAsCollateralDisabled()` is emitted.
+     * @param reservesData The state of all the reserves
+     * @param reservesList The addresses of all the active reserves
+     * @param userConfig The user configuration mapping that tracks the supplied/borrowed assets
+     * @param params The additional parameters needed to execute the withdraw function
+     * @return The actual amount withdrawn
+     */
+    function executeWithdrawERC1155(
+        mapping(address => DataTypes.ReserveData) storage reservesData,
+        mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
+        DataTypes.UserConfigurationMap storage userConfig,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
+        DataTypes.ExecuteWithdrawERC1155Params memory params
+    ) external returns (uint256) {
+        ExecuteWithdrawERC1155LocalVars memory vars;
+
+        DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[params.asset];
+        vars.reserveCache = reserve.cache();
+
+        vars.userBalance = INToken(vars.reserveCache.nTokenAddress).balanceOf(msg.sender, params.tokenId);
+
+        vars.amountToWithdraw = params.amount;
+
+        if (params.amount == type(uint256).max) {
+            vars.amountToWithdraw = vars.userBalance;
+        }
+
+        ValidationLogic.validateWithdrawERC1155(vars.reserveCache, vars.amountToWithdraw, vars.userBalance);
+
+        bool isCollateral = userERC1155Config.isUsingAsCollateral(reserve.id, params.tokenId);
+
+        if (isCollateral && vars.amountToWithdraw == vars.userBalance) {
+            userERC1155Config.setUsingAsCollateral(reserve.id, params.tokenId, false);
+            emit ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.tokenId, msg.sender);
+        }
+
+        INToken(vars.reserveCache.nTokenAddress).burn(msg.sender, params.to, params.tokenId, vars.amountToWithdraw);
+
+        if (isCollateral && userConfig.isBorrowingAny()) {
+            ValidationLogic.validateHFAndLtv(
+                reservesData,
+                reservesList,
+                erc1155ReservesData,
+                erc1155ReservesList,
+                userConfig,
+                userERC1155Config,
+                params.asset,
+                msg.sender,
+                params.reservesCount,
+                params.oracle
+            );
+        }
+
+        emit WithdrawERC1155(params.asset, msg.sender, params.to, params.tokenId, vars.amountToWithdraw);
 
         return vars.amountToWithdraw;
     }

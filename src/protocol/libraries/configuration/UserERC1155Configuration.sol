@@ -18,7 +18,7 @@ library UserERC1155Configuration {
      * @param tokenId The id of token enabled
      * @param usingAsCollateral True if the user is using the reserve as collateral, false otherwise
      */
-    function setUsingERC1155AsCollateral(
+    function setUsingAsCollateral(
         DataTypes.UserERC1155ConfigurationMap storage self,
         uint256 reserveId,
         uint256 tokenId,
@@ -53,5 +53,20 @@ library UserERC1155Configuration {
      */
     function isUsingAsCollateralAny(DataTypes.UserERC1155ConfigurationMap storage self) internal view returns (bool) {
         return self.usedERC1155Reserves.length > 0;
+    }
+
+    /**
+     * @notice Checks if a user is using as collateral a specific reserve
+     * @param self The configuration object
+     * @param reserveId The id of the reserve
+     * @param tokenId The tokenId of reserve
+     * @return True if the user is using the reserve as collateral, false otherwise
+     */
+    function isUsingAsCollateral(DataTypes.UserERC1155ConfigurationMap storage self, uint256 reserveId, uint256 tokenId)
+        internal
+        view
+        returns (bool)
+    {
+        return self.usedERC1155ReservesMap[reserveId][tokenId] > 0;
     }
 }

@@ -14,6 +14,7 @@ import {IPoolAddressesProvider} from "../../../interfaces/IPoolAddressesProvider
 import {IAccessControl} from "../../../dependencies/openzeppelin/contracts/IAccessControl.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
+import {UserERC1155Configuration} from "../configuration/UserERC1155Configuration.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
 import {PercentageMath} from "../math/PercentageMath.sol";
@@ -36,6 +37,7 @@ library ValidationLogic {
     using GPv2SafeERC20 for IERC20;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using UserConfiguration for DataTypes.UserConfigurationMap;
+    using UserERC1155Configuration for DataTypes.UserERC1155ConfigurationMap;
     using Address for address;
 
     // Factor to apply to "only-variable-debt" liquidity rate to get threshold for rebalancing, expressed in bps
@@ -110,6 +112,24 @@ library ValidationLogic {
         (bool isActive,,,, bool isPaused) = reserveCache.reserveConfiguration.getFlags();
         require(isActive, Errors.RESERVE_INACTIVE);
         require(!isPaused, Errors.RESERVE_PAUSED);
+    }
+
+    /**
+     * @notice Validates a withdrawERC1155 action.
+     * @param reserveCache The cached data of the reserve
+     * @param amount The amount to be withdrawn
+     * @param userBalance The balance of the user
+     */
+    function validateWithdrawERC1155(
+        DataTypes.ERC1155ReserveCache memory reserveCache,
+        uint256 amount,
+        uint256 userBalance
+    ) internal pure {
+        require(amount != 0, Errors.INVALID_AMOUNT);
+        require(amount <= userBalance, Errors.NOT_ENOUGH_AVAILABLE_USER_BALANCE);
+
+        require(reserveCache.isActive, Errors.RESERVE_INACTIVE);
+        require(!reserveCache.isPaused, Errors.RESERVE_PAUSED);
     }
 
     struct ValidateBorrowLocalVars {
@@ -474,6 +494,43 @@ library ValidationLogic {
 
         vars.isCollateralEnabled = collateralReserve.configuration.getLiquidationThreshold() != 0
             && userConfig.isUsingAsCollateral(collateralReserve.id);
+
+        //if collateral isn't enabled as collateral by user, it cannot be liquidated
+        require(vars.isCollateralEnabled, Errors.COLLATERAL_CANNOT_BE_LIQUIDATED);
+        require(params.totalDebt != 0, Errors.SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
+    }
+
+    struct ValidateERC1155LiquidationCallLocalVars {
+        bool collateralReserveActive;
+        bool collateralReservePaused;
+        bool debtReserveActive;
+        bool debtReservePaused;
+        bool isCollateralEnabled;
+    }
+
+    function validateERC1155LiquidationCall(
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
+        DataTypes.ERC1155ReserveData storage collateralReserve,
+        DataTypes.ValidateERC1155LiquidationCallParams memory params
+    ) internal view {
+        ValidateERC1155LiquidationCallLocalVars memory vars;
+
+        (vars.debtReserveActive,,,, vars.debtReservePaused) = params.debtReserveCache.reserveConfiguration.getFlags();
+
+        require(collateralReserve.isActive && vars.debtReserveActive, Errors.RESERVE_INACTIVE);
+        require(!collateralReserve.isPaused && !vars.debtReservePaused, Errors.RESERVE_PAUSED);
+
+        require(
+            params.priceOracleSentinel == address(0)
+                || params.healthFactor < MINIMUM_HEALTH_FACTOR_LIQUIDATION_THRESHOLD
+                || IPriceOracleSentinel(params.priceOracleSentinel).isLiquidationAllowed(),
+            Errors.PRICE_ORACLE_SENTINEL_CHECK_FAILED
+        );
+
+        require(params.healthFactor < HEALTH_FACTOR_LIQUIDATION_THRESHOLD, Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD);
+
+        vars.isCollateralEnabled = collateralReserve.liquidationThreshold != 0
+            && userERC1155Config.isUsingAsCollateral(collateralReserve.id, params.collateralReserveTokenId);
 
         //if collateral isn't enabled as collateral by user, it cannot be liquidated
         require(vars.isCollateralEnabled, Errors.COLLATERAL_CANNOT_BE_LIQUIDATED);

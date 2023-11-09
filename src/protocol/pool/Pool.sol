@@ -165,6 +165,31 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     }
 
     /// @inheritdoc IPool
+    function withdrawERC1155(address asset, uint256 tokenId, uint256 amount, address to)
+        public
+        virtual
+        override
+        returns (uint256)
+    {
+        return SupplyLogic.executeWithdrawERC1155(
+            _reserves,
+            _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
+            _usersConfig[msg.sender],
+            _usersERC1155Config[msg.sender],
+            DataTypes.ExecuteWithdrawERC1155Params({
+                asset: asset,
+                tokenId: tokenId,
+                amount: amount,
+                to: to,
+                reservesCount: _reservesCount,
+                oracle: ADDRESSES_PROVIDER.getPriceOracle()
+            })
+        );
+    }
+
+    /// @inheritdoc IPool
     function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)
         public
         virtual
@@ -309,6 +334,36 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
                 debtAsset: debtAsset,
                 user: user,
                 receiveYToken: receiveYToken,
+                priceOracle: ADDRESSES_PROVIDER.getPriceOracle(),
+                priceOracleSentinel: ADDRESSES_PROVIDER.getPriceOracleSentinel()
+            })
+        );
+    }
+
+    /// @inheritdoc IPool
+    function erc1155LiquidationCall(
+        address collateralAsset,
+        uint256 collateralTokenId,
+        address debtAsset,
+        address user,
+        uint256 debtToCover,
+        bool receiveNToken
+    ) public virtual override {
+        LiquidationLogic.executeERC1155LiquidationCall(
+            _reserves,
+            _reservesList,
+            _erc1155Reserves,
+            _erc1155ReservesList,
+            _usersConfig,
+            _usersERC1155Config,
+            DataTypes.ExecuteERC1155LiquidationCallParams({
+                reservesCount: _reservesCount,
+                debtToCover: debtToCover,
+                collateralAsset: collateralAsset,
+                collateralTokenId: collateralTokenId,
+                debtAsset: debtAsset,
+                user: user,
+                receiveNToken: receiveNToken,
                 priceOracle: ADDRESSES_PROVIDER.getPriceOracle(),
                 priceOracleSentinel: ADDRESSES_PROVIDER.getPriceOracleSentinel()
             })
@@ -517,11 +572,13 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     }
 
     /// @inheritdoc IPool
-    function finalizeERC1155Transfer(address asset, address from, address to, uint256[] calldata ids, uint256[] calldata amounts)
-        external
-        virtual
-        override
-    {}
+    function finalizeERC1155Transfer(
+        address asset,
+        address from,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts
+    ) external virtual override {}
 
     /// @inheritdoc IPool
     function initReserve(
