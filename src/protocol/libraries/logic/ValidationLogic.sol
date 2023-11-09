@@ -372,7 +372,6 @@ library ValidationLogic {
         (uint256 liquidityRateVariableDebtOnly,,) = IReserveInterestRateStrategy(reserve.interestRateStrategyAddress)
             .calculateInterestRates(
             DataTypes.CalculateInterestRatesParams({
-                unbacked: reserve.unbacked,
                 liquidityAdded: 0,
                 liquidityTaken: 0,
                 totalStableDebt: 0,

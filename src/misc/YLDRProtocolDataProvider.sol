@@ -119,17 +119,11 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
     }
 
     /// @inheritdoc IPoolDataProvider
-    function getUnbackedMintCap(address asset) external view override returns (uint256) {
-        return IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset).getUnbackedMintCap();
-    }
-
-    /// @inheritdoc IPoolDataProvider
     function getReserveData(address asset)
         external
         view
         override
         returns (
-            uint256 unbacked,
             uint256 accruedToTreasuryScaled,
             uint256 totalYToken,
             uint256 totalStableDebt,
@@ -146,7 +140,6 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         DataTypes.ReserveData memory reserve = IPool(ADDRESSES_PROVIDER.getPool()).getReserveData(asset);
 
         return (
-            reserve.unbacked,
             reserve.accruedToTreasury,
             IERC20Detailed(reserve.yTokenAddress).totalSupply(),
             IERC20Detailed(reserve.stableDebtTokenAddress).totalSupply(),

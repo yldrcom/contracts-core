@@ -29,8 +29,6 @@ library DataTypes {
         address interestRateStrategyAddress;
         //the current treasury balance, scaled
         uint128 accruedToTreasury;
-        //the outstanding unbacked yTokens minted through the bridging feature
-        uint128 unbacked;
     }
 
     struct ReserveConfigurationMap {
@@ -264,7 +262,6 @@ library DataTypes {
     }
 
     struct CalculateInterestRatesParams {
-        uint256 unbacked;
         uint256 liquidityAdded;
         uint256 liquidityTaken;
         uint256 totalStableDebt;

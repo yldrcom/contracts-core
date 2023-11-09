@@ -272,15 +272,6 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     }
 
     /// @inheritdoc IPoolConfigurator
-    function setUnbackedMintCap(address asset, uint256 newUnbackedMintCap) external override onlyRiskOrPoolAdmins {
-        DataTypes.ReserveConfigurationMap memory currentConfig = _pool.getConfiguration(asset);
-        uint256 oldUnbackedMintCap = currentConfig.getUnbackedMintCap();
-        currentConfig.setUnbackedMintCap(newUnbackedMintCap);
-        _pool.setConfiguration(asset, currentConfig);
-        emit UnbackedMintCapChanged(asset, oldUnbackedMintCap, newUnbackedMintCap);
-    }
-
-    /// @inheritdoc IPoolConfigurator
     function setReserveInterestRateStrategyAddress(address asset, address newRateStrategyAddress)
         external
         override
@@ -304,14 +295,6 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     }
 
     /// @inheritdoc IPoolConfigurator
-    function updateBridgeProtocolFee(uint256 newBridgeProtocolFee) external override onlyPoolAdmin {
-        require(newBridgeProtocolFee <= PercentageMath.PERCENTAGE_FACTOR, Errors.BRIDGE_PROTOCOL_FEE_INVALID);
-        uint256 oldBridgeProtocolFee = _pool.BRIDGE_PROTOCOL_FEE();
-        _pool.updateBridgeProtocolFee(newBridgeProtocolFee);
-        emit BridgeProtocolFeeUpdated(oldBridgeProtocolFee, newBridgeProtocolFee);
-    }
-
-    /// @inheritdoc IPoolConfigurator
     function updateFlashloanPremiumTotal(uint128 newFlashloanPremiumTotal) external override onlyPoolAdmin {
         require(newFlashloanPremiumTotal <= PercentageMath.PERCENTAGE_FACTOR, Errors.FLASHLOAN_PREMIUM_INVALID);
         uint128 oldFlashloanPremiumTotal = _pool.FLASHLOAN_PREMIUM_TOTAL();
@@ -328,7 +311,7 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     }
 
     function _checkNoSuppliers(address asset) internal view {
-        (, uint256 accruedToTreasury, uint256 totalYTokens,,,,,,,,,) =
+        (uint256 accruedToTreasury, uint256 totalYTokens,,,,,,,,,) =
             IPoolDataProvider(_addressesProvider.getPoolDataProvider()).getReserveData(asset);
 
         require(totalYTokens == 0 && accruedToTreasury == 0, Errors.RESERVE_LIQUIDITY_NOT_ZERO);

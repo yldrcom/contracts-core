@@ -117,14 +117,6 @@ interface IPoolConfigurator {
     event LiquidationProtocolFeeChanged(address indexed asset, uint256 oldFee, uint256 newFee);
 
     /**
-     * @dev Emitted when the unbacked mint cap of a reserve is updated.
-     * @param asset The address of the underlying asset of the reserve
-     * @param oldUnbackedMintCap The old unbacked mint cap
-     * @param newUnbackedMintCap The new unbacked mint cap
-     */
-    event UnbackedMintCapChanged(address indexed asset, uint256 oldUnbackedMintCap, uint256 newUnbackedMintCap);
-
-    /**
      * @dev Emitted when a reserve interest strategy contract is updated.
      * @param asset The address of the underlying asset of the reserve
      * @param oldStrategy The address of the old interest strategy contract
@@ -163,13 +155,6 @@ interface IPoolConfigurator {
      * @param newState The new siloed borrowing state
      */
     event SiloedBorrowingChanged(address indexed asset, bool oldState, bool newState);
-
-    /**
-     * @dev Emitted when the bridge protocol fee is updated.
-     * @param oldBridgeProtocolFee The old protocol fee, expressed in bps
-     * @param newBridgeProtocolFee The new protocol fee, expressed in bps
-     */
-    event BridgeProtocolFeeUpdated(uint256 oldBridgeProtocolFee, uint256 newBridgeProtocolFee);
 
     /**
      * @dev Emitted when the total premium on flashloans is updated.
@@ -316,23 +301,10 @@ interface IPoolConfigurator {
     function setLiquidationProtocolFee(address asset, uint256 newFee) external;
 
     /**
-     * @notice Updates the unbacked mint cap of reserve.
-     * @param asset The address of the underlying asset of the reserve
-     * @param newUnbackedMintCap The new unbacked mint cap of the reserve
-     */
-    function setUnbackedMintCap(address asset, uint256 newUnbackedMintCap) external;
-
-    /**
      * @notice Drops a reserve entirely.
      * @param asset The address of the reserve to drop
      */
     function dropReserve(address asset) external;
-
-    /**
-     * @notice Updates the bridge fee collected by the protocol reserves.
-     * @param newBridgeProtocolFee The part of the fee sent to the protocol treasury, expressed in bps
-     */
-    function updateBridgeProtocolFee(uint256 newBridgeProtocolFee) external;
 
     /**
      * @notice Updates the total flash loan premium.

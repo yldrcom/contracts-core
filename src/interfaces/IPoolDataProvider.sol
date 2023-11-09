@@ -94,16 +94,8 @@ interface IPoolDataProvider {
     function getLiquidationProtocolFee(address asset) external view returns (uint256);
 
     /**
-     * @notice Returns the unbacked mint cap of the reserve
-     * @param asset The address of the underlying asset of the reserve
-     * @return The unbacked mint cap of the reserve
-     */
-    function getUnbackedMintCap(address asset) external view returns (uint256);
-
-    /**
      * @notice Returns the reserve data
      * @param asset The address of the underlying asset of the reserve
-     * @return unbacked The amount of unbacked tokens
      * @return accruedToTreasuryScaled The scaled amount of tokens accrued to treasury that is to be minted
      * @return totalYToken The total supply of the yToken
      * @return totalStableDebt The total stable debt of the reserve
@@ -120,7 +112,6 @@ interface IPoolDataProvider {
         external
         view
         returns (
-            uint256 unbacked,
             uint256 accruedToTreasuryScaled,
             uint256 totalYToken,
             uint256 totalStableDebt,

@@ -173,7 +173,6 @@ library ReserveLogic {
             reserve.interestRateStrategyAddress
         ).calculateInterestRates(
             DataTypes.CalculateInterestRatesParams({
-                unbacked: reserve.unbacked,
                 liquidityAdded: liquidityAdded,
                 liquidityTaken: liquidityTaken,
                 totalStableDebt: reserveCache.nextTotalStableDebt,
