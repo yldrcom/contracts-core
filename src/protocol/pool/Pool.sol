@@ -16,6 +16,7 @@ import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.so
 import {IPool} from "../../interfaces/IPool.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {PoolStorage} from "./PoolStorage.sol";
+import {ReentrancyGuardUpgradeable} from "../libraries/yldr-upgradeability/ReentrancyGuardUpgradeable.sol";
 
 /**
  * @title Pool contract
@@ -34,7 +35,7 @@ import {PoolStorage} from "./PoolStorage.sol";
  * @dev All admin functions are callable by the PoolConfigurator contract defined also in the
  *   PoolAddressesProvider
  */
-contract Pool is VersionedInitializable, PoolStorage, IPool {
+contract Pool is VersionedInitializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
     using ReserveLogic for DataTypes.ReserveData;
 
     uint256 public constant POOL_REVISION = 0x1;
@@ -86,10 +87,17 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     function initialize(IPoolAddressesProvider provider) external virtual initializer {
         require(provider == ADDRESSES_PROVIDER, Errors.INVALID_ADDRESSES_PROVIDER);
         _maxStableRateBorrowSizePercent = 0.25e4;
+
+        __ReentrancyGuard_init();
     }
 
     /// @inheritdoc IPool
-    function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) public virtual override {
+    function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)
+        public
+        virtual
+        override
+        nonReentrant
+    {
         SupplyLogic.executeSupply(
             _reserves,
             _usersConfig[onBehalfOf],
@@ -107,6 +115,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         public
         virtual
         override
+        nonReentrant
     {
         SupplyLogic.executeSupplyERC1155(
             _erc1155Reserves,
@@ -131,7 +140,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         uint8 permitV,
         bytes32 permitR,
         bytes32 permitS
-    ) public virtual override {
+    ) public virtual override nonReentrant {
         IERC20WithPermit(asset).permit(msg.sender, address(this), amount, deadline, permitV, permitR, permitS);
         SupplyLogic.executeSupply(
             _reserves,
@@ -146,7 +155,13 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     }
 
     /// @inheritdoc IPool
-    function withdraw(address asset, uint256 amount, address to) public virtual override returns (uint256) {
+    function withdraw(address asset, uint256 amount, address to)
+        public
+        virtual
+        override
+        nonReentrant
+        returns (uint256)
+    {
         return SupplyLogic.executeWithdraw(
             _reserves,
             _reservesList,
@@ -169,6 +184,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         public
         virtual
         override
+        nonReentrant
         returns (uint256)
     {
         return SupplyLogic.executeWithdrawERC1155(
@@ -194,6 +210,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         public
         virtual
         override
+        nonReentrant
     {
         BorrowLogic.executeBorrow(
             _reserves,
@@ -223,6 +240,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         public
         virtual
         override
+        nonReentrant
         returns (uint256)
     {
         return BorrowLogic.executeRepay(
@@ -248,7 +266,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         uint8 permitV,
         bytes32 permitR,
         bytes32 permitS
-    ) public virtual override returns (uint256) {
+    ) public virtual override nonReentrant returns (uint256) {
         {
             IERC20WithPermit(asset).permit(msg.sender, address(this), amount, deadline, permitV, permitR, permitS);
         }
@@ -269,6 +287,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         public
         virtual
         override
+        nonReentrant
         returns (uint256)
     {
         return BorrowLogic.executeRepay(
@@ -285,19 +304,19 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
     }
 
     /// @inheritdoc IPool
-    function swapBorrowRateMode(address asset, uint256 interestRateMode) public virtual override {
+    function swapBorrowRateMode(address asset, uint256 interestRateMode) public virtual override nonReentrant {
         BorrowLogic.executeSwapBorrowRateMode(
             _reserves[asset], _usersConfig[msg.sender], asset, DataTypes.InterestRateMode(interestRateMode)
         );
     }
 
     /// @inheritdoc IPool
-    function rebalanceStableBorrowRate(address asset, address user) public virtual override {
+    function rebalanceStableBorrowRate(address asset, address user) public virtual override nonReentrant {
         BorrowLogic.executeRebalanceStableBorrowRate(_reserves[asset], asset, user);
     }
 
     /// @inheritdoc IPool
-    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral) public virtual override {
+    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral) public virtual override nonReentrant {
         SupplyLogic.executeUseReserveAsCollateral(
             _reserves,
             _reservesList,
@@ -319,7 +338,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         address user,
         uint256 debtToCover,
         bool receiveYToken
-    ) public virtual override {
+    ) public virtual override nonReentrant {
         LiquidationLogic.executeLiquidationCall(
             _reserves,
             _reservesList,
@@ -348,7 +367,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         address user,
         uint256 debtToCover,
         bool receiveNToken
-    ) public virtual override {
+    ) public virtual override nonReentrant {
         LiquidationLogic.executeERC1155LiquidationCall(
             _reserves,
             _reservesList,
@@ -549,7 +568,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         uint256 amount,
         uint256 balanceFromBefore,
         uint256 balanceToBefore
-    ) external virtual override {
+    ) external virtual override nonReentrant {
         require(msg.sender == _reserves[asset].yTokenAddress, Errors.CALLER_NOT_YTOKEN);
         SupplyLogic.executeFinalizeTransfer(
             _reserves,
@@ -578,7 +597,7 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         address to,
         uint256[] calldata ids,
         uint256[] calldata amounts
-    ) external virtual override {
+    ) external virtual override nonReentrant {
         require(msg.sender == _erc1155Reserves[asset].nTokenAddress, Errors.CALLER_NOT_NTOKEN);
         DataTypes.FinalizeERC1155TransferParams memory params = DataTypes.FinalizeERC1155TransferParams({
             asset: asset,
