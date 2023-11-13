@@ -216,6 +216,16 @@ library DataTypes {
         address oracle;
     }
 
+    struct FinalizeERC1155TransferParams {
+        address asset;
+        address from;
+        address to;
+        uint256[] ids;
+        uint256[] amounts;
+        uint256 reservesCount;
+        address oracle;
+    }
+
     struct FlashloanParams {
         address receiverAddress;
         address[] assets;

@@ -578,7 +578,21 @@ contract Pool is VersionedInitializable, PoolStorage, IPool {
         address to,
         uint256[] calldata ids,
         uint256[] calldata amounts
-    ) external virtual override {}
+    ) external virtual override {
+        require(msg.sender == _erc1155Reserves[asset].nTokenAddress, Errors.CALLER_NOT_NTOKEN);
+        DataTypes.FinalizeERC1155TransferParams memory params = DataTypes.FinalizeERC1155TransferParams({
+            asset: asset,
+            from: from,
+            to: to,
+            ids: ids,
+            amounts: amounts,
+            reservesCount: _reservesCount,
+            oracle: ADDRESSES_PROVIDER.getPriceOracle()
+        });
+        SupplyLogic.executeFinalizeERC1155Transfer(
+            _reserves, _reservesList, _erc1155Reserves, _erc1155ReservesList, _usersConfig, _usersERC1155Config, params
+        );
+    }
 
     /// @inheritdoc IPool
     function initReserve(

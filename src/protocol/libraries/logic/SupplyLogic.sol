@@ -288,7 +288,10 @@ library SupplyLogic {
      * @dev In case the `from` user transfers everything, `ReserveUsedAsCollateralDisabled()` is emitted for `from`.
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
+     * @param erc1155ReservesData The state of all ERC1155 reserves
+     * @param erc1155ReservesList The addresses of all the active ERC1155 reserves
      * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
+     * @param usersERC1155Config The users configuration mapping that track the supplied/borrowed ERC1155 assets
      * @param params The additional parameters needed to execute the finalizeTransfer function
      */
     function executeFinalizeTransfer(
@@ -335,6 +338,91 @@ library SupplyLogic {
                 if (ValidationLogic.validateUseAsCollateral(reserve.configuration)) {
                     toConfig.setUsingAsCollateral(reserveId, true);
                     emit ReserveUsedAsCollateralEnabled(params.asset, params.to);
+                }
+            }
+        }
+    }
+
+    struct FinalizeERC1155TransferLocalVars {
+        bool validatedHF;
+        bool isBorrowingAny;
+        uint256 reserveId;
+        uint256 i;
+    }
+
+    /**
+     * @notice Validates a transfer of nTokens. The sender is subjected to health factor validation to avoid
+     * collateralization constraints violation.
+     * System will work correctly when same id appears several times in ids[] array. However, users are advised to not do such transfers
+     * as they will result in unnecessary gas overhead.
+     * @dev Emits the `ERC1155ReserveUsedAsCollateralEnabled()` event for the `to` account, if the asset is being activated as
+     * collateral.
+     * @dev In case the `from` user transfers everything, `ERC1155ReserveUsedAsCollateralDisabled()` is emitted for `from`.
+     * @param reservesData The state of all the reserves
+     * @param reservesList The addresses of all the active reserves
+     * @param erc1155ReservesData The state of all ERC1155 reserves
+     * @param erc1155ReservesList The addresses of all the active ERC1155 reserves
+     * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
+     * @param usersERC1155Config The users configuration mapping that track the supplied/borrowed ERC1155 assets
+     * @param params The additional parameters needed to execute the finalizeTransfer function
+     */
+    function executeFinalizeERC1155Transfer(
+        mapping(address => DataTypes.ReserveData) storage reservesData,
+        mapping(uint256 => address) storage reservesList,
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        mapping(uint256 => address) storage erc1155ReservesList,
+        mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
+        mapping(address => DataTypes.UserERC1155ConfigurationMap) storage usersERC1155Config,
+        DataTypes.FinalizeERC1155TransferParams memory params
+    ) external {
+        FinalizeERC1155TransferLocalVars memory vars;
+
+        DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[params.asset];
+        DataTypes.UserConfigurationMap storage fromConfig = usersConfig[params.from];
+        DataTypes.UserERC1155ConfigurationMap storage fromERC1155Config = usersERC1155Config[params.from];
+
+        ValidationLogic.validateERC1155Transfer(reserve);
+
+        if (params.from == params.to) return;
+
+        vars.reserveId = reserve.id;
+
+        vars.validatedHF = false;
+        vars.isBorrowingAny = fromConfig.isBorrowingAny();
+
+        for (vars.i = 0; vars.i < params.ids.length; vars.i++) {
+            if (params.amounts[vars.i] != 0) {
+                if (fromERC1155Config.isUsingAsCollateral(vars.reserveId, params.ids[vars.i])) {
+                    if (vars.isBorrowingAny && !vars.validatedHF) {
+                        ValidationLogic.validateHFAndLtv(
+                            reservesData,
+                            reservesList,
+                            erc1155ReservesData,
+                            erc1155ReservesList,
+                            fromConfig,
+                            fromERC1155Config,
+                            params.asset,
+                            params.from,
+                            params.reservesCount,
+                            params.oracle
+                        );
+                        // Validating only once, because the balances are already updated at the beginning of the call
+                        vars.validatedHF = true;
+                    }
+
+                    if (INToken(reserve.nTokenAddress).balanceOf(params.from, params.ids[vars.i]) == 0) {
+                        fromERC1155Config.setUsingAsCollateral(vars.reserveId, params.ids[vars.i], false);
+                        emit ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.ids[vars.i], params.from);
+                    }
+                }
+
+                DataTypes.UserERC1155ConfigurationMap storage toERC1155Config = usersERC1155Config[params.to];
+
+                if (!toERC1155Config.isUsingAsCollateral(vars.reserveId, params.ids[vars.i])) {
+                    if (ValidationLogic.validateUseERC1155AsCollateral(reserve.cache())) {
+                        toERC1155Config.setUsingAsCollateral(vars.reserveId, params.ids[vars.i], true);
+                        emit ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.ids[vars.i], params.to);
+                    }
                 }
             }
         }

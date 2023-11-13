@@ -622,6 +622,14 @@ library ValidationLogic {
     }
 
     /**
+     * @notice Validates a ERC1155 transfer action.
+     * @param reserve The reserve object
+     */
+    function validateERC1155Transfer(DataTypes.ERC1155ReserveData storage reserve) internal view {
+        require(!reserve.isPaused, Errors.RESERVE_PAUSED);
+    }
+
+    /**
      * @notice Validates a drop reserve action.
      * @param reservesList The addresses of all the active reserves
      * @param reserve The reserve object
