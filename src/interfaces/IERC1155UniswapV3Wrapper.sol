@@ -11,6 +11,10 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
 interface IERC1155UniswapV3Wrapper is IERC721Receiver {
     error OnlyPositionManager();
 
+    function positionManager() external view returns (INonfungiblePositionManager);
+
+    function factory() external view returns (IUniswapV3Factory);
+
     function initialize(INonfungiblePositionManager _positionManager) external;
 
     function getPendingFees(uint256 tokenId) external view returns (uint256 amount0, uint256 amount1);

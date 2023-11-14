@@ -16,6 +16,8 @@ library UniswapV3Position {
 
     struct UniswapV3PositionData {
         IUniswapV3Pool pool;
+        address token0;
+        address token1;
         int24 tickLower;
         int24 tickUpper;
         uint128 liquidity;
@@ -46,6 +48,8 @@ library UniswapV3Position {
         ) = positionManager.positions(tokenId);
         position = UniswapV3PositionData({
             pool: IUniswapV3Pool(factory.getPool(token0, token1, fee)),
+            token0: token0,
+            token1: token1,
             tickLower: tickLower,
             tickUpper: tickUpper,
             liquidity: liquidity,
