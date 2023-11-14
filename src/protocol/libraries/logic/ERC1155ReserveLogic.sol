@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from "../../../dependencies/openzeppelin/contracts/IERC20.sol";
+import {IERC1155ConfigurationProvider} from "../../../interfaces/IERC1155ConfigurationProvider.sol";
 import {GPv2SafeERC20} from "../../../dependencies/gnosis/contracts/GPv2SafeERC20.sol";
 import {IStableDebtToken} from "../../../interfaces/IStableDebtToken.sol";
 import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
@@ -22,24 +23,11 @@ import {SafeCast} from "../../../dependencies/openzeppelin/contracts/SafeCast.so
 library ERC1155ReserveLogic {
     using ERC1155ReserveLogic for DataTypes.ERC1155ReserveData;
 
-    /**
-     * @notice Creates a cache object to avoid repeated storage reads and external contract calls when updating state and
-     * interest rates.
-     * @param erc1155Reserve The reserve object for which the cache will be filled
-     * @return The cache object
-     */
-    function cache(DataTypes.ERC1155ReserveData storage erc1155Reserve)
+    function getConfiguration(DataTypes.ERC1155ReserveData storage erc1155Reserve, uint256 tokenId)
         internal
         view
-        returns (DataTypes.ERC1155ReserveCache memory)
+        returns (DataTypes.ERC1155ReserveConfiguration memory)
     {
-        return DataTypes.ERC1155ReserveCache({
-            id: erc1155Reserve.id,
-            isActive: erc1155Reserve.isActive,
-            isPaused: erc1155Reserve.isPaused,
-            isFrozen: erc1155Reserve.isFrozen,
-            nTokenAddress: erc1155Reserve.nTokenAddress,
-            ltv: erc1155Reserve.ltv
-        });
+        return IERC1155ConfigurationProvider(erc1155Reserve.configurationProvider).getERC1155ReserveConfig(tokenId);
     }
 }

@@ -25,7 +25,6 @@ import {ERC1155ReserveLogic} from "./ERC1155ReserveLogic.sol";
 library SupplyLogic {
     using ReserveLogic for DataTypes.ReserveCache;
     using ReserveLogic for DataTypes.ReserveData;
-    using ERC1155ReserveLogic for DataTypes.ERC1155ReserveCache;
     using ERC1155ReserveLogic for DataTypes.ERC1155ReserveData;
     using GPv2SafeERC20 for IERC20;
     using UserConfiguration for DataTypes.UserConfigurationMap;
@@ -109,19 +108,19 @@ library SupplyLogic {
         DataTypes.ExecuteSupplyERC1155Params memory params
     ) external {
         DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[params.asset];
-        DataTypes.ERC1155ReserveCache memory reserveCache = reserve.cache();
+        DataTypes.ERC1155ReserveConfiguration memory reserveConfig = reserve.getConfiguration(params.tokenId);
 
-        ValidationLogic.validateSupplyERC1155(reserveCache, params.amount);
+        ValidationLogic.validateSupplyERC1155(reserveConfig, params.amount);
 
         IERC1155(params.asset).safeTransferFrom(
-            msg.sender, reserveCache.nTokenAddress, params.tokenId, params.amount, bytes("")
+            msg.sender, reserve.nTokenAddress, params.tokenId, params.amount, bytes("")
         );
 
         bool isFirstSupply =
-            INToken(reserveCache.nTokenAddress).mint(msg.sender, params.onBehalfOf, params.tokenId, params.amount);
+            INToken(reserve.nTokenAddress).mint(msg.sender, params.onBehalfOf, params.tokenId, params.amount);
 
         if (isFirstSupply) {
-            if (ValidationLogic.validateUseERC1155AsCollateral(reserveCache)) {
+            if (ValidationLogic.validateUseERC1155AsCollateral(reserveConfig)) {
                 userERC1155Config.setUsingAsCollateral(reserve.id, params.tokenId, true);
                 emit ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
             }
@@ -211,7 +210,7 @@ library SupplyLogic {
     }
 
     struct ExecuteWithdrawERC1155LocalVars {
-        DataTypes.ERC1155ReserveCache reserveCache;
+        DataTypes.ERC1155ReserveConfiguration reserveConfig;
         uint256 userBalance;
         uint256 amountToWithdraw;
     }
@@ -239,9 +238,9 @@ library SupplyLogic {
         ExecuteWithdrawERC1155LocalVars memory vars;
 
         DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[params.asset];
-        vars.reserveCache = reserve.cache();
+        vars.reserveConfig = reserve.getConfiguration(params.tokenId);
 
-        vars.userBalance = INToken(vars.reserveCache.nTokenAddress).balanceOf(msg.sender, params.tokenId);
+        vars.userBalance = INToken(reserve.nTokenAddress).balanceOf(msg.sender, params.tokenId);
 
         vars.amountToWithdraw = params.amount;
 
@@ -249,7 +248,7 @@ library SupplyLogic {
             vars.amountToWithdraw = vars.userBalance;
         }
 
-        ValidationLogic.validateWithdrawERC1155(vars.reserveCache, vars.amountToWithdraw, vars.userBalance);
+        ValidationLogic.validateWithdrawERC1155(vars.reserveConfig, vars.amountToWithdraw, vars.userBalance);
 
         bool isCollateral = userERC1155Config.isUsingAsCollateral(reserve.id, params.tokenId);
 
@@ -258,7 +257,7 @@ library SupplyLogic {
             emit ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.tokenId, msg.sender);
         }
 
-        INToken(vars.reserveCache.nTokenAddress).burn(msg.sender, params.to, params.tokenId, vars.amountToWithdraw);
+        INToken(reserve.nTokenAddress).burn(msg.sender, params.to, params.tokenId, vars.amountToWithdraw);
 
         if (isCollateral && userConfig.isBorrowingAny()) {
             ValidationLogic.validateHFAndLtv(
@@ -348,6 +347,7 @@ library SupplyLogic {
         bool isBorrowingAny;
         uint256 reserveId;
         uint256 i;
+        DataTypes.ERC1155ReserveConfiguration reserveConfig;
     }
 
     /**
@@ -380,8 +380,7 @@ library SupplyLogic {
         DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[params.asset];
         DataTypes.UserConfigurationMap storage fromConfig = usersConfig[params.from];
         DataTypes.UserERC1155ConfigurationMap storage fromERC1155Config = usersERC1155Config[params.from];
-
-        ValidationLogic.validateERC1155Transfer(reserve);
+        DataTypes.UserERC1155ConfigurationMap storage toERC1155Config = usersERC1155Config[params.to];
 
         if (params.from == params.to) return;
 
@@ -391,6 +390,9 @@ library SupplyLogic {
         vars.isBorrowingAny = fromConfig.isBorrowingAny();
 
         for (vars.i = 0; vars.i < params.ids.length; vars.i++) {
+            vars.reserveConfig = reserve.getConfiguration(params.ids[vars.i]);
+            ValidationLogic.validateERC1155Transfer(vars.reserveConfig);
+
             if (params.amounts[vars.i] != 0) {
                 if (fromERC1155Config.isUsingAsCollateral(vars.reserveId, params.ids[vars.i])) {
                     if (vars.isBorrowingAny && !vars.validatedHF) {
@@ -416,10 +418,8 @@ library SupplyLogic {
                     }
                 }
 
-                DataTypes.UserERC1155ConfigurationMap storage toERC1155Config = usersERC1155Config[params.to];
-
                 if (!toERC1155Config.isUsingAsCollateral(vars.reserveId, params.ids[vars.i])) {
-                    if (ValidationLogic.validateUseERC1155AsCollateral(reserve.cache())) {
+                    if (ValidationLogic.validateUseERC1155AsCollateral(vars.reserveConfig)) {
                         toERC1155Config.setUsingAsCollateral(vars.reserveId, params.ids[vars.i], true);
                         emit ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.ids[vars.i], params.to);
                     }

@@ -57,15 +57,19 @@ library DataTypes {
 
     struct ERC1155ReserveData {
         address nTokenAddress;
+        address configurationProvider;
+        uint256 liquidationProtocolFee;
+        //the id of the reserve. Represents the position in the list of the active ERC1155 reserves
+        uint16 id;
+    }
+
+    struct ERC1155ReserveConfiguration {
         bool isActive;
         bool isFrozen;
         bool isPaused;
         uint256 ltv;
         uint256 liquidationThreshold;
         uint256 liquidationBonus;
-        uint256 liquidationProtocolFee;
-        //the id of the reserve. Represents the position in the list of the active ERC1155 reserves
-        uint16 id;
     }
 
     struct UserConfigurationMap {
@@ -117,15 +121,6 @@ library DataTypes {
         address variableDebtTokenAddress;
         uint40 reserveLastUpdateTimestamp;
         uint40 stableDebtLastUpdateTimestamp;
-    }
-
-    struct ERC1155ReserveCache {
-        address nTokenAddress;
-        bool isActive;
-        bool isFrozen;
-        bool isPaused;
-        uint256 ltv;
-        uint256 id;
     }
 
     struct ExecuteLiquidationCallParams {

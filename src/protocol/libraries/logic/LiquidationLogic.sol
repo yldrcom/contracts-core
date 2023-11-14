@@ -241,7 +241,8 @@ library LiquidationLogic {
         uint256 liquidationProtocolFeeAmount;
         address debtPriceSource;
         INToken collateralNToken;
-        DataTypes.ERC1155ReserveCache collateralReserveCache;
+        DataTypes.ERC1155ReserveConfiguration collateralReserveConfig;
+        uint256 collateralReserveId;
         DataTypes.ReserveCache debtReserveCache;
     }
 
@@ -271,8 +272,9 @@ library LiquidationLogic {
         DataTypes.UserConfigurationMap storage userConfig = usersConfig[params.user];
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config = usersERC1155Config[params.user];
 
-        vars.collateralReserveCache = collateralReserve.cache();
+        vars.collateralReserveConfig = collateralReserve.getConfiguration(params.collateralTokenId);
         vars.debtReserveCache = debtReserve.cache();
+        vars.collateralReserveId = collateralReserve.id;
 
         debtReserve.updateState(vars.debtReserveCache);
 
@@ -296,6 +298,7 @@ library LiquidationLogic {
         ValidationLogic.validateERC1155LiquidationCall(
             userERC1155Config,
             collateralReserve,
+            collateralReserve.getConfiguration(params.collateralTokenId),
             DataTypes.ValidateERC1155LiquidationCallParams({
                 collateralReserveTokenId: params.collateralTokenId,
                 debtReserveCache: vars.debtReserveCache,
@@ -307,7 +310,7 @@ library LiquidationLogic {
 
         vars.collateralNToken = INToken(collateralReserve.nTokenAddress);
         vars.debtPriceSource = params.debtAsset;
-        vars.liquidationBonus = collateralReserve.liquidationBonus;
+        vars.liquidationBonus = vars.collateralReserveConfig.liquidationBonus;
 
         vars.userCollateralBalance = vars.collateralNToken.balanceOf(params.user, params.collateralTokenId);
 
@@ -447,8 +450,8 @@ library LiquidationLogic {
 
         if (liquidatorPreviousNTokenBalance == 0) {
             DataTypes.UserERC1155ConfigurationMap storage liquidatorConfig = usersERC1155Config[msg.sender];
-            if (ValidationLogic.validateUseERC1155AsCollateral(vars.collateralReserveCache)) {
-                liquidatorConfig.setUsingAsCollateral(vars.collateralReserveCache.id, params.collateralTokenId, true);
+            if (ValidationLogic.validateUseERC1155AsCollateral(vars.collateralReserveConfig)) {
+                liquidatorConfig.setUsingAsCollateral(vars.collateralReserveId, params.collateralTokenId, true);
                 emit ERC1155ReserveUsedAsCollateralEnabled(params.collateralAsset, params.collateralTokenId, msg.sender);
             }
         }

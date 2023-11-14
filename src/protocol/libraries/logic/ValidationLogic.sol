@@ -85,15 +85,18 @@ library ValidationLogic {
 
     /**
      * @notice Validates a supply action.
-     * @param reserveCache The cached data of the reserve
+     * @param reserveConfig The config of the reserve
      * @param amount The amount to be supplied
      */
-    function validateSupplyERC1155(DataTypes.ERC1155ReserveCache memory reserveCache, uint256 amount) internal pure {
+    function validateSupplyERC1155(DataTypes.ERC1155ReserveConfiguration memory reserveConfig, uint256 amount)
+        internal
+        pure
+    {
         require(amount != 0, Errors.INVALID_AMOUNT);
 
-        require(reserveCache.isActive, Errors.RESERVE_INACTIVE);
-        require(!reserveCache.isPaused, Errors.RESERVE_PAUSED);
-        require(!reserveCache.isFrozen, Errors.RESERVE_FROZEN);
+        require(reserveConfig.isActive, Errors.RESERVE_INACTIVE);
+        require(!reserveConfig.isPaused, Errors.RESERVE_PAUSED);
+        require(!reserveConfig.isFrozen, Errors.RESERVE_FROZEN);
     }
 
     /**
@@ -116,20 +119,20 @@ library ValidationLogic {
 
     /**
      * @notice Validates a withdrawERC1155 action.
-     * @param reserveCache The cached data of the reserve
+     * @param reserveConfig The config of the reserve
      * @param amount The amount to be withdrawn
      * @param userBalance The balance of the user
      */
     function validateWithdrawERC1155(
-        DataTypes.ERC1155ReserveCache memory reserveCache,
+        DataTypes.ERC1155ReserveConfiguration memory reserveConfig,
         uint256 amount,
         uint256 userBalance
     ) internal pure {
         require(amount != 0, Errors.INVALID_AMOUNT);
         require(amount <= userBalance, Errors.NOT_ENOUGH_AVAILABLE_USER_BALANCE);
 
-        require(reserveCache.isActive, Errors.RESERVE_INACTIVE);
-        require(!reserveCache.isPaused, Errors.RESERVE_PAUSED);
+        require(reserveConfig.isActive, Errors.RESERVE_INACTIVE);
+        require(!reserveConfig.isPaused, Errors.RESERVE_PAUSED);
     }
 
     struct ValidateBorrowLocalVars {
@@ -511,14 +514,15 @@ library ValidationLogic {
     function validateERC1155LiquidationCall(
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ERC1155ReserveData storage collateralReserve,
+        DataTypes.ERC1155ReserveConfiguration memory collateralReserveConfig,
         DataTypes.ValidateERC1155LiquidationCallParams memory params
     ) internal view {
         ValidateERC1155LiquidationCallLocalVars memory vars;
 
         (vars.debtReserveActive,,,, vars.debtReservePaused) = params.debtReserveCache.reserveConfiguration.getFlags();
 
-        require(collateralReserve.isActive && vars.debtReserveActive, Errors.RESERVE_INACTIVE);
-        require(!collateralReserve.isPaused && !vars.debtReservePaused, Errors.RESERVE_PAUSED);
+        require(collateralReserveConfig.isActive && vars.debtReserveActive, Errors.RESERVE_INACTIVE);
+        require(!collateralReserveConfig.isPaused && !vars.debtReservePaused, Errors.RESERVE_PAUSED);
 
         require(
             params.priceOracleSentinel == address(0)
@@ -529,7 +533,7 @@ library ValidationLogic {
 
         require(params.healthFactor < HEALTH_FACTOR_LIQUIDATION_THRESHOLD, Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD);
 
-        vars.isCollateralEnabled = collateralReserve.liquidationThreshold != 0
+        vars.isCollateralEnabled = collateralReserveConfig.liquidationThreshold != 0
             && userERC1155Config.isUsingAsCollateral(collateralReserve.id, params.collateralReserveTokenId);
 
         //if collateral isn't enabled as collateral by user, it cannot be liquidated
@@ -623,10 +627,10 @@ library ValidationLogic {
 
     /**
      * @notice Validates a ERC1155 transfer action.
-     * @param reserve The reserve object
+     * @param reserveConfig The reserve config
      */
-    function validateERC1155Transfer(DataTypes.ERC1155ReserveData storage reserve) internal view {
-        require(!reserve.isPaused, Errors.RESERVE_PAUSED);
+    function validateERC1155Transfer(DataTypes.ERC1155ReserveConfiguration memory reserveConfig) internal pure {
+        require(!reserveConfig.isPaused, Errors.RESERVE_PAUSED);
     }
 
     /**
@@ -667,14 +671,14 @@ library ValidationLogic {
     /**
      * @notice Validates the action of activating the asset as collateral.
      * @dev Only possible if the asset has non-zero LTV
-     * @param reserveCache The reserve configuration
+     * @param reserveConfig The reserve configuration
      * @return True if the asset can be activated as collateral, false otherwise
      */
-    function validateUseERC1155AsCollateral(DataTypes.ERC1155ReserveCache memory reserveCache)
+    function validateUseERC1155AsCollateral(DataTypes.ERC1155ReserveConfiguration memory reserveConfig)
         internal
         pure
         returns (bool)
     {
-        return reserveCache.ltv != 0;
+        return reserveConfig.ltv != 0;
     }
 }

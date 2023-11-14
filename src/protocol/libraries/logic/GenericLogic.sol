@@ -7,6 +7,7 @@ import {IScaledBalanceToken} from "../../../interfaces/IScaledBalanceToken.sol";
 import {IPriceOracleGetter} from "../../../interfaces/IPriceOracleGetter.sol";
 import {INToken} from "../../../interfaces/INToken.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
+import {ERC1155ReserveLogic} from "./ERC1155ReserveLogic.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
 import {UserERC1155Configuration} from "../configuration/UserERC1155Configuration.sol";
 import {PercentageMath} from "../math/PercentageMath.sol";
@@ -26,6 +27,7 @@ library GenericLogic {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using UserConfiguration for DataTypes.UserConfigurationMap;
     using UserERC1155Configuration for DataTypes.UserERC1155ConfigurationMap;
+    using ERC1155ReserveLogic for DataTypes.ERC1155ReserveData;
 
     struct CalculateUserAccountDataVars {
         uint256 assetPrice;
@@ -43,6 +45,7 @@ library GenericLogic {
         address currentReserveAddress;
         uint256 currentReserveTokenId;
         bool hasZeroLtvCollateral;
+        DataTypes.ERC1155ReserveConfiguration currentReserveConfig;
     }
 
     /**
@@ -130,13 +133,14 @@ library GenericLogic {
             vars.currentReserveTokenId = userERC1155Config.usedERC1155Reserves[vars.i].tokenId;
 
             DataTypes.ERC1155ReserveData storage currentReserve = erc1155ReservesData[vars.currentReserveAddress];
+            vars.currentReserveConfig = currentReserve.getConfiguration(vars.currentReserveTokenId);
 
             vars.assetPrice = IPriceOracleGetter(params.oracle).getERC1155AssetPrice(
                 vars.currentReserveAddress, vars.currentReserveTokenId
             );
 
-            vars.liquidationThreshold = currentReserve.liquidationThreshold;
-            vars.ltv = currentReserve.ltv;
+            vars.liquidationThreshold = vars.currentReserveConfig.liquidationThreshold;
+            vars.ltv = vars.currentReserveConfig.ltv;
 
             if (vars.liquidationThreshold != 0) {
                 vars.userBalanceInBaseCurrency = INToken(currentReserve.nTokenAddress).balanceOf(
