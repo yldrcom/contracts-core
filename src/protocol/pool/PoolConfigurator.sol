@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {VersionedInitializable} from "../libraries/yldr-upgradeability/VersionedInitializable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
@@ -19,7 +19,7 @@ import {IPoolDataProvider} from "../../interfaces/IPoolDataProvider.sol";
  *
  * @dev Implements the configuration methods for the YLDR protocol
  */
-contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
+contract PoolConfigurator is Initializable, IPoolConfigurator {
     using PercentageMath for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
@@ -64,13 +64,6 @@ contract PoolConfigurator is VersionedInitializable, IPoolConfigurator {
     modifier onlyRiskOrPoolAdmins() {
         _onlyRiskOrPoolAdmins();
         _;
-    }
-
-    uint256 public constant CONFIGURATOR_REVISION = 0x1;
-
-    /// @inheritdoc VersionedInitializable
-    function getRevision() internal pure virtual override returns (uint256) {
-        return CONFIGURATOR_REVISION;
     }
 
     function initialize(IPoolAddressesProvider provider) public initializer {

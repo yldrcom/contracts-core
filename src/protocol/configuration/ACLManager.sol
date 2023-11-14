@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {AccessControl} from "../../dependencies/openzeppelin/contracts/AccessControl.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
@@ -29,7 +29,7 @@ contract ACLManager is AccessControl, IACLManager {
         ADDRESSES_PROVIDER = provider;
         address aclAdmin = provider.getACLAdmin();
         require(aclAdmin != address(0), Errors.ACL_ADMIN_CANNOT_BE_ZERO);
-        _setupRole(DEFAULT_ADMIN_ROLE, aclAdmin);
+        _grantRole(DEFAULT_ADMIN_ROLE, aclAdmin);
     }
 
     /// @inheritdoc IACLManager

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {IERC20} from "../../../dependencies/openzeppelin/contracts/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155ConfigurationProvider} from "../../../interfaces/IERC1155ConfigurationProvider.sol";
-import {GPv2SafeERC20} from "../../../dependencies/gnosis/contracts/GPv2SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IStableDebtToken} from "../../../interfaces/IStableDebtToken.sol";
 import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
 import {IReserveInterestRateStrategy} from "../../../interfaces/IReserveInterestRateStrategy.sol";
@@ -13,7 +13,7 @@ import {WadRayMath} from "../math/WadRayMath.sol";
 import {PercentageMath} from "../math/PercentageMath.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
-import {SafeCast} from "../../../dependencies/openzeppelin/contracts/SafeCast.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /**
  * @title ERC1155ReserveLogic library

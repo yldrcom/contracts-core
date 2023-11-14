@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {Ownable} from "../../dependencies/openzeppelin/contracts/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
-import {InitializableImmutableAdminUpgradeabilityProxy} from
-    "../libraries/yldr-upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
+import {ITransparentUpgradeableProxy, TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
  * @title PoolAddressesProvider
@@ -34,9 +33,8 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
      * @param marketId The identifier of the market.
      * @param owner The owner address of this contract.
      */
-    constructor(string memory marketId, address owner) {
+    constructor(string memory marketId, address owner) Ownable(owner) {
         _setMarketId(marketId);
-        transferOwnership(owner);
     }
 
     /// @inheritdoc IPoolAddressesProvider
@@ -64,9 +62,8 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
     /// @inheritdoc IPoolAddressesProvider
     function setAddressAsProxy(bytes32 id, address newImplementationAddress) external override onlyOwner {
         address proxyAddress = _addresses[id];
-        address oldImplementationAddress = _getProxyImplementation(id);
         _updateImpl(id, newImplementationAddress);
-        emit AddressSetAsProxy(id, proxyAddress, oldImplementationAddress, newImplementationAddress);
+        emit AddressSetAsProxy(id, proxyAddress, newImplementationAddress);
     }
 
     /// @inheritdoc IPoolAddressesProvider
@@ -76,9 +73,8 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
 
     /// @inheritdoc IPoolAddressesProvider
     function setPoolImpl(address newPoolImpl) external override onlyOwner {
-        address oldPoolImpl = _getProxyImplementation(POOL);
         _updateImpl(POOL, newPoolImpl);
-        emit PoolUpdated(oldPoolImpl, newPoolImpl);
+        emit PoolUpdated(newPoolImpl);
     }
 
     /// @inheritdoc IPoolAddressesProvider
@@ -88,9 +84,8 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
 
     /// @inheritdoc IPoolAddressesProvider
     function setPoolConfiguratorImpl(address newPoolConfiguratorImpl) external override onlyOwner {
-        address oldPoolConfiguratorImpl = _getProxyImplementation(POOL_CONFIGURATOR);
         _updateImpl(POOL_CONFIGURATOR, newPoolConfiguratorImpl);
-        emit PoolConfiguratorUpdated(oldPoolConfiguratorImpl, newPoolConfiguratorImpl);
+        emit PoolConfiguratorUpdated(newPoolConfiguratorImpl);
     }
 
     /// @inheritdoc IPoolAddressesProvider
@@ -164,17 +159,14 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
      */
     function _updateImpl(bytes32 id, address newAddress) internal {
         address proxyAddress = _addresses[id];
-        InitializableImmutableAdminUpgradeabilityProxy proxy;
         bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
 
         if (proxyAddress == address(0)) {
-            proxy = new InitializableImmutableAdminUpgradeabilityProxy(address(this));
+            TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(newAddress, address(this), params);
             _addresses[id] = proxyAddress = address(proxy);
-            proxy.initialize(newAddress, params);
             emit ProxyCreated(id, proxyAddress, newAddress);
         } else {
-            proxy = InitializableImmutableAdminUpgradeabilityProxy(payable(proxyAddress));
-            proxy.upgradeToAndCall(newAddress, params);
+            ITransparentUpgradeableProxy(proxyAddress).upgradeToAndCall(newAddress, params);
         }
     }
 
@@ -186,22 +178,5 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
         string memory oldMarketId = _marketId;
         _marketId = newMarketId;
         emit MarketIdSet(oldMarketId, newMarketId);
-    }
-
-    /**
-     * @notice Returns the the implementation contract of the proxy contract by its identifier.
-     * @dev It returns ZERO if there is no registered address with the given id
-     * @dev It reverts if the registered address with the given id is not `InitializableImmutableAdminUpgradeabilityProxy`
-     * @param id The id
-     * @return The address of the implementation contract
-     */
-    function _getProxyImplementation(bytes32 id) internal returns (address) {
-        address proxyAddress = _addresses[id];
-        if (proxyAddress == address(0)) {
-            return address(0);
-        } else {
-            address payable payableProxyAddress = payable(proxyAddress);
-            return InitializableImmutableAdminUpgradeabilityProxy(payableProxyAddress).implementation();
-        }
     }
 }

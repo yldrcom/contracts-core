@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {SafeCast} from "../../../dependencies/openzeppelin/contracts/SafeCast.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {IPool} from "../../../interfaces/IPool.sol";

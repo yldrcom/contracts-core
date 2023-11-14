@@ -33,7 +33,7 @@ interface IInitializableYToken {
     );
 
     /**
-     * @notice Initializes the yToken
+     * @notice Params for yToken initialization
      * @param pool The pool contract that is initializing this contract
      * @param treasury The address of the YLDR treasury, receiving the fees on this yToken
      * @param underlyingAsset The address of the underlying asset of this yToken (E.g. WETH for aWETH)
@@ -43,14 +43,22 @@ interface IInitializableYToken {
      * @param yTokenSymbol The symbol of the yToken
      * @param params A set of encoded parameters for additional initialization
      */
+    struct InitializerParams {
+        IPool initializingPool;
+        address treasury;
+        address underlyingAsset;
+        IYLDRIncentivesController incentivesController;
+        uint8 yTokenDecimals;
+        string yTokenName;
+        string yTokenSymbol;
+        bytes params;
+    }
+
+    /**
+      * @notice Initializes yToken
+      * @param params The parameters to initialize in the format of InitializerParams defined above
+     */
     function initialize(
-        IPool pool,
-        address treasury,
-        address underlyingAsset,
-        IYLDRIncentivesController incentivesController,
-        uint8 yTokenDecimals,
-        string calldata yTokenName,
-        string calldata yTokenSymbol,
-        bytes calldata params
+        InitializerParams calldata params
     ) external;
 }

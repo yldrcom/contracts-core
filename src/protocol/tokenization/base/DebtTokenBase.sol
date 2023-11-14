@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {Context} from "../../../dependencies/openzeppelin/contracts/Context.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
-import {VersionedInitializable} from "../../libraries/yldr-upgradeability/VersionedInitializable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ICreditDelegationToken} from "../../../interfaces/ICreditDelegationToken.sol";
 import {EIP712Base} from "./EIP712Base.sol";
 
@@ -12,7 +12,7 @@ import {EIP712Base} from "./EIP712Base.sol";
  *
  * @notice Base contract for different types of debt tokens, like StableDebtToken or VariableDebtToken
  */
-abstract contract DebtTokenBase is VersionedInitializable, EIP712Base, Context, ICreditDelegationToken {
+abstract contract DebtTokenBase is Initializable, EIP712Base, Context, ICreditDelegationToken {
     // Map of borrow allowances (delegator => delegatee => borrowAllowanceAmount)
     mapping(address => mapping(address => uint256)) internal _borrowAllowances;
 

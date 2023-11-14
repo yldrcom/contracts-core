@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {AggregatorInterface} from "../dependencies/chainlink/AggregatorInterface.sol";
+import {IChainlinkAggregator} from "../interfaces/ext/IChainlinkAggregator.sol";
 import {Errors} from "../protocol/libraries/helpers/Errors.sol";
 import {IACLManager} from "../interfaces/IACLManager.sol";
 import {IPoolAddressesProvider} from "../interfaces/IPoolAddressesProvider.sol";
@@ -21,7 +21,7 @@ contract YLDROracle is IYLDROracle {
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
     // Map of asset price sources (asset => priceSource)
-    mapping(address => AggregatorInterface) private assetsSources;
+    mapping(address => IChainlinkAggregator) private assetsSources;
 
     // Map of ERC1155 asset price sources (asset => priceSource)
     mapping(address => IERC1155PriceOracle) private erc1155AssetsSources;
@@ -86,7 +86,7 @@ contract YLDROracle is IYLDROracle {
     function _setAssetsSources(address[] memory assets, address[] memory sources) internal {
         require(assets.length == sources.length, Errors.INCONSISTENT_PARAMS_LENGTH);
         for (uint256 i = 0; i < assets.length; i++) {
-            assetsSources[assets[i]] = AggregatorInterface(sources[i]);
+            assetsSources[assets[i]] = IChainlinkAggregator(sources[i]);
             emit AssetSourceUpdated(assets[i], sources[i]);
         }
     }
@@ -102,7 +102,7 @@ contract YLDROracle is IYLDROracle {
 
     /// @inheritdoc IPriceOracleGetter
     function getAssetPrice(address asset) public view override returns (uint256) {
-        AggregatorInterface source = assetsSources[asset];
+        IChainlinkAggregator source = assetsSources[asset];
 
         if (asset == BASE_CURRENCY) {
             return BASE_CURRENCY_UNIT;

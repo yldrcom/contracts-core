@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {IERC20} from "../../dependencies/openzeppelin/contracts/IERC20.sol";
-import {SafeCast} from "../../dependencies/openzeppelin/contracts/SafeCast.sol";
-import {VersionedInitializable} from "../libraries/yldr-upgradeability/VersionedInitializable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {IPool} from "../../interfaces/IPool.sol";
@@ -67,11 +66,6 @@ contract VariableDebtToken is DebtTokenBase, ScaledBalanceTokenBase, IVariableDe
             debtTokenSymbol,
             params
         );
-    }
-
-    /// @inheritdoc VersionedInitializable
-    function getRevision() internal pure virtual override returns (uint256) {
-        return DEBT_TOKEN_REVISION;
     }
 
     /// @inheritdoc IERC20

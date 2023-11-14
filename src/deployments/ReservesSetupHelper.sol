@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {PoolConfigurator} from "../protocol/pool/PoolConfigurator.sol";
-import {Ownable} from "../dependencies/openzeppelin/contracts/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title ReservesSetupHelper
@@ -11,6 +11,7 @@ import {Ownable} from "../dependencies/openzeppelin/contracts/Ownable.sol";
  * @dev The ReservesSetupHelper is an Ownable contract, so only the deployer or future owners can call this contract.
  */
 contract ReservesSetupHelper is Ownable {
+    constructor() Ownable(msg.sender) {}
     struct ConfigureReserveInput {
         address asset;
         uint256 baseLTV;

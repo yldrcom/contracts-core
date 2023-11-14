@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {IERC20Detailed} from "../dependencies/openzeppelin/contracts/IERC20Detailed.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ReserveConfiguration} from "../protocol/libraries/configuration/ReserveConfiguration.sol";
 import {UserConfiguration} from "../protocol/libraries/configuration/UserConfiguration.sol";
 import {DataTypes} from "../protocol/libraries/types/DataTypes.sol";
@@ -50,7 +50,7 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
                 reservesTokens[i] = TokenData({symbol: "ETH", tokenAddress: reserves[i]});
                 continue;
             }
-            reservesTokens[i] = TokenData({symbol: IERC20Detailed(reserves[i]).symbol(), tokenAddress: reserves[i]});
+            reservesTokens[i] = TokenData({symbol: IERC20Metadata(reserves[i]).symbol(), tokenAddress: reserves[i]});
         }
         return reservesTokens;
     }
@@ -63,7 +63,7 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         for (uint256 i = 0; i < reserves.length; i++) {
             DataTypes.ReserveData memory reserveData = pool.getReserveData(reserves[i]);
             yTokens[i] = TokenData({
-                symbol: IERC20Detailed(reserveData.yTokenAddress).symbol(),
+                symbol: IERC20Metadata(reserveData.yTokenAddress).symbol(),
                 tokenAddress: reserveData.yTokenAddress
             });
         }
@@ -141,9 +141,9 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
 
         return (
             reserve.accruedToTreasury,
-            IERC20Detailed(reserve.yTokenAddress).totalSupply(),
-            IERC20Detailed(reserve.stableDebtTokenAddress).totalSupply(),
-            IERC20Detailed(reserve.variableDebtTokenAddress).totalSupply(),
+            IERC20Metadata(reserve.yTokenAddress).totalSupply(),
+            IERC20Metadata(reserve.stableDebtTokenAddress).totalSupply(),
+            IERC20Metadata(reserve.variableDebtTokenAddress).totalSupply(),
             reserve.currentLiquidityRate,
             reserve.currentVariableBorrowRate,
             reserve.currentStableBorrowRate,
@@ -157,14 +157,14 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
     /// @inheritdoc IPoolDataProvider
     function getYTokenTotalSupply(address asset) external view override returns (uint256) {
         DataTypes.ReserveData memory reserve = IPool(ADDRESSES_PROVIDER.getPool()).getReserveData(asset);
-        return IERC20Detailed(reserve.yTokenAddress).totalSupply();
+        return IERC20Metadata(reserve.yTokenAddress).totalSupply();
     }
 
     /// @inheritdoc IPoolDataProvider
     function getTotalDebt(address asset) external view override returns (uint256) {
         DataTypes.ReserveData memory reserve = IPool(ADDRESSES_PROVIDER.getPool()).getReserveData(asset);
-        return IERC20Detailed(reserve.stableDebtTokenAddress).totalSupply()
-            + IERC20Detailed(reserve.variableDebtTokenAddress).totalSupply();
+        return IERC20Metadata(reserve.stableDebtTokenAddress).totalSupply()
+            + IERC20Metadata(reserve.variableDebtTokenAddress).totalSupply();
     }
 
     /// @inheritdoc IPoolDataProvider
@@ -189,9 +189,9 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         DataTypes.UserConfigurationMap memory userConfig =
             IPool(ADDRESSES_PROVIDER.getPool()).getUserConfiguration(user);
 
-        currentYTokenBalance = IERC20Detailed(reserve.yTokenAddress).balanceOf(user);
-        currentVariableDebt = IERC20Detailed(reserve.variableDebtTokenAddress).balanceOf(user);
-        currentStableDebt = IERC20Detailed(reserve.stableDebtTokenAddress).balanceOf(user);
+        currentYTokenBalance = IERC20Metadata(reserve.yTokenAddress).balanceOf(user);
+        currentVariableDebt = IERC20Metadata(reserve.variableDebtTokenAddress).balanceOf(user);
+        currentStableDebt = IERC20Metadata(reserve.stableDebtTokenAddress).balanceOf(user);
         principalStableDebt = IStableDebtToken(reserve.stableDebtTokenAddress).principalBalanceOf(user);
         scaledVariableDebt = IVariableDebtToken(reserve.variableDebtTokenAddress).scaledBalanceOf(user);
         liquidityRate = reserve.currentLiquidityRate;

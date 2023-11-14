@@ -4,8 +4,7 @@ pragma solidity ^0.8.10;
 import {IPool} from "../../../interfaces/IPool.sol";
 import {IInitializableYToken} from "../../../interfaces/IInitializableYToken.sol";
 import {IInitializableDebtToken} from "../../../interfaces/IInitializableDebtToken.sol";
-import {InitializableImmutableAdminUpgradeabilityProxy} from
-    "../yldr-upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
+import {ITransparentUpgradeableProxy, TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ConfiguratorInputTypes} from "../types/ConfiguratorInputTypes.sol";
@@ -201,12 +200,7 @@ library ConfiguratorLogic {
      * @return The address of initialized proxy
      */
     function _initTokenWithProxy(address implementation, bytes memory initParams) internal returns (address) {
-        InitializableImmutableAdminUpgradeabilityProxy proxy = new InitializableImmutableAdminUpgradeabilityProxy(
-        address(this)
-      );
-
-        proxy.initialize(implementation, initParams);
-
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(implementation, address(this), initParams);
         return address(proxy);
     }
 
@@ -220,9 +214,7 @@ library ConfiguratorLogic {
     function _upgradeTokenImplementation(address proxyAddress, address implementation, bytes memory initParams)
         internal
     {
-        InitializableImmutableAdminUpgradeabilityProxy proxy =
-            InitializableImmutableAdminUpgradeabilityProxy(payable(proxyAddress));
-
+        ITransparentUpgradeableProxy proxy = ITransparentUpgradeableProxy(proxyAddress);
         proxy.upgradeToAndCall(implementation, initParams);
     }
 }

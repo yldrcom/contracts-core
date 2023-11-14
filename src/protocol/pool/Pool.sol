@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {VersionedInitializable} from "../libraries/yldr-upgradeability/VersionedInitializable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {PoolLogic} from "../libraries/logic/PoolLogic.sol";
@@ -16,7 +16,7 @@ import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.so
 import {IPool} from "../../interfaces/IPool.sol";
 import {IACLManager} from "../../interfaces/IACLManager.sol";
 import {PoolStorage} from "./PoolStorage.sol";
-import {ReentrancyGuardUpgradeable} from "../libraries/yldr-upgradeability/ReentrancyGuardUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 /**
  * @title Pool contract
@@ -35,10 +35,9 @@ import {ReentrancyGuardUpgradeable} from "../libraries/yldr-upgradeability/Reent
  * @dev All admin functions are callable by the PoolConfigurator contract defined also in the
  *   PoolAddressesProvider
  */
-contract Pool is VersionedInitializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
+contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
     using ReserveLogic for DataTypes.ReserveData;
 
-    uint256 public constant POOL_REVISION = 0x1;
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
     /**
@@ -63,10 +62,6 @@ contract Pool is VersionedInitializable, PoolStorage, ReentrancyGuardUpgradeable
 
     function _onlyPoolAdmin() internal view virtual {
         require(IACLManager(ADDRESSES_PROVIDER.getACLManager()).isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
-    }
-
-    function getRevision() internal pure virtual override returns (uint256) {
-        return POOL_REVISION;
     }
 
     /**

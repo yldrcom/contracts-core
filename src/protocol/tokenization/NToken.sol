@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {VersionedInitializable} from "../libraries/yldr-upgradeability/VersionedInitializable.sol";
-import {ERC1155SupplyUpgradeable} from "../libraries/yldr-upgradeability/ERC1155SupplyUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ERC1155SupplyUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
 import {IPool} from "../../interfaces/IPool.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
-import {IERC1155} from "../../dependencies/openzeppelin/contracts/IERC1155.sol";
-import {INToken} from "../../interfaces/INToken.sol";
+import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {INToken, IERC1155Supply} from "../../interfaces/INToken.sol";
 
 /**
  * @title YLDR NToken
  *
  */
 contract NToken is ERC1155SupplyUpgradeable, INToken {
-    uint256 public constant NTOKEN_REVISION = 0x1;
+    
     address private _underlyingAsset;
     IPool public pool;
     address private _treasury;
@@ -21,11 +22,6 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
     modifier onlyPool() {
         require(_msgSender() == address(pool), Errors.CALLER_MUST_BE_POOL);
         _;
-    }
-
-    /// @inheritdoc VersionedInitializable
-    function getRevision() internal pure virtual override returns (uint256) {
-        return NTOKEN_REVISION;
     }
 
     /// @inheritdoc INToken
@@ -105,5 +101,20 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
      */
     function RESERVE_TREASURY_ADDRESS() external view override returns (address) {
         return _treasury;
+    }
+
+    /// @inheritdoc ERC1155SupplyUpgradeable
+    function totalSupply(uint256 id) public view override(ERC1155SupplyUpgradeable, IERC1155Supply) returns (uint256) {
+        return ERC1155SupplyUpgradeable.totalSupply(id);
+    }
+
+    /// @inheritdoc ERC1155SupplyUpgradeable
+    function totalSupply() public view override(ERC1155SupplyUpgradeable, IERC1155Supply) returns (uint256) {
+        return ERC1155SupplyUpgradeable.totalSupply();
+    }
+
+    /// @inheritdoc ERC1155SupplyUpgradeable
+    function exists(uint256 id) public view override(ERC1155SupplyUpgradeable, IERC1155Supply) returns (bool) {
+        return ERC1155SupplyUpgradeable.exists(id);
     }
 }

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {IERC20} from "../../dependencies/openzeppelin/contracts/IERC20.sol";
-import {GPv2SafeERC20} from "../../dependencies/gnosis/contracts/GPv2SafeERC20.sol";
-import {SafeCast} from "../../dependencies/openzeppelin/contracts/SafeCast.sol";
-import {VersionedInitializable} from "../libraries/yldr-upgradeability/VersionedInitializable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {IPool} from "../../interfaces/IPool.sol";
@@ -20,23 +20,16 @@ import {EIP712Base} from "./base/EIP712Base.sol";
  *
  * @notice Implementation of the interest bearing token for the YLDR protocol
  */
-contract YToken is VersionedInitializable, ScaledBalanceTokenBase, EIP712Base, IYToken {
+contract YToken is Initializable, ScaledBalanceTokenBase, EIP712Base, IYToken {
     using WadRayMath for uint256;
     using SafeCast for uint256;
-    using GPv2SafeERC20 for IERC20;
+    using SafeERC20 for IERC20;
 
     bytes32 public constant PERMIT_TYPEHASH =
         keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
-    uint256 public constant YTOKEN_REVISION = 0x1;
-
     address internal _treasury;
     address internal _underlyingAsset;
-
-    /// @inheritdoc VersionedInitializable
-    function getRevision() internal pure virtual override returns (uint256) {
-        return YTOKEN_REVISION;
-    }
 
     /**
      * @dev Constructor.
@@ -48,36 +41,18 @@ contract YToken is VersionedInitializable, ScaledBalanceTokenBase, EIP712Base, I
 
     /// @inheritdoc IInitializableYToken
     function initialize(
-        IPool initializingPool,
-        address treasury,
-        address underlyingAsset,
-        IYLDRIncentivesController incentivesController,
-        uint8 yTokenDecimals,
-        string calldata yTokenName,
-        string calldata yTokenSymbol,
-        bytes calldata params
+        InitializerParams calldata params
     ) public virtual override initializer {
-        require(initializingPool == POOL, Errors.POOL_ADDRESSES_DO_NOT_MATCH);
-        _setName(yTokenName);
-        _setSymbol(yTokenSymbol);
-        _setDecimals(yTokenDecimals);
+        require(params.initializingPool == POOL, Errors.POOL_ADDRESSES_DO_NOT_MATCH);
+        _setName(params.yTokenName);
+        _setSymbol(params.yTokenSymbol);
+        _setDecimals(params.yTokenDecimals);
 
-        _treasury = treasury;
-        _underlyingAsset = underlyingAsset;
-        _incentivesController = incentivesController;
+        _treasury = params.treasury;
+        _underlyingAsset = params.underlyingAsset;
+        _incentivesController = params.incentivesController;
 
         _domainSeparator = _calculateDomainSeparator();
-
-        emit Initialized(
-            underlyingAsset,
-            address(POOL),
-            treasury,
-            address(incentivesController),
-            yTokenDecimals,
-            yTokenName,
-            yTokenSymbol,
-            params
-        );
     }
 
     /// @inheritdoc IYToken

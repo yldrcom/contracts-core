@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {GPv2SafeERC20} from "../../../dependencies/gnosis/contracts/GPv2SafeERC20.sol";
-import {Address} from "../../../dependencies/openzeppelin/contracts/Address.sol";
-import {IERC20} from "../../../dependencies/openzeppelin/contracts/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {Errors} from "../helpers/Errors.sol";
@@ -19,7 +18,7 @@ import {GenericLogic} from "./GenericLogic.sol";
  * @notice Implements the logic for Pool specific functions
  */
 library PoolLogic {
-    using GPv2SafeERC20 for IERC20;
+    using SafeERC20 for IERC20;
     using WadRayMath for uint256;
     using ReserveLogic for DataTypes.ReserveData;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -39,7 +38,6 @@ library PoolLogic {
         mapping(uint256 => address) storage reservesList,
         DataTypes.InitReserveParams memory params
     ) external returns (bool) {
-        require(Address.isContract(params.asset), Errors.NOT_CONTRACT);
         reservesData[params.asset].init(
             params.yTokenAddress,
             params.stableDebtAddress,

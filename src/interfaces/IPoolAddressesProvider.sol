@@ -16,17 +16,15 @@ interface IPoolAddressesProvider {
 
     /**
      * @dev Emitted when the pool is updated.
-     * @param oldAddress The old address of the Pool
      * @param newAddress The new address of the Pool
      */
-    event PoolUpdated(address indexed oldAddress, address indexed newAddress);
+    event PoolUpdated(address indexed newAddress);
 
     /**
      * @dev Emitted when the pool configurator is updated.
-     * @param oldAddress The old address of the PoolConfigurator
      * @param newAddress The new address of the PoolConfigurator
      */
-    event PoolConfiguratorUpdated(address indexed oldAddress, address indexed newAddress);
+    event PoolConfiguratorUpdated(address indexed newAddress);
 
     /**
      * @dev Emitted when the price oracle is updated.
@@ -83,13 +81,11 @@ interface IPoolAddressesProvider {
      * @dev Emitted when the implementation of the proxy registered with id is updated
      * @param id The identifier of the contract
      * @param proxyAddress The address of the proxy contract
-     * @param oldImplementationAddress The address of the old implementation contract
      * @param newImplementationAddress The address of the new implementation contract
      */
     event AddressSetAsProxy(
         bytes32 indexed id,
         address indexed proxyAddress,
-        address oldImplementationAddress,
         address indexed newImplementationAddress
     );
 

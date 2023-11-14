@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {Context} from "../../../dependencies/openzeppelin/contracts/Context.sol";
-import {IERC20} from "../../../dependencies/openzeppelin/contracts/IERC20.sol";
-import {IERC20Detailed} from "../../../dependencies/openzeppelin/contracts/IERC20Detailed.sol";
-import {SafeCast} from "../../../dependencies/openzeppelin/contracts/SafeCast.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {WadRayMath} from "../../libraries/math/WadRayMath.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
 import {IYLDRIncentivesController} from "../../../interfaces/IYLDRIncentivesController.sol";
@@ -17,7 +17,7 @@ import {IACLManager} from "../../../interfaces/IACLManager.sol";
  * , inspired by the Openzeppelin ERC20 implementation
  * @notice Basic ERC20 implementation
  */
-abstract contract IncentivizedERC20 is Context, IERC20Detailed {
+abstract contract IncentivizedERC20 is Context, IERC20Metadata {
     using WadRayMath for uint256;
     using SafeCast for uint256;
 
@@ -78,17 +78,17 @@ abstract contract IncentivizedERC20 is Context, IERC20Detailed {
         POOL = pool;
     }
 
-    /// @inheritdoc IERC20Detailed
+    /// @inheritdoc IERC20Metadata
     function name() public view override returns (string memory) {
         return _name;
     }
 
-    /// @inheritdoc IERC20Detailed
+    /// @inheritdoc IERC20Metadata
     function symbol() external view override returns (string memory) {
         return _symbol;
     }
 
-    /// @inheritdoc IERC20Detailed
+    /// @inheritdoc IERC20Metadata
     function decimals() external view override returns (uint8) {
         return _decimals;
     }
