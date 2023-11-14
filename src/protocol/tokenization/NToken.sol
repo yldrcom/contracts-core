@@ -14,7 +14,6 @@ import {INToken, IERC1155Supply} from "../../interfaces/INToken.sol";
  *
  */
 contract NToken is ERC1155SupplyUpgradeable, INToken {
-    
     address private _underlyingAsset;
     IPool public pool;
     address private _treasury;

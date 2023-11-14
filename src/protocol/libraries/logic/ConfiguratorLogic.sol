@@ -4,7 +4,10 @@ pragma solidity ^0.8.10;
 import {IPool} from "../../../interfaces/IPool.sol";
 import {IInitializableYToken} from "../../../interfaces/IInitializableYToken.sol";
 import {IInitializableDebtToken} from "../../../interfaces/IInitializableDebtToken.sol";
-import {ITransparentUpgradeableProxy, TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ITransparentUpgradeableProxy,
+    TransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ConfiguratorInputTypes} from "../types/ConfiguratorInputTypes.sol";

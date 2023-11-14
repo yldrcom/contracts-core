@@ -26,8 +26,7 @@ contract PoolAddressesProviderRegistry is Ownable, IPoolAddressesProviderRegistr
      * @dev Constructor.
      * @param owner The owner address of this contract.
      */
-    constructor(address owner) Ownable(owner) {
-    }
+    constructor(address owner) Ownable(owner) {}
 
     /// @inheritdoc IPoolAddressesProviderRegistry
     function getAddressesProvidersList() external view override returns (address[] memory) {

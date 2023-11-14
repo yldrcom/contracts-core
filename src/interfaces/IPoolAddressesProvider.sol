@@ -83,11 +83,7 @@ interface IPoolAddressesProvider {
      * @param proxyAddress The address of the proxy contract
      * @param newImplementationAddress The address of the new implementation contract
      */
-    event AddressSetAsProxy(
-        bytes32 indexed id,
-        address indexed proxyAddress,
-        address indexed newImplementationAddress
-    );
+    event AddressSetAsProxy(bytes32 indexed id, address indexed proxyAddress, address indexed newImplementationAddress);
 
     /**
      * @notice Returns the id of the YLDR market to which this contract points to.

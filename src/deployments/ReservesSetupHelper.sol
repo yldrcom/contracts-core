@@ -12,6 +12,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract ReservesSetupHelper is Ownable {
     constructor() Ownable(msg.sender) {}
+
     struct ConfigureReserveInput {
         address asset;
         uint256 baseLTV;

@@ -40,9 +40,7 @@ contract YToken is Initializable, ScaledBalanceTokenBase, EIP712Base, IYToken {
     }
 
     /// @inheritdoc IInitializableYToken
-    function initialize(
-        InitializerParams calldata params
-    ) public virtual override initializer {
+    function initialize(InitializerParams calldata params) public virtual override initializer {
         require(params.initializingPool == POOL, Errors.POOL_ADDRESSES_DO_NOT_MATCH);
         _setName(params.yTokenName);
         _setSymbol(params.yTokenSymbol);

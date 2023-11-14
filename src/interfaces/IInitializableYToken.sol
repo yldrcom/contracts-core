@@ -55,10 +55,8 @@ interface IInitializableYToken {
     }
 
     /**
-      * @notice Initializes yToken
-      * @param params The parameters to initialize in the format of InitializerParams defined above
+     * @notice Initializes yToken
+     * @param params The parameters to initialize in the format of InitializerParams defined above
      */
-    function initialize(
-        InitializerParams calldata params
-    ) external;
+    function initialize(InitializerParams calldata params) external;
 }
