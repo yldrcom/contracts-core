@@ -41,7 +41,7 @@ contract VariableDebtToken is DebtTokenBase, ScaledBalanceTokenBase, IVariableDe
     function initialize(
         IPool initializingPool,
         address underlyingAsset,
-        IYLDRIncentivesController incentivesController,
+        address incentivesController,
         uint8 debtTokenDecimals,
         string memory debtTokenName,
         string memory debtTokenSymbol,
@@ -53,14 +53,14 @@ contract VariableDebtToken is DebtTokenBase, ScaledBalanceTokenBase, IVariableDe
         _setDecimals(debtTokenDecimals);
 
         _underlyingAsset = underlyingAsset;
-        _incentivesController = incentivesController;
+        _incentivesController = IYLDRIncentivesController(incentivesController);
 
         _domainSeparator = _calculateDomainSeparator();
 
         emit Initialized(
             underlyingAsset,
             address(POOL),
-            address(incentivesController),
+            incentivesController,
             debtTokenDecimals,
             debtTokenName,
             debtTokenSymbol,

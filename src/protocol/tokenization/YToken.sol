@@ -40,15 +40,24 @@ contract YToken is Initializable, ScaledBalanceTokenBase, EIP712Base, IYToken {
     }
 
     /// @inheritdoc IInitializableYToken
-    function initialize(InitializerParams calldata params) public virtual override initializer {
-        require(params.initializingPool == POOL, Errors.POOL_ADDRESSES_DO_NOT_MATCH);
-        _setName(params.yTokenName);
-        _setSymbol(params.yTokenSymbol);
-        _setDecimals(params.yTokenDecimals);
+    function initialize(
+        IPool initializingPool,
+        address treasury,
+        address underlyingAsset,
+        address incentivesController,
+        uint8 yTokenDecimals,
+        string memory yTokenName,
+        string memory yTokenSymbol,
+        bytes memory params
+    ) public virtual override initializer {
+        require(initializingPool == POOL, Errors.POOL_ADDRESSES_DO_NOT_MATCH);
+        _setName(yTokenName);
+        _setSymbol(yTokenSymbol);
+        _setDecimals(yTokenDecimals);
 
-        _treasury = params.treasury;
-        _underlyingAsset = params.underlyingAsset;
-        _incentivesController = params.incentivesController;
+        _treasury = treasury;
+        _underlyingAsset = underlyingAsset;
+        _incentivesController = IYLDRIncentivesController(incentivesController);
 
         _domainSeparator = _calculateDomainSeparator();
     }

@@ -41,44 +41,50 @@ library ConfiguratorLogic {
     function executeInitReserve(IPool pool, ConfiguratorInputTypes.InitReserveInput calldata input) public {
         address yTokenProxyAddress = _initTokenWithProxy(
             input.yTokenImpl,
-            abi.encodeWithSelector(
-                IInitializableYToken.initialize.selector,
-                pool,
-                input.treasury,
-                input.underlyingAsset,
-                input.incentivesController,
-                input.underlyingAssetDecimals,
-                input.yTokenName,
-                input.yTokenSymbol,
-                input.params
+            abi.encodeCall(
+                IInitializableYToken.initialize,
+                (
+                    pool,
+                    input.treasury,
+                    input.underlyingAsset,
+                    input.incentivesController,
+                    input.underlyingAssetDecimals,
+                    input.yTokenName,
+                    input.yTokenSymbol,
+                    input.params
+                )
             )
         );
 
         address stableDebtTokenProxyAddress = _initTokenWithProxy(
             input.stableDebtTokenImpl,
-            abi.encodeWithSelector(
-                IInitializableDebtToken.initialize.selector,
-                pool,
-                input.underlyingAsset,
-                input.incentivesController,
-                input.underlyingAssetDecimals,
-                input.stableDebtTokenName,
-                input.stableDebtTokenSymbol,
-                input.params
+            abi.encodeCall(
+                IInitializableDebtToken.initialize,
+                (
+                    pool,
+                    input.underlyingAsset,
+                    input.incentivesController,
+                    input.underlyingAssetDecimals,
+                    input.stableDebtTokenName,
+                    input.stableDebtTokenSymbol,
+                    input.params
+                )
             )
         );
 
         address variableDebtTokenProxyAddress = _initTokenWithProxy(
             input.variableDebtTokenImpl,
-            abi.encodeWithSelector(
-                IInitializableDebtToken.initialize.selector,
-                pool,
-                input.underlyingAsset,
-                input.incentivesController,
-                input.underlyingAssetDecimals,
-                input.variableDebtTokenName,
-                input.variableDebtTokenSymbol,
-                input.params
+            abi.encodeCall(
+                IInitializableDebtToken.initialize,
+                (
+                    pool,
+                    input.underlyingAsset,
+                    input.incentivesController,
+                    input.underlyingAssetDecimals,
+                    input.variableDebtTokenName,
+                    input.variableDebtTokenSymbol,
+                    input.params
+                )
             )
         );
 
@@ -120,16 +126,18 @@ library ConfiguratorLogic {
 
         (,,, uint256 decimals,) = cachedPool.getConfiguration(input.asset).getParams();
 
-        bytes memory encodedCall = abi.encodeWithSelector(
-            IInitializableYToken.initialize.selector,
-            cachedPool,
-            input.treasury,
-            input.asset,
-            input.incentivesController,
-            decimals,
-            input.name,
-            input.symbol,
-            input.params
+        bytes memory encodedCall = abi.encodeCall(
+            IInitializableYToken.initialize,
+            (
+                cachedPool,
+                input.treasury,
+                input.asset,
+                input.incentivesController,
+                uint8(decimals),
+                input.name,
+                input.symbol,
+                input.params
+            )
         );
 
         _upgradeTokenImplementation(reserveData.yTokenAddress, input.implementation, encodedCall);
@@ -150,15 +158,17 @@ library ConfiguratorLogic {
 
         (,,, uint256 decimals,) = cachedPool.getConfiguration(input.asset).getParams();
 
-        bytes memory encodedCall = abi.encodeWithSelector(
-            IInitializableDebtToken.initialize.selector,
-            cachedPool,
-            input.asset,
-            input.incentivesController,
-            decimals,
-            input.name,
-            input.symbol,
-            input.params
+        bytes memory encodedCall = abi.encodeCall(
+            IInitializableDebtToken.initialize,
+            (
+                cachedPool,
+                input.asset,
+                input.incentivesController,
+                uint8(decimals),
+                input.name,
+                input.symbol,
+                input.params
+            )
         );
 
         _upgradeTokenImplementation(reserveData.stableDebtTokenAddress, input.implementation, encodedCall);
@@ -180,15 +190,17 @@ library ConfiguratorLogic {
 
         (,,, uint256 decimals,) = cachedPool.getConfiguration(input.asset).getParams();
 
-        bytes memory encodedCall = abi.encodeWithSelector(
-            IInitializableDebtToken.initialize.selector,
-            cachedPool,
-            input.asset,
-            input.incentivesController,
-            decimals,
-            input.name,
-            input.symbol,
-            input.params
+        bytes memory encodedCall = abi.encodeCall(
+            IInitializableDebtToken.initialize,
+            (
+                cachedPool,
+                input.asset,
+                input.incentivesController,
+                uint8(decimals),
+                input.name,
+                input.symbol,
+                input.params
+            )
         );
 
         _upgradeTokenImplementation(reserveData.variableDebtTokenAddress, input.implementation, encodedCall);

@@ -50,7 +50,7 @@ contract StableDebtToken is DebtTokenBase, IncentivizedERC20, IStableDebtToken {
     function initialize(
         IPool initializingPool,
         address underlyingAsset,
-        IYLDRIncentivesController incentivesController,
+        address incentivesController,
         uint8 debtTokenDecimals,
         string memory debtTokenName,
         string memory debtTokenSymbol,
@@ -62,7 +62,7 @@ contract StableDebtToken is DebtTokenBase, IncentivizedERC20, IStableDebtToken {
         _setDecimals(debtTokenDecimals);
 
         _underlyingAsset = underlyingAsset;
-        _incentivesController = incentivesController;
+        _incentivesController = IYLDRIncentivesController(incentivesController);
 
         _domainSeparator = _calculateDomainSeparator();
 

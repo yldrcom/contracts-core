@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import {IYLDRIncentivesController} from "./IYLDRIncentivesController.sol";
 import {IPool} from "./IPool.sol";
 
 /**
@@ -43,7 +42,7 @@ interface IInitializableDebtToken {
     function initialize(
         IPool pool,
         address underlyingAsset,
-        IYLDRIncentivesController incentivesController,
+        address incentivesController,
         uint8 debtTokenDecimals,
         string memory debtTokenName,
         string memory debtTokenSymbol,
