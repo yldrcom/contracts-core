@@ -38,7 +38,7 @@ library FlashLoanLogic {
         address initiator,
         address indexed asset,
         uint256 amount,
-        DataTypes.InterestRateMode interestRateMode,
+        bool createPosition,
         uint256 premium,
         uint16 indexed referralCode
     );
@@ -92,8 +92,8 @@ library FlashLoanLogic {
 
         for (vars.i = 0; vars.i < params.assets.length; vars.i++) {
             vars.currentAmount = params.amounts[vars.i];
-            vars.totalPremiums[vars.i] = DataTypes.InterestRateMode(params.interestRateModes[vars.i])
-                == DataTypes.InterestRateMode.NONE ? vars.currentAmount.percentMul(vars.flashloanPremiumTotal) : 0;
+            vars.totalPremiums[vars.i] =
+                !params.createPosition[vars.i] ? vars.currentAmount.percentMul(vars.flashloanPremiumTotal) : 0;
             IYToken(reservesData[params.assets[vars.i]].yTokenAddress).transferUnderlyingTo(
                 params.receiverAddress, vars.currentAmount
             );
@@ -108,7 +108,7 @@ library FlashLoanLogic {
             vars.currentAsset = params.assets[vars.i];
             vars.currentAmount = params.amounts[vars.i];
 
-            if (DataTypes.InterestRateMode(params.interestRateModes[vars.i]) == DataTypes.InterestRateMode.NONE) {
+            if (!params.createPosition[vars.i]) {
                 _handleFlashLoanRepayment(
                     reservesData[vars.currentAsset],
                     DataTypes.FlashLoanRepaymentParams({
@@ -135,10 +135,8 @@ library FlashLoanLogic {
                         user: msg.sender,
                         onBehalfOf: params.onBehalfOf,
                         amount: vars.currentAmount,
-                        interestRateMode: DataTypes.InterestRateMode(params.interestRateModes[vars.i]),
                         referralCode: params.referralCode,
                         releaseUnderlying: false,
-                        maxStableRateBorrowSizePercent: params.maxStableRateBorrowSizePercent,
                         reservesCount: params.reservesCount,
                         oracle: IPoolAddressesProvider(params.addressesProvider).getPriceOracle(),
                         priceOracleSentinel: IPoolAddressesProvider(params.addressesProvider).getPriceOracleSentinel()
@@ -150,7 +148,7 @@ library FlashLoanLogic {
                     msg.sender,
                     vars.currentAsset,
                     vars.currentAmount,
-                    DataTypes.InterestRateMode(params.interestRateModes[vars.i]),
+                    true,
                     0,
                     params.referralCode
                 );
@@ -237,7 +235,7 @@ library FlashLoanLogic {
             msg.sender,
             params.asset,
             params.amount,
-            DataTypes.InterestRateMode(0),
+            false,
             params.totalPremium,
             params.referralCode
         );

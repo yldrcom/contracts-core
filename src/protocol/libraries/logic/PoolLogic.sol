@@ -39,10 +39,7 @@ library PoolLogic {
         DataTypes.InitReserveParams memory params
     ) external returns (bool) {
         reservesData[params.asset].init(
-            params.yTokenAddress,
-            params.stableDebtAddress,
-            params.variableDebtAddress,
-            params.interestRateStrategyAddress
+            params.yTokenAddress, params.variableDebtAddress, params.interestRateStrategyAddress
         );
 
         bool reserveAlreadyAdded = reservesData[params.asset].id != 0 || reservesList[0] == params.asset;

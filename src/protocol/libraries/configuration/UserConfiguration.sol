@@ -157,30 +157,6 @@ library UserConfiguration {
     }
 
     /**
-     * @notice Returns the siloed borrowing state for the user
-     * @param self The configuration object
-     * @param reservesData The data of all the reserves
-     * @param reservesList The reserve list
-     * @return True if the user has borrowed a siloed asset, false otherwise
-     * @return The address of the only borrowed asset
-     */
-    function getSiloedBorrowingState(
-        DataTypes.UserConfigurationMap memory self,
-        mapping(address => DataTypes.ReserveData) storage reservesData,
-        mapping(uint256 => address) storage reservesList
-    ) internal view returns (bool, address) {
-        if (isBorrowingOne(self)) {
-            uint256 assetId = _getFirstAssetIdByMask(self, BORROWING_MASK);
-            address assetAddress = reservesList[assetId];
-            if (reservesData[assetAddress].configuration.getSiloedBorrowing()) {
-                return (true, assetAddress);
-            }
-        }
-
-        return (false, address(0));
-    }
-
-    /**
      * @notice Returns the address of the first asset flagged in the bitmap given the corresponding bitmask
      * @param self The configuration object
      * @return The index of the first asset flagged in the bitmap once the corresponding mask is applied

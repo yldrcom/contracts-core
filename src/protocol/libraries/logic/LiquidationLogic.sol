@@ -18,7 +18,6 @@ import {UserERC1155Configuration} from "../../libraries/configuration/UserERC115
 import {ReserveConfiguration} from "../../libraries/configuration/ReserveConfiguration.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
 import {INToken} from "../../../interfaces/INToken.sol";
-import {IStableDebtToken} from "../../../interfaces/IStableDebtToken.sol";
 import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
 import {IPriceOracleGetter} from "../../../interfaces/IPriceOracleGetter.sol";
 
@@ -473,14 +472,10 @@ library LiquidationLogic {
             debtReserveCache.nextScaledVariableDebt = IVariableDebtToken(debtReserveCache.variableDebtTokenAddress).burn(
                 user, debtToLiquidate, debtReserveCache.nextVariableBorrowIndex
             );
-        } else {
-            // If the user doesn't have variable debt, no need to try to burn variable debt tokens
-            if (userVariableDebt != 0) {
-                debtReserveCache.nextScaledVariableDebt = IVariableDebtToken(debtReserveCache.variableDebtTokenAddress)
-                    .burn(user, userVariableDebt, debtReserveCache.nextVariableBorrowIndex);
-            }
-            (debtReserveCache.nextTotalStableDebt, debtReserveCache.nextAvgStableBorrowRate) =
-                IStableDebtToken(debtReserveCache.stableDebtTokenAddress).burn(user, debtToLiquidate - userVariableDebt);
+        } else if (userVariableDebt != 0) {
+            debtReserveCache.nextScaledVariableDebt = IVariableDebtToken(debtReserveCache.variableDebtTokenAddress).burn(
+                user, userVariableDebt, debtReserveCache.nextVariableBorrowIndex
+            );
         }
     }
 
@@ -502,9 +497,9 @@ library LiquidationLogic {
         uint256 debtToCover,
         uint256 healthFactor
     ) internal view returns (uint256, uint256, uint256) {
-        (uint256 userStableDebt, uint256 userVariableDebt) = Helpers.getUserCurrentDebt(user, debtReserveCache);
+        uint256 userVariableDebt = Helpers.getUserCurrentDebt(user, debtReserveCache);
 
-        uint256 userTotalDebt = userStableDebt + userVariableDebt;
+        uint256 userTotalDebt = userVariableDebt;
 
         uint256 closeFactor =
             healthFactor > CLOSE_FACTOR_HF_THRESHOLD ? DEFAULT_LIQUIDATION_CLOSE_FACTOR : MAX_LIQUIDATION_CLOSE_FACTOR;

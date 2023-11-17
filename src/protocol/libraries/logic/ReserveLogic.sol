@@ -3,7 +3,6 @@ pragma solidity ^0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IStableDebtToken} from "../../../interfaces/IStableDebtToken.sol";
 import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
 import {IReserveInterestRateStrategy} from "../../../interfaces/IReserveInterestRateStrategy.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
@@ -31,7 +30,6 @@ library ReserveLogic {
     event ReserveDataUpdated(
         address indexed reserve,
         uint256 liquidityRate,
-        uint256 stableBorrowRate,
         uint256 variableBorrowRate,
         uint256 liquidityIndex,
         uint256 variableBorrowIndex
@@ -122,14 +120,12 @@ library ReserveLogic {
      * @notice Initializes a reserve.
      * @param reserve The reserve object
      * @param yTokenAddress The address of the overlying ytoken contract
-     * @param stableDebtTokenAddress The address of the overlying stable debt token contract
      * @param variableDebtTokenAddress The address of the overlying variable debt token contract
      * @param interestRateStrategyAddress The address of the interest rate strategy contract
      */
     function init(
         DataTypes.ReserveData storage reserve,
         address yTokenAddress,
-        address stableDebtTokenAddress,
         address variableDebtTokenAddress,
         address interestRateStrategyAddress
     ) internal {
@@ -138,20 +134,18 @@ library ReserveLogic {
         reserve.liquidityIndex = uint128(WadRayMath.RAY);
         reserve.variableBorrowIndex = uint128(WadRayMath.RAY);
         reserve.yTokenAddress = yTokenAddress;
-        reserve.stableDebtTokenAddress = stableDebtTokenAddress;
         reserve.variableDebtTokenAddress = variableDebtTokenAddress;
         reserve.interestRateStrategyAddress = interestRateStrategyAddress;
     }
 
     struct UpdateInterestRatesLocalVars {
         uint256 nextLiquidityRate;
-        uint256 nextStableRate;
         uint256 nextVariableRate;
         uint256 totalVariableDebt;
     }
 
     /**
-     * @notice Updates the reserve current stable borrow rate, the current variable borrow rate and the current liquidity rate.
+     * @notice Updates the reserve current variable borrow rate and the current liquidity rate.
      * @param reserve The reserve reserve to be updated
      * @param reserveCache The caching layer for the reserve data
      * @param reserveAddress The address of the reserve to be updated
@@ -169,15 +163,13 @@ library ReserveLogic {
 
         vars.totalVariableDebt = reserveCache.nextScaledVariableDebt.rayMul(reserveCache.nextVariableBorrowIndex);
 
-        (vars.nextLiquidityRate, vars.nextStableRate, vars.nextVariableRate) = IReserveInterestRateStrategy(
+        (vars.nextLiquidityRate, vars.nextVariableRate) = IReserveInterestRateStrategy(
             reserve.interestRateStrategyAddress
         ).calculateInterestRates(
             DataTypes.CalculateInterestRatesParams({
                 liquidityAdded: liquidityAdded,
                 liquidityTaken: liquidityTaken,
-                totalStableDebt: reserveCache.nextTotalStableDebt,
                 totalVariableDebt: vars.totalVariableDebt,
-                averageStableBorrowRate: reserveCache.nextAvgStableBorrowRate,
                 reserveFactor: reserveCache.reserveFactor,
                 reserve: reserveAddress,
                 yToken: reserveCache.yTokenAddress
@@ -185,13 +177,11 @@ library ReserveLogic {
         );
 
         reserve.currentLiquidityRate = vars.nextLiquidityRate.toUint128();
-        reserve.currentStableBorrowRate = vars.nextStableRate.toUint128();
         reserve.currentVariableBorrowRate = vars.nextVariableRate.toUint128();
 
         emit ReserveDataUpdated(
             reserveAddress,
             vars.nextLiquidityRate,
-            vars.nextStableRate,
             vars.nextVariableRate,
             reserveCache.nextLiquidityIndex,
             reserveCache.nextVariableBorrowIndex
@@ -199,10 +189,8 @@ library ReserveLogic {
     }
 
     struct AccrueToTreasuryLocalVars {
-        uint256 prevTotalStableDebt;
         uint256 prevTotalVariableDebt;
         uint256 currTotalVariableDebt;
-        uint256 cumulatedStableInterest;
         uint256 totalDebtAccrued;
         uint256 amountToMint;
     }
@@ -228,18 +216,8 @@ library ReserveLogic {
         //calculate the new total variable debt after accumulation of the interest on the index
         vars.currTotalVariableDebt = reserveCache.currScaledVariableDebt.rayMul(reserveCache.nextVariableBorrowIndex);
 
-        //calculate the stable debt until the last timestamp update
-        vars.cumulatedStableInterest = MathUtils.calculateCompoundedInterest(
-            reserveCache.currAvgStableBorrowRate,
-            reserveCache.stableDebtLastUpdateTimestamp,
-            reserveCache.reserveLastUpdateTimestamp
-        );
-
-        vars.prevTotalStableDebt = reserveCache.currPrincipalStableDebt.rayMul(vars.cumulatedStableInterest);
-
         //debt accrued is the sum of the current debt minus the sum of the debt at the last update
-        vars.totalDebtAccrued = vars.currTotalVariableDebt + reserveCache.currTotalStableDebt
-            - vars.prevTotalVariableDebt - vars.prevTotalStableDebt;
+        vars.totalDebtAccrued = vars.currTotalVariableDebt - vars.prevTotalVariableDebt;
 
         vars.amountToMint = vars.totalDebtAccrued.percentMul(reserveCache.reserveFactor);
 
@@ -298,25 +276,12 @@ library ReserveLogic {
         reserveCache.currVariableBorrowRate = reserve.currentVariableBorrowRate;
 
         reserveCache.yTokenAddress = reserve.yTokenAddress;
-        reserveCache.stableDebtTokenAddress = reserve.stableDebtTokenAddress;
         reserveCache.variableDebtTokenAddress = reserve.variableDebtTokenAddress;
 
         reserveCache.reserveLastUpdateTimestamp = reserve.lastUpdateTimestamp;
 
         reserveCache.currScaledVariableDebt = reserveCache.nextScaledVariableDebt =
             IVariableDebtToken(reserveCache.variableDebtTokenAddress).scaledTotalSupply();
-
-        (
-            reserveCache.currPrincipalStableDebt,
-            reserveCache.currTotalStableDebt,
-            reserveCache.currAvgStableBorrowRate,
-            reserveCache.stableDebtLastUpdateTimestamp
-        ) = IStableDebtToken(reserveCache.stableDebtTokenAddress).getSupplyData();
-
-        // by default the actions are considered as not affecting the debt balances.
-        // if the action involves mint/burn of debt, the cache needs to be updated
-        reserveCache.nextTotalStableDebt = reserveCache.currTotalStableDebt;
-        reserveCache.nextAvgStableBorrowRate = reserveCache.currAvgStableBorrowRate;
 
         return reserveCache;
     }

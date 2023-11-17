@@ -32,8 +32,8 @@ contract ERC1155UniswapV3ConfigurationProvider is IERC1155ConfigurationProvider 
         DataTypes.ReserveConfigurationMap memory config0 = pool.getConfiguration(token0);
         DataTypes.ReserveConfigurationMap memory config1 = pool.getConfiguration(token1);
 
-        (bool isActive0, bool isFrozen0,,, bool isPaused0) = config0.getFlags();
-        (bool isActive1, bool isFrozen1,,, bool isPaused1) = config1.getFlags();
+        (bool isActive0, bool isFrozen0,, bool isPaused0) = config0.getFlags();
+        (bool isActive1, bool isFrozen1,, bool isPaused1) = config1.getFlags();
 
         uint256 liquidationThreshold = Math.min(config0.getLiquidationThreshold(), config1.getLiquidationThreshold());
         uint256 liquidationBonus = Math.max(config0.getLiquidationBonus(), config1.getLiquidationBonus());

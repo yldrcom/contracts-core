@@ -17,13 +17,7 @@ contract ZeroReserveInterestRateStrategy is IDefaultInterestRateStrategy {
     uint256 public constant OPTIMAL_USAGE_RATIO = 0;
 
     /// @inheritdoc IDefaultInterestRateStrategy
-    uint256 public constant OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO = 0;
-
-    /// @inheritdoc IDefaultInterestRateStrategy
     uint256 public constant MAX_EXCESS_USAGE_RATIO = 0;
-
-    /// @inheritdoc IDefaultInterestRateStrategy
-    uint256 public constant MAX_EXCESS_STABLE_TO_TOTAL_DEBT_RATIO = 0;
 
     IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
@@ -35,18 +29,6 @@ contract ZeroReserveInterestRateStrategy is IDefaultInterestRateStrategy {
 
     // Slope of the variable interest curve when usage ratio > OPTIMAL_USAGE_RATIO. Expressed in ray
     uint256 internal constant _variableRateSlope2 = 0;
-
-    // Slope of the stable interest curve when usage ratio > 0 and <= OPTIMAL_USAGE_RATIO. Expressed in ray
-    uint256 internal constant _stableRateSlope1 = 0;
-
-    // Slope of the stable interest curve when usage ratio > OPTIMAL_USAGE_RATIO. Expressed in ray
-    uint256 internal constant _stableRateSlope2 = 0;
-
-    // Premium on top of `_variableRateSlope1` for base stable borrowing rate
-    uint256 internal constant _baseStableRateOffset = 0;
-
-    // Additional premium applied to stable rate when stable debt surpass `OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO`
-    uint256 internal constant _stableRateExcessOffset = 0;
 
     /**
      * @dev Constructor.
@@ -67,26 +49,6 @@ contract ZeroReserveInterestRateStrategy is IDefaultInterestRateStrategy {
     }
 
     /// @inheritdoc IDefaultInterestRateStrategy
-    function getStableRateSlope1() external pure returns (uint256) {
-        return _stableRateSlope1;
-    }
-
-    /// @inheritdoc IDefaultInterestRateStrategy
-    function getStableRateSlope2() external pure returns (uint256) {
-        return _stableRateSlope2;
-    }
-
-    /// @inheritdoc IDefaultInterestRateStrategy
-    function getStableRateExcessOffset() external pure returns (uint256) {
-        return _stableRateExcessOffset;
-    }
-
-    /// @inheritdoc IDefaultInterestRateStrategy
-    function getBaseStableBorrowRate() public pure returns (uint256) {
-        return _variableRateSlope1 + _baseStableRateOffset;
-    }
-
-    /// @inheritdoc IDefaultInterestRateStrategy
     function getBaseVariableBorrowRate() external pure override returns (uint256) {
         return _baseVariableBorrowRate;
     }
@@ -101,8 +63,8 @@ contract ZeroReserveInterestRateStrategy is IDefaultInterestRateStrategy {
         public
         pure
         override
-        returns (uint256, uint256, uint256)
+        returns (uint256, uint256)
     {
-        return (0, 0, 0);
+        return (0, 0);
     }
 }

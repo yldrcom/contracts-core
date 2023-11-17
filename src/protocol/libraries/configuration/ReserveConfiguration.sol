@@ -19,11 +19,9 @@ library ReserveConfiguration {
     uint256 internal constant ACTIVE_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant FROZEN_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant BORROWING_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 internal constant STABLE_BORROWING_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant PAUSED_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant BORROWABLE_IN_ISOLATION_MASK =
         0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 internal constant SILOED_BORROWING_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant FLASHLOAN_ENABLED_MASK =
         0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant RESERVE_FACTOR_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFF; // prettier-ignore
@@ -40,10 +38,8 @@ library ReserveConfiguration {
     uint256 internal constant IS_ACTIVE_START_BIT_POSITION = 56;
     uint256 internal constant IS_FROZEN_START_BIT_POSITION = 57;
     uint256 internal constant BORROWING_ENABLED_START_BIT_POSITION = 58;
-    uint256 internal constant STABLE_BORROWING_ENABLED_START_BIT_POSITION = 59;
     uint256 internal constant IS_PAUSED_START_BIT_POSITION = 60;
     uint256 internal constant BORROWABLE_IN_ISOLATION_START_BIT_POSITION = 61;
-    uint256 internal constant SILOED_BORROWING_START_BIT_POSITION = 62;
     uint256 internal constant FLASHLOAN_ENABLED_START_BIT_POSITION = 63;
     uint256 internal constant RESERVE_FACTOR_START_BIT_POSITION = 64;
     uint256 internal constant BORROW_CAP_START_BIT_POSITION = 80;
@@ -199,27 +195,6 @@ library ReserveConfiguration {
     }
 
     /**
-     * @notice Sets the siloed borrowing flag for the reserve.
-     * @dev When this flag is set to true, users borrowing this asset will not be allowed to borrow any other asset.
-     * @param self The reserve configuration
-     * @param siloed True if the asset is siloed
-     */
-    function setSiloedBorrowing(DataTypes.ReserveConfigurationMap memory self, bool siloed) internal pure {
-        self.data =
-            (self.data & SILOED_BORROWING_MASK) | (uint256(siloed ? 1 : 0) << SILOED_BORROWING_START_BIT_POSITION);
-    }
-
-    /**
-     * @notice Gets the siloed borrowing flag for the reserve.
-     * @dev When this flag is set to true, users borrowing this asset will not be allowed to borrow any other asset.
-     * @param self The reserve configuration
-     * @return The siloed borrowing flag
-     */
-    function getSiloedBorrowing(DataTypes.ReserveConfigurationMap memory self) internal pure returns (bool) {
-        return (self.data & ~SILOED_BORROWING_MASK) != 0;
-    }
-
-    /**
      * @notice Enables or disables borrowing on the reserve
      * @param self The reserve configuration
      * @param enabled True if the borrowing needs to be enabled, false otherwise
@@ -235,29 +210,6 @@ library ReserveConfiguration {
      */
     function getBorrowingEnabled(DataTypes.ReserveConfigurationMap memory self) internal pure returns (bool) {
         return (self.data & ~BORROWING_MASK) != 0;
-    }
-
-    /**
-     * @notice Enables or disables stable rate borrowing on the reserve
-     * @param self The reserve configuration
-     * @param enabled True if the stable rate borrowing needs to be enabled, false otherwise
-     */
-    function setStableRateBorrowingEnabled(DataTypes.ReserveConfigurationMap memory self, bool enabled) internal pure {
-        self.data = (self.data & STABLE_BORROWING_MASK)
-            | (uint256(enabled ? 1 : 0) << STABLE_BORROWING_ENABLED_START_BIT_POSITION);
-    }
-
-    /**
-     * @notice Gets the stable rate borrowing state of the reserve
-     * @param self The reserve configuration
-     * @return The stable rate borrowing state
-     */
-    function getStableRateBorrowingEnabled(DataTypes.ReserveConfigurationMap memory self)
-        internal
-        pure
-        returns (bool)
-    {
-        return (self.data & ~STABLE_BORROWING_MASK) != 0;
     }
 
     /**
@@ -369,21 +321,15 @@ library ReserveConfiguration {
      * @return The state flag representing active
      * @return The state flag representing frozen
      * @return The state flag representing borrowing enabled
-     * @return The state flag representing stableRateBorrowing enabled
      * @return The state flag representing paused
      */
-    function getFlags(DataTypes.ReserveConfigurationMap memory self)
-        internal
-        pure
-        returns (bool, bool, bool, bool, bool)
-    {
+    function getFlags(DataTypes.ReserveConfigurationMap memory self) internal pure returns (bool, bool, bool, bool) {
         uint256 dataLocal = self.data;
 
         return (
             (dataLocal & ~ACTIVE_MASK) != 0,
             (dataLocal & ~FROZEN_MASK) != 0,
             (dataLocal & ~BORROWING_MASK) != 0,
-            (dataLocal & ~STABLE_BORROWING_MASK) != 0,
             (dataLocal & ~PAUSED_MASK) != 0
         );
     }

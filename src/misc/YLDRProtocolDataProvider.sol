@@ -7,7 +7,6 @@ import {UserConfiguration} from "../protocol/libraries/configuration/UserConfigu
 import {DataTypes} from "../protocol/libraries/types/DataTypes.sol";
 import {WadRayMath} from "../protocol/libraries/math/WadRayMath.sol";
 import {IPoolAddressesProvider} from "../interfaces/IPoolAddressesProvider.sol";
-import {IStableDebtToken} from "../interfaces/IStableDebtToken.sol";
 import {IVariableDebtToken} from "../interfaces/IVariableDebtToken.sol";
 import {IPool} from "../interfaces/IPool.sol";
 import {IPoolDataProvider} from "../interfaces/IPoolDataProvider.sol";
@@ -83,7 +82,6 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
             uint256 reserveFactor,
             bool usageAsCollateralEnabled,
             bool borrowingEnabled,
-            bool stableBorrowRateEnabled,
             bool isActive,
             bool isFrozen
         )
@@ -93,7 +91,7 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
 
         (ltv, liquidationThreshold, liquidationBonus, decimals, reserveFactor) = configuration.getParams();
 
-        (isActive, isFrozen, borrowingEnabled, stableBorrowRateEnabled,) = configuration.getFlags();
+        (isActive, isFrozen, borrowingEnabled,) = configuration.getFlags();
 
         usageAsCollateralEnabled = liquidationThreshold != 0;
     }
@@ -105,12 +103,7 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
 
     /// @inheritdoc IPoolDataProvider
     function getPaused(address asset) external view override returns (bool isPaused) {
-        (,,,, isPaused) = IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset).getFlags();
-    }
-
-    /// @inheritdoc IPoolDataProvider
-    function getSiloedBorrowing(address asset) external view override returns (bool) {
-        return IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset).getSiloedBorrowing();
+        (,,, isPaused) = IPool(ADDRESSES_PROVIDER.getPool()).getConfiguration(asset).getFlags();
     }
 
     /// @inheritdoc IPoolDataProvider
@@ -126,12 +119,9 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         returns (
             uint256 accruedToTreasuryScaled,
             uint256 totalYToken,
-            uint256 totalStableDebt,
             uint256 totalVariableDebt,
             uint256 liquidityRate,
             uint256 variableBorrowRate,
-            uint256 stableBorrowRate,
-            uint256 averageStableBorrowRate,
             uint256 liquidityIndex,
             uint256 variableBorrowIndex,
             uint40 lastUpdateTimestamp
@@ -142,12 +132,9 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         return (
             reserve.accruedToTreasury,
             IERC20Metadata(reserve.yTokenAddress).totalSupply(),
-            IERC20Metadata(reserve.stableDebtTokenAddress).totalSupply(),
             IERC20Metadata(reserve.variableDebtTokenAddress).totalSupply(),
             reserve.currentLiquidityRate,
             reserve.currentVariableBorrowRate,
-            reserve.currentStableBorrowRate,
-            IStableDebtToken(reserve.stableDebtTokenAddress).getAverageStableRate(),
             reserve.liquidityIndex,
             reserve.variableBorrowIndex,
             reserve.lastUpdateTimestamp
@@ -163,8 +150,7 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
     /// @inheritdoc IPoolDataProvider
     function getTotalDebt(address asset) external view override returns (uint256) {
         DataTypes.ReserveData memory reserve = IPool(ADDRESSES_PROVIDER.getPool()).getReserveData(asset);
-        return IERC20Metadata(reserve.stableDebtTokenAddress).totalSupply()
-            + IERC20Metadata(reserve.variableDebtTokenAddress).totalSupply();
+        return IERC20Metadata(reserve.variableDebtTokenAddress).totalSupply();
     }
 
     /// @inheritdoc IPoolDataProvider
@@ -174,13 +160,9 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         override
         returns (
             uint256 currentYTokenBalance,
-            uint256 currentStableDebt,
             uint256 currentVariableDebt,
-            uint256 principalStableDebt,
             uint256 scaledVariableDebt,
-            uint256 stableBorrowRate,
             uint256 liquidityRate,
-            uint40 stableRateLastUpdated,
             bool usageAsCollateralEnabled
         )
     {
@@ -191,12 +173,8 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
 
         currentYTokenBalance = IERC20Metadata(reserve.yTokenAddress).balanceOf(user);
         currentVariableDebt = IERC20Metadata(reserve.variableDebtTokenAddress).balanceOf(user);
-        currentStableDebt = IERC20Metadata(reserve.stableDebtTokenAddress).balanceOf(user);
-        principalStableDebt = IStableDebtToken(reserve.stableDebtTokenAddress).principalBalanceOf(user);
         scaledVariableDebt = IVariableDebtToken(reserve.variableDebtTokenAddress).scaledBalanceOf(user);
         liquidityRate = reserve.currentLiquidityRate;
-        stableBorrowRate = IStableDebtToken(reserve.stableDebtTokenAddress).getUserStableRate(user);
-        stableRateLastUpdated = IStableDebtToken(reserve.stableDebtTokenAddress).getUserLastUpdated(user);
         usageAsCollateralEnabled = userConfig.isUsingAsCollateral(reserve.id);
     }
 
@@ -205,11 +183,11 @@ contract YLDRProtocolDataProvider is IPoolDataProvider {
         external
         view
         override
-        returns (address yTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress)
+        returns (address yTokenAddress, address variableDebtTokenAddress)
     {
         DataTypes.ReserveData memory reserve = IPool(ADDRESSES_PROVIDER.getPool()).getReserveData(asset);
 
-        return (reserve.yTokenAddress, reserve.stableDebtTokenAddress, reserve.variableDebtTokenAddress);
+        return (reserve.yTokenAddress, reserve.variableDebtTokenAddress);
     }
 
     /// @inheritdoc IPoolDataProvider

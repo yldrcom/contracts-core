@@ -13,16 +13,12 @@ library DataTypes {
         uint128 variableBorrowIndex;
         //the current variable borrow rate. Expressed in ray
         uint128 currentVariableBorrowRate;
-        //the current stable borrow rate. Expressed in ray
-        uint128 currentStableBorrowRate;
         //timestamp of last update
         uint40 lastUpdateTimestamp;
         //the id of the reserve. Represents the position in the list of the active reserves
         uint16 id;
         //yToken address
         address yTokenAddress;
-        //stableDebtToken address
-        address stableDebtTokenAddress;
         //variableDebtToken address
         address variableDebtTokenAddress;
         //address of the interest rate strategy
@@ -94,20 +90,9 @@ library DataTypes {
         mapping(uint256 reserveId => mapping(uint256 tokenId => uint256 indexPlus1)) usedERC1155ReservesMap;
     }
 
-    enum InterestRateMode {
-        NONE,
-        STABLE,
-        VARIABLE
-    }
-
     struct ReserveCache {
         uint256 currScaledVariableDebt;
         uint256 nextScaledVariableDebt;
-        uint256 currPrincipalStableDebt;
-        uint256 currAvgStableBorrowRate;
-        uint256 currTotalStableDebt;
-        uint256 nextAvgStableBorrowRate;
-        uint256 nextTotalStableDebt;
         uint256 currLiquidityIndex;
         uint256 nextLiquidityIndex;
         uint256 currVariableBorrowIndex;
@@ -117,10 +102,8 @@ library DataTypes {
         uint256 reserveFactor;
         ReserveConfigurationMap reserveConfiguration;
         address yTokenAddress;
-        address stableDebtTokenAddress;
         address variableDebtTokenAddress;
         uint40 reserveLastUpdateTimestamp;
-        uint40 stableDebtLastUpdateTimestamp;
     }
 
     struct ExecuteLiquidationCallParams {
@@ -166,10 +149,8 @@ library DataTypes {
         address user;
         address onBehalfOf;
         uint256 amount;
-        InterestRateMode interestRateMode;
         uint16 referralCode;
         bool releaseUnderlying;
-        uint256 maxStableRateBorrowSizePercent;
         uint256 reservesCount;
         address oracle;
         address priceOracleSentinel;
@@ -178,7 +159,6 @@ library DataTypes {
     struct ExecuteRepayParams {
         address asset;
         uint256 amount;
-        InterestRateMode interestRateMode;
         address onBehalfOf;
         bool useYTokens;
     }
@@ -225,13 +205,12 @@ library DataTypes {
         address receiverAddress;
         address[] assets;
         uint256[] amounts;
-        uint256[] interestRateModes;
+        bool[] createPosition;
         address onBehalfOf;
         bytes params;
         uint16 referralCode;
         uint256 flashLoanPremiumToProtocol;
         uint256 flashLoanPremiumTotal;
-        uint256 maxStableRateBorrowSizePercent;
         uint256 reservesCount;
         address addressesProvider;
         bool isAuthorizedFlashBorrower;
@@ -269,8 +248,6 @@ library DataTypes {
         address asset;
         address userAddress;
         uint256 amount;
-        InterestRateMode interestRateMode;
-        uint256 maxStableLoanPercent;
         uint256 reservesCount;
         address oracle;
         address priceOracleSentinel;
@@ -301,9 +278,7 @@ library DataTypes {
     struct CalculateInterestRatesParams {
         uint256 liquidityAdded;
         uint256 liquidityTaken;
-        uint256 totalStableDebt;
         uint256 totalVariableDebt;
-        uint256 averageStableBorrowRate;
         uint256 reserveFactor;
         address reserve;
         address yToken;
@@ -312,7 +287,6 @@ library DataTypes {
     struct InitReserveParams {
         address asset;
         address yTokenAddress;
-        address stableDebtAddress;
         address variableDebtAddress;
         address interestRateStrategyAddress;
         uint16 reservesCount;
