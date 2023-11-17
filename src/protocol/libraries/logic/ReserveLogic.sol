@@ -12,6 +12,7 @@ import {PercentageMath} from "../math/PercentageMath.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {IPool} from "../../../interfaces/IPool.sol";
 
 /**
  * @title ReserveLogic library
@@ -25,15 +26,6 @@ library ReserveLogic {
     using SafeERC20 for IERC20;
     using ReserveLogic for DataTypes.ReserveData;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
-
-    // See `IPool` for descriptions
-    event ReserveDataUpdated(
-        address indexed reserve,
-        uint256 liquidityRate,
-        uint256 variableBorrowRate,
-        uint256 liquidityIndex,
-        uint256 variableBorrowIndex
-    );
 
     /**
      * @notice Returns the ongoing normalized income for the reserve.
@@ -179,7 +171,7 @@ library ReserveLogic {
         reserve.currentLiquidityRate = vars.nextLiquidityRate.toUint128();
         reserve.currentVariableBorrowRate = vars.nextVariableRate.toUint128();
 
-        emit ReserveDataUpdated(
+        emit IPool.ReserveDataUpdated(
             reserveAddress,
             vars.nextLiquidityRate,
             vars.nextVariableRate,

@@ -7,6 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
 import {IFlashLoanReceiver} from "../../../flashloan/interfaces/IFlashLoanReceiver.sol";
 import {IFlashLoanSimpleReceiver} from "../../../flashloan/interfaces/IFlashLoanSimpleReceiver.sol";
+import {IPool} from "../../../interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "../../../interfaces/IPoolAddressesProvider.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
@@ -31,17 +32,6 @@ library FlashLoanLogic {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
     using SafeCast for uint256;
-
-    // See `IPool` for descriptions
-    event FlashLoan(
-        address indexed target,
-        address initiator,
-        address indexed asset,
-        uint256 amount,
-        bool createPosition,
-        uint256 premium,
-        uint16 indexed referralCode
-    );
 
     // Helper struct for internal variables used in the `executeFlashLoan` function
     struct FlashLoanLocalVars {
@@ -143,7 +133,7 @@ library FlashLoanLogic {
                     })
                 );
                 // no premium is paid when taking on the flashloan as debt
-                emit FlashLoan(
+                emit IPool.FlashLoan(
                     params.receiverAddress,
                     msg.sender,
                     vars.currentAsset,
@@ -230,7 +220,7 @@ library FlashLoanLogic {
             params.receiverAddress, params.receiverAddress, amountPlusPremium
         );
 
-        emit FlashLoan(
+        emit IPool.FlashLoan(
             params.receiverAddress,
             msg.sender,
             params.asset,

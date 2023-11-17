@@ -18,6 +18,7 @@ import {UserERC1155Configuration} from "../../libraries/configuration/UserERC115
 import {ReserveConfiguration} from "../../libraries/configuration/ReserveConfiguration.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
 import {INToken} from "../../../interfaces/INToken.sol";
+import {IPool} from "../../../interfaces/IPool.sol";
 import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
 import {IPriceOracleGetter} from "../../../interfaces/IPriceOracleGetter.sol";
 
@@ -36,33 +37,6 @@ library LiquidationLogic {
     using UserERC1155Configuration for DataTypes.UserERC1155ConfigurationMap;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using SafeERC20 for IERC20;
-
-    // See `IPool` for descriptions
-    event ReserveUsedAsCollateralEnabled(address indexed reserve, address indexed user);
-    event ReserveUsedAsCollateralDisabled(address indexed reserve, address indexed user);
-    event ERC1155ReserveUsedAsCollateralEnabled(address indexed reserve, uint256 indexed tokenId, address indexed user);
-    event ERC1155ReserveUsedAsCollateralDisabled(
-        address indexed reserve, uint256 indexed tokenId, address indexed user
-    );
-    event LiquidationCall(
-        address indexed collateralAsset,
-        address indexed debtAsset,
-        address indexed user,
-        uint256 debtToCover,
-        uint256 liquidatedCollateralAmount,
-        address liquidator,
-        bool receiveYToken
-    );
-    event ERC1155LiquidationCall(
-        address indexed collateralAsset,
-        uint256 collateralTokenId,
-        address indexed debtAsset,
-        address indexed user,
-        uint256 debtToCover,
-        uint256 liquidatedCollateralAmount,
-        address liquidator,
-        bool receiveNToken
-    );
 
     /**
      * @dev Default percentage of borrower's debt to be repaid in a liquidation.
@@ -181,7 +155,7 @@ library LiquidationLogic {
         // we set the currency as not being used as collateral anymore
         if (vars.actualCollateralToLiquidate + vars.liquidationProtocolFeeAmount == vars.userCollateralBalance) {
             userConfig.setUsingAsCollateral(collateralReserve.id, false);
-            emit ReserveUsedAsCollateralDisabled(params.collateralAsset, params.user);
+            emit IPool.ReserveUsedAsCollateralDisabled(params.collateralAsset, params.user);
         }
 
         // This mutates vars.debtReserveCache
@@ -218,7 +192,7 @@ library LiquidationLogic {
             msg.sender, params.user, vars.actualDebtToLiquidate
         );
 
-        emit LiquidationCall(
+        emit IPool.LiquidationCall(
             params.collateralAsset,
             params.debtAsset,
             params.user,
@@ -334,7 +308,9 @@ library LiquidationLogic {
         // we set the currency as not being used as collateral anymore
         if (vars.actualCollateralToLiquidate + vars.liquidationProtocolFeeAmount == vars.userCollateralBalance) {
             userERC1155Config.setUsingAsCollateral(collateralReserve.id, params.collateralTokenId, false);
-            emit ERC1155ReserveUsedAsCollateralDisabled(params.collateralAsset, params.collateralTokenId, params.user);
+            emit IPool.ERC1155ReserveUsedAsCollateralDisabled(
+                params.collateralAsset, params.collateralTokenId, params.user
+            );
         }
 
         // This mutates vars.debtReserveCache
@@ -366,7 +342,7 @@ library LiquidationLogic {
             msg.sender, vars.debtReserveCache.yTokenAddress, vars.actualDebtToLiquidate
         );
 
-        emit ERC1155LiquidationCall(
+        emit IPool.ERC1155LiquidationCall(
             params.collateralAsset,
             params.collateralTokenId,
             params.debtAsset,
@@ -424,7 +400,7 @@ library LiquidationLogic {
             DataTypes.UserConfigurationMap storage liquidatorConfig = usersConfig[msg.sender];
             if (ValidationLogic.validateUseAsCollateral(collateralReserve.configuration)) {
                 liquidatorConfig.setUsingAsCollateral(collateralReserve.id, true);
-                emit ReserveUsedAsCollateralEnabled(params.collateralAsset, msg.sender);
+                emit IPool.ReserveUsedAsCollateralEnabled(params.collateralAsset, msg.sender);
             }
         }
     }
@@ -451,7 +427,9 @@ library LiquidationLogic {
             DataTypes.UserERC1155ConfigurationMap storage liquidatorConfig = usersERC1155Config[msg.sender];
             if (ValidationLogic.validateUseERC1155AsCollateral(vars.collateralReserveConfig)) {
                 liquidatorConfig.setUsingAsCollateral(vars.collateralReserveId, params.collateralTokenId, true);
-                emit ERC1155ReserveUsedAsCollateralEnabled(params.collateralAsset, params.collateralTokenId, msg.sender);
+                emit IPool.ERC1155ReserveUsedAsCollateralEnabled(
+                    params.collateralAsset, params.collateralTokenId, msg.sender
+                );
             }
         }
     }

@@ -11,6 +11,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
 import {ValidationLogic} from "./ValidationLogic.sol";
 import {GenericLogic} from "./GenericLogic.sol";
+import {IPool} from "../../../interfaces/IPool.sol";
 
 /**
  * @title PoolLogic library
@@ -22,9 +23,6 @@ library PoolLogic {
     using WadRayMath for uint256;
     using ReserveLogic for DataTypes.ReserveData;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
-
-    // See `IPool` for descriptions
-    event MintedToTreasury(address indexed reserve, uint256 amountMinted);
 
     /**
      * @notice Initialize an asset reserve and add the reserve to the list of reserves
@@ -96,7 +94,7 @@ library PoolLogic {
                 uint256 amountToMint = accruedToTreasury.rayMul(normalizedIncome);
                 IYToken(reserve.yTokenAddress).mintToTreasury(amountToMint, normalizedIncome);
 
-                emit MintedToTreasury(assetAddress, amountToMint);
+                emit IPool.MintedToTreasury(assetAddress, amountToMint);
             }
         }
     }

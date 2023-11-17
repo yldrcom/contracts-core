@@ -6,6 +6,7 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
+import {IPool} from "../../../interfaces/IPool.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {Helpers} from "../helpers/Helpers.sol";
@@ -25,19 +26,6 @@ library BorrowLogic {
     using UserConfiguration for DataTypes.UserConfigurationMap;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using SafeCast for uint256;
-
-    // See `IPool` for descriptions
-    event Borrow(
-        address indexed reserve,
-        address user,
-        address indexed onBehalfOf,
-        uint256 amount,
-        uint256 borrowRate,
-        uint16 indexed referralCode
-    );
-    event Repay(
-        address indexed reserve, address indexed user, address indexed repayer, uint256 amount, bool useYTokens
-    );
 
     /**
      * @notice Implements the borrow feature. Borrowing allows users that provided collateral to draw liquidity from the
@@ -97,7 +85,7 @@ library BorrowLogic {
             IYToken(reserveCache.yTokenAddress).transferUnderlyingTo(params.user, params.amount);
         }
 
-        emit Borrow(
+        emit IPool.Borrow(
             params.asset,
             params.user,
             params.onBehalfOf,
@@ -160,7 +148,7 @@ library BorrowLogic {
             IYToken(reserveCache.yTokenAddress).handleRepayment(msg.sender, params.onBehalfOf, paybackAmount);
         }
 
-        emit Repay(params.asset, params.onBehalfOf, msg.sender, paybackAmount, params.useYTokens);
+        emit IPool.Repay(params.asset, params.onBehalfOf, msg.sender, paybackAmount, params.useYTokens);
 
         return paybackAmount;
     }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
+import {IPoolConfigurator} from "../../../interfaces/IPoolConfigurator.sol";
 import {IPool} from "../../../interfaces/IPool.sol";
 import {IInitializableYToken} from "../../../interfaces/IInitializableYToken.sol";
 import {IInitializableDebtToken} from "../../../interfaces/IInitializableDebtToken.sol";
@@ -19,13 +20,6 @@ import {ConfiguratorInputTypes} from "../types/ConfiguratorInputTypes.sol";
  */
 library ConfiguratorLogic {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
-
-    // See `IPoolConfigurator` for descriptions
-    event ReserveInitialized(
-        address indexed asset, address indexed yToken, address variableDebtToken, address interestRateStrategyAddress
-    );
-    event YTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
-    event VariableDebtTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
 
     /**
      * @notice Initialize a reserve by creating and initializing yToken and variable debt token
@@ -81,7 +75,7 @@ library ConfiguratorLogic {
 
         pool.setConfiguration(input.underlyingAsset, currentConfig);
 
-        emit ReserveInitialized(
+        emit IPoolConfigurator.ReserveInitialized(
             input.underlyingAsset, yTokenProxyAddress, variableDebtTokenProxyAddress, input.interestRateStrategyAddress
         );
     }
@@ -113,7 +107,7 @@ library ConfiguratorLogic {
 
         _upgradeTokenImplementation(reserveData.yTokenAddress, input.implementation, encodedCall);
 
-        emit YTokenUpgraded(input.asset, reserveData.yTokenAddress, input.implementation);
+        emit IPoolConfigurator.YTokenUpgraded(input.asset, reserveData.yTokenAddress, input.implementation);
     }
 
     /**
@@ -145,7 +139,9 @@ library ConfiguratorLogic {
 
         _upgradeTokenImplementation(reserveData.variableDebtTokenAddress, input.implementation, encodedCall);
 
-        emit VariableDebtTokenUpgraded(input.asset, reserveData.variableDebtTokenAddress, input.implementation);
+        emit IPoolConfigurator.VariableDebtTokenUpgraded(
+            input.asset, reserveData.variableDebtTokenAddress, input.implementation
+        );
     }
 
     /**

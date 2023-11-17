@@ -6,6 +6,7 @@ import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IYToken} from "../../../interfaces/IYToken.sol";
 import {INToken} from "../../../interfaces/INToken.sol";
+import {IPool} from "../../../interfaces/IPool.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
 import {UserERC1155Configuration} from "../configuration/UserERC1155Configuration.sol";
@@ -32,27 +33,6 @@ library SupplyLogic {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using WadRayMath for uint256;
     using PercentageMath for uint256;
-
-    // See `IPool` for descriptions
-    event ReserveUsedAsCollateralEnabled(address indexed reserve, address indexed user);
-    event ReserveUsedAsCollateralDisabled(address indexed reserve, address indexed user);
-    event ERC1155ReserveUsedAsCollateralEnabled(address indexed reserve, uint256 indexed tokenId, address indexed user);
-    event ERC1155ReserveUsedAsCollateralDisabled(
-        address indexed reserve, uint256 indexed tokenId, address indexed user
-    );
-    event Withdraw(address indexed reserve, address indexed user, address indexed to, uint256 amount);
-    event WithdrawERC1155(address indexed reserve, address user, address indexed to, uint256 tokenId, uint256 amount);
-    event Supply(
-        address indexed reserve, address user, address indexed onBehalfOf, uint256 amount, uint16 indexed referralCode
-    );
-    event SupplyERC1155(
-        address indexed reserve,
-        address user,
-        address indexed onBehalfOf,
-        uint256 tokenId,
-        uint256 amount,
-        uint16 indexed referralCode
-    );
 
     /**
      * @notice Implements the supply feature. Through `supply()`, users supply assets to the YLDR protocol.
@@ -86,11 +66,11 @@ library SupplyLogic {
         if (isFirstSupply) {
             if (ValidationLogic.validateUseAsCollateral(reserveCache.reserveConfiguration)) {
                 userConfig.setUsingAsCollateral(reserve.id, true);
-                emit ReserveUsedAsCollateralEnabled(params.asset, params.onBehalfOf);
+                emit IPool.ReserveUsedAsCollateralEnabled(params.asset, params.onBehalfOf);
             }
         }
 
-        emit Supply(params.asset, msg.sender, params.onBehalfOf, params.amount, params.referralCode);
+        emit IPool.Supply(params.asset, msg.sender, params.onBehalfOf, params.amount, params.referralCode);
     }
 
     /**
@@ -122,11 +102,11 @@ library SupplyLogic {
         if (isFirstSupply) {
             if (ValidationLogic.validateUseERC1155AsCollateral(reserveConfig)) {
                 userERC1155Config.setUsingAsCollateral(reserve.id, params.tokenId, true);
-                emit ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
+                emit IPool.ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
             }
         }
 
-        emit SupplyERC1155(
+        emit IPool.SupplyERC1155(
             params.asset, msg.sender, params.onBehalfOf, params.tokenId, params.amount, params.referralCode
         );
     }
@@ -182,7 +162,7 @@ library SupplyLogic {
 
         if (isCollateral && vars.amountToWithdraw == vars.userBalance) {
             userConfig.setUsingAsCollateral(reserve.id, false);
-            emit ReserveUsedAsCollateralDisabled(params.asset, msg.sender);
+            emit IPool.ReserveUsedAsCollateralDisabled(params.asset, msg.sender);
         }
 
         IYToken(vars.reserveCache.yTokenAddress).burn(
@@ -204,7 +184,7 @@ library SupplyLogic {
             );
         }
 
-        emit Withdraw(params.asset, msg.sender, params.to, vars.amountToWithdraw);
+        emit IPool.Withdraw(params.asset, msg.sender, params.to, vars.amountToWithdraw);
 
         return vars.amountToWithdraw;
     }
@@ -254,7 +234,7 @@ library SupplyLogic {
 
         if (isCollateral && vars.amountToWithdraw == vars.userBalance) {
             userERC1155Config.setUsingAsCollateral(reserve.id, params.tokenId, false);
-            emit ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.tokenId, msg.sender);
+            emit IPool.ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.tokenId, msg.sender);
         }
 
         INToken(reserve.nTokenAddress).burn(msg.sender, params.to, params.tokenId, vars.amountToWithdraw);
@@ -274,7 +254,7 @@ library SupplyLogic {
             );
         }
 
-        emit WithdrawERC1155(params.asset, msg.sender, params.to, params.tokenId, vars.amountToWithdraw);
+        emit IPool.WithdrawERC1155(params.asset, msg.sender, params.to, params.tokenId, vars.amountToWithdraw);
 
         return vars.amountToWithdraw;
     }
@@ -328,7 +308,7 @@ library SupplyLogic {
                 }
                 if (params.balanceFromBefore == params.amount) {
                     fromConfig.setUsingAsCollateral(reserveId, false);
-                    emit ReserveUsedAsCollateralDisabled(params.asset, params.from);
+                    emit IPool.ReserveUsedAsCollateralDisabled(params.asset, params.from);
                 }
             }
 
@@ -336,7 +316,7 @@ library SupplyLogic {
                 DataTypes.UserConfigurationMap storage toConfig = usersConfig[params.to];
                 if (ValidationLogic.validateUseAsCollateral(reserve.configuration)) {
                     toConfig.setUsingAsCollateral(reserveId, true);
-                    emit ReserveUsedAsCollateralEnabled(params.asset, params.to);
+                    emit IPool.ReserveUsedAsCollateralEnabled(params.asset, params.to);
                 }
             }
         }
@@ -414,14 +394,14 @@ library SupplyLogic {
 
                     if (INToken(reserve.nTokenAddress).balanceOf(params.from, params.ids[vars.i]) == 0) {
                         fromERC1155Config.setUsingAsCollateral(vars.reserveId, params.ids[vars.i], false);
-                        emit ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.ids[vars.i], params.from);
+                        emit IPool.ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.ids[vars.i], params.from);
                     }
                 }
 
                 if (!toERC1155Config.isUsingAsCollateral(vars.reserveId, params.ids[vars.i])) {
                     if (ValidationLogic.validateUseERC1155AsCollateral(vars.reserveConfig)) {
                         toERC1155Config.setUsingAsCollateral(vars.reserveId, params.ids[vars.i], true);
-                        emit ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.ids[vars.i], params.to);
+                        emit IPool.ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.ids[vars.i], params.to);
                     }
                 }
             }
@@ -467,7 +447,7 @@ library SupplyLogic {
             require(ValidationLogic.validateUseAsCollateral(reserveCache.reserveConfiguration), Errors.LTV_ZERO);
 
             userConfig.setUsingAsCollateral(reserve.id, true);
-            emit ReserveUsedAsCollateralEnabled(asset, msg.sender);
+            emit IPool.ReserveUsedAsCollateralEnabled(asset, msg.sender);
         } else {
             userConfig.setUsingAsCollateral(reserve.id, false);
             ValidationLogic.validateHFAndLtv(
@@ -483,7 +463,7 @@ library SupplyLogic {
                 priceOracle
             );
 
-            emit ReserveUsedAsCollateralDisabled(asset, msg.sender);
+            emit IPool.ReserveUsedAsCollateralDisabled(asset, msg.sender);
         }
     }
 }
