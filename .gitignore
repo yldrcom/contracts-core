@@ -13,3 +13,6 @@ docs/
 # Dotenv file
 .env
 .vscode
+
+# Mac OS files
+**/.DS_Store
