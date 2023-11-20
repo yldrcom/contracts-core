@@ -2,18 +2,23 @@
 pragma solidity ^0.8.10;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {ERC1155SupplyUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
+import {
+    ERC1155SupplyUpgradeable,
+    ERC1155Upgradeable
+} from "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IPool} from "../../interfaces/IPool.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {INToken, IERC1155Supply} from "../../interfaces/INToken.sol";
+import {ERC1155HolderUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 
 /**
  * @title YLDR NToken
  *
  */
-contract NToken is ERC1155SupplyUpgradeable, INToken {
+contract NToken is ERC1155SupplyUpgradeable, ERC1155HolderUpgradeable, INToken {
     address private _underlyingAsset;
     IPool public pool;
     address private _treasury;
@@ -100,6 +105,17 @@ contract NToken is ERC1155SupplyUpgradeable, INToken {
      */
     function RESERVE_TREASURY_ADDRESS() external view override returns (address) {
         return _treasury;
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC1155HolderUpgradeable, ERC1155Upgradeable, IERC165)
+        returns (bool)
+    {
+        return
+            ERC1155Upgradeable.supportsInterface(interfaceId) || ERC1155HolderUpgradeable.supportsInterface(interfaceId);
     }
 
     /// @inheritdoc ERC1155SupplyUpgradeable
