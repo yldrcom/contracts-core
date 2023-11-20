@@ -14,24 +14,24 @@ library UserERC1155Configuration {
     /**
      * @notice Sets if the user is using as collateral the reserve identified by reserveIndex
      * @param self The configuration object
-     * @param reserveId Id of the reserve
+     * @param asset Address of the ERC1155 asset
      * @param tokenId The id of token enabled
      * @param usingAsCollateral True if the user is using the reserve as collateral, false otherwise
      */
     function setUsingAsCollateral(
         DataTypes.UserERC1155ConfigurationMap storage self,
-        uint256 reserveId,
+        address asset,
         uint256 tokenId,
         bool usingAsCollateral
     ) internal {
         if (usingAsCollateral) {
-            self.usedERC1155Reserves.push(DataTypes.ERC1155ReserveUsageData({reserveId: reserveId, tokenId: tokenId}));
-            self.usedERC1155ReservesMap[reserveId][tokenId] = self.usedERC1155Reserves.length;
+            self.usedERC1155Reserves.push(DataTypes.ERC1155ReserveUsageData({asset: asset, tokenId: tokenId}));
+            self.usedERC1155ReservesMap[asset][tokenId] = self.usedERC1155Reserves.length;
         } else {
             // This will cause underflow for non-existent reserves
-            uint256 index = self.usedERC1155ReservesMap[reserveId][tokenId] - 1;
+            uint256 index = self.usedERC1155ReservesMap[asset][tokenId] - 1;
 
-            delete self.usedERC1155ReservesMap[reserveId][tokenId];
+            delete self.usedERC1155ReservesMap[asset][tokenId];
             uint256 lastIndex = self.usedERC1155Reserves.length - 1;
 
             if (lastIndex == index) {
@@ -41,7 +41,7 @@ library UserERC1155Configuration {
                 DataTypes.ERC1155ReserveUsageData memory lastReserve = self.usedERC1155Reserves[lastIndex];
                 self.usedERC1155Reserves[index] = lastReserve;
                 self.usedERC1155Reserves.pop();
-                self.usedERC1155ReservesMap[lastReserve.reserveId][lastReserve.tokenId] = index + 1;
+                self.usedERC1155ReservesMap[lastReserve.asset][lastReserve.tokenId] = index + 1;
             }
         }
     }
@@ -58,15 +58,15 @@ library UserERC1155Configuration {
     /**
      * @notice Checks if a user is using as collateral a specific reserve
      * @param self The configuration object
-     * @param reserveId The id of the reserve
+     * @param asset The address of the reserve
      * @param tokenId The tokenId of reserve
      * @return True if the user is using the reserve as collateral, false otherwise
      */
-    function isUsingAsCollateral(DataTypes.UserERC1155ConfigurationMap storage self, uint256 reserveId, uint256 tokenId)
+    function isUsingAsCollateral(DataTypes.UserERC1155ConfigurationMap storage self, address asset, uint256 tokenId)
         internal
         view
         returns (bool)
     {
-        return self.usedERC1155ReservesMap[reserveId][tokenId] > 0;
+        return self.usedERC1155ReservesMap[asset][tokenId] > 0;
     }
 }

@@ -33,10 +33,6 @@ contract PoolStorage {
     // It is structured as a mapping for gas savings reasons, using the reserve id as index
     mapping(uint256 => address) internal _reservesList;
 
-    // List of ERC1155 reserves as a map (reserveId => reserve).
-    // It is structured as a mapping for gas savings reasons, using the reserve id as index
-    mapping(uint256 => address) internal _erc1155ReservesList;
-
     // Total FlashLoan Premium, expressed in bps
     uint128 internal _flashLoanPremiumTotal;
 

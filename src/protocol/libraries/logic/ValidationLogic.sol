@@ -163,7 +163,6 @@ library ValidationLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ValidateBorrowParams memory params
     ) internal view {
@@ -207,7 +206,6 @@ library ValidationLogic {
             reservesData,
             reservesList,
             erc1155ReservesData,
-            erc1155ReservesList,
             userERC1155Config,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: params.userConfig,
@@ -386,7 +384,7 @@ library ValidationLogic {
         require(params.healthFactor < HEALTH_FACTOR_LIQUIDATION_THRESHOLD, Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD);
 
         vars.isCollateralEnabled = collateralReserveConfig.liquidationThreshold != 0
-            && userERC1155Config.isUsingAsCollateral(collateralReserve.id, params.collateralReserveTokenId);
+            && userERC1155Config.isUsingAsCollateral(params.collateralReserveAddress, params.collateralReserveTokenId);
 
         //if collateral isn't enabled as collateral by user, it cannot be liquidated
         require(vars.isCollateralEnabled, Errors.COLLATERAL_CANNOT_BE_LIQUIDATED);
@@ -403,7 +401,6 @@ library ValidationLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ValidateHealthFactorParams memory params
     ) internal view returns (uint256, bool) {
@@ -411,7 +408,6 @@ library ValidationLogic {
             reservesData,
             reservesList,
             erc1155ReservesData,
-            erc1155ReservesList,
             userERC1155Config,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: params.userConfig,
@@ -442,7 +438,6 @@ library ValidationLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap memory userConfig,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         address asset,
@@ -456,7 +451,6 @@ library ValidationLogic {
             reservesData,
             reservesList,
             erc1155ReservesData,
-            erc1155ReservesList,
             userERC1155Config,
             DataTypes.ValidateHealthFactorParams({
                 userConfig: userConfig,

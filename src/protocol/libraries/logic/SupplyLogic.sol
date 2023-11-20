@@ -101,7 +101,7 @@ library SupplyLogic {
 
         if (isFirstSupply) {
             if (ValidationLogic.validateUseERC1155AsCollateral(reserveConfig)) {
-                userERC1155Config.setUsingAsCollateral(reserve.id, params.tokenId, true);
+                userERC1155Config.setUsingAsCollateral(params.asset, params.tokenId, true);
                 emit IPool.ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
             }
         }
@@ -132,7 +132,6 @@ library SupplyLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ExecuteWithdrawParams memory params
@@ -174,7 +173,6 @@ library SupplyLogic {
                 reservesData,
                 reservesList,
                 erc1155ReservesData,
-                erc1155ReservesList,
                 userConfig,
                 userERC1155Config,
                 params.asset,
@@ -210,7 +208,6 @@ library SupplyLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.ExecuteWithdrawERC1155Params memory params
@@ -230,10 +227,10 @@ library SupplyLogic {
 
         ValidationLogic.validateWithdrawERC1155(vars.reserveConfig, vars.amountToWithdraw, vars.userBalance);
 
-        bool isCollateral = userERC1155Config.isUsingAsCollateral(reserve.id, params.tokenId);
+        bool isCollateral = userERC1155Config.isUsingAsCollateral(params.asset, params.tokenId);
 
         if (isCollateral && vars.amountToWithdraw == vars.userBalance) {
-            userERC1155Config.setUsingAsCollateral(reserve.id, params.tokenId, false);
+            userERC1155Config.setUsingAsCollateral(params.asset, params.tokenId, false);
             emit IPool.ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.tokenId, msg.sender);
         }
 
@@ -244,7 +241,6 @@ library SupplyLogic {
                 reservesData,
                 reservesList,
                 erc1155ReservesData,
-                erc1155ReservesList,
                 userConfig,
                 userERC1155Config,
                 params.asset,
@@ -268,7 +264,6 @@ library SupplyLogic {
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
      * @param erc1155ReservesData The state of all ERC1155 reserves
-     * @param erc1155ReservesList The addresses of all the active ERC1155 reserves
      * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
      * @param usersERC1155Config The users configuration mapping that track the supplied/borrowed ERC1155 assets
      * @param params The additional parameters needed to execute the finalizeTransfer function
@@ -277,7 +272,6 @@ library SupplyLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
         mapping(address => DataTypes.UserERC1155ConfigurationMap) storage usersERC1155Config,
         DataTypes.FinalizeTransferParams memory params
@@ -297,7 +291,6 @@ library SupplyLogic {
                         reservesData,
                         reservesList,
                         erc1155ReservesData,
-                        erc1155ReservesList,
                         usersConfig[params.from],
                         usersERC1155Config[params.from],
                         params.asset,
@@ -325,7 +318,6 @@ library SupplyLogic {
     struct FinalizeERC1155TransferLocalVars {
         bool validatedHF;
         bool isBorrowingAny;
-        uint256 reserveId;
         uint256 i;
         DataTypes.ERC1155ReserveConfiguration reserveConfig;
     }
@@ -341,7 +333,6 @@ library SupplyLogic {
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
      * @param erc1155ReservesData The state of all ERC1155 reserves
-     * @param erc1155ReservesList The addresses of all the active ERC1155 reserves
      * @param usersConfig The users configuration mapping that track the supplied/borrowed assets
      * @param usersERC1155Config The users configuration mapping that track the supplied/borrowed ERC1155 assets
      * @param params The additional parameters needed to execute the finalizeTransfer function
@@ -350,7 +341,6 @@ library SupplyLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
         mapping(address => DataTypes.UserERC1155ConfigurationMap) storage usersERC1155Config,
         DataTypes.FinalizeERC1155TransferParams memory params
@@ -364,8 +354,6 @@ library SupplyLogic {
 
         if (params.from == params.to) return;
 
-        vars.reserveId = reserve.id;
-
         vars.validatedHF = false;
         vars.isBorrowingAny = fromConfig.isBorrowingAny();
 
@@ -374,13 +362,12 @@ library SupplyLogic {
             ValidationLogic.validateERC1155Transfer(vars.reserveConfig);
 
             if (params.amounts[vars.i] != 0) {
-                if (fromERC1155Config.isUsingAsCollateral(vars.reserveId, params.ids[vars.i])) {
+                if (fromERC1155Config.isUsingAsCollateral(params.asset, params.ids[vars.i])) {
                     if (vars.isBorrowingAny && !vars.validatedHF) {
                         ValidationLogic.validateHFAndLtv(
                             reservesData,
                             reservesList,
                             erc1155ReservesData,
-                            erc1155ReservesList,
                             fromConfig,
                             fromERC1155Config,
                             params.asset,
@@ -393,14 +380,14 @@ library SupplyLogic {
                     }
 
                     if (INToken(reserve.nTokenAddress).balanceOf(params.from, params.ids[vars.i]) == 0) {
-                        fromERC1155Config.setUsingAsCollateral(vars.reserveId, params.ids[vars.i], false);
+                        fromERC1155Config.setUsingAsCollateral(params.asset, params.ids[vars.i], false);
                         emit IPool.ERC1155ReserveUsedAsCollateralDisabled(params.asset, params.ids[vars.i], params.from);
                     }
                 }
 
-                if (!toERC1155Config.isUsingAsCollateral(vars.reserveId, params.ids[vars.i])) {
+                if (!toERC1155Config.isUsingAsCollateral(params.asset, params.ids[vars.i])) {
                     if (ValidationLogic.validateUseERC1155AsCollateral(vars.reserveConfig)) {
-                        toERC1155Config.setUsingAsCollateral(vars.reserveId, params.ids[vars.i], true);
+                        toERC1155Config.setUsingAsCollateral(params.asset, params.ids[vars.i], true);
                         emit IPool.ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.ids[vars.i], params.to);
                     }
                 }
@@ -426,7 +413,6 @@ library SupplyLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserConfigurationMap storage userConfig,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         address asset,
@@ -454,7 +440,6 @@ library SupplyLogic {
                 reservesData,
                 reservesList,
                 erc1155ReservesData,
-                erc1155ReservesList,
                 userConfig,
                 userERC1155Config,
                 asset,

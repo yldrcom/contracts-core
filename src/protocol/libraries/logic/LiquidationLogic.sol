@@ -88,7 +88,6 @@ library LiquidationLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
         mapping(address => DataTypes.UserERC1155ConfigurationMap) storage usersERC1155Config,
         DataTypes.ExecuteLiquidationCallParams memory params
@@ -106,7 +105,6 @@ library LiquidationLogic {
             reservesData,
             reservesList,
             erc1155ReservesData,
-            erc1155ReservesList,
             userERC1155Config,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: userConfig,
@@ -215,7 +213,6 @@ library LiquidationLogic {
         address debtPriceSource;
         INToken collateralNToken;
         DataTypes.ERC1155ReserveConfiguration collateralReserveConfig;
-        uint256 collateralReserveId;
         DataTypes.ReserveCache debtReserveCache;
     }
 
@@ -233,7 +230,6 @@ library LiquidationLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         mapping(address => DataTypes.UserConfigurationMap) storage usersConfig,
         mapping(address => DataTypes.UserERC1155ConfigurationMap) storage usersERC1155Config,
         DataTypes.ExecuteERC1155LiquidationCallParams memory params
@@ -247,7 +243,6 @@ library LiquidationLogic {
 
         vars.collateralReserveConfig = collateralReserve.getConfiguration(params.collateralTokenId);
         vars.debtReserveCache = debtReserve.cache();
-        vars.collateralReserveId = collateralReserve.id;
 
         debtReserve.updateState(vars.debtReserveCache);
 
@@ -255,7 +250,6 @@ library LiquidationLogic {
             reservesData,
             reservesList,
             erc1155ReservesData,
-            erc1155ReservesList,
             userERC1155Config,
             DataTypes.CalculateUserAccountDataParams({
                 userConfig: userConfig,
@@ -273,6 +267,7 @@ library LiquidationLogic {
             collateralReserve,
             collateralReserve.getConfiguration(params.collateralTokenId),
             DataTypes.ValidateERC1155LiquidationCallParams({
+                collateralReserveAddress: params.collateralAsset,
                 collateralReserveTokenId: params.collateralTokenId,
                 debtReserveCache: vars.debtReserveCache,
                 totalDebt: vars.userTotalDebt,
@@ -307,7 +302,7 @@ library LiquidationLogic {
         // If the collateral being liquidated is equal to the user balance,
         // we set the currency as not being used as collateral anymore
         if (vars.actualCollateralToLiquidate + vars.liquidationProtocolFeeAmount == vars.userCollateralBalance) {
-            userERC1155Config.setUsingAsCollateral(collateralReserve.id, params.collateralTokenId, false);
+            userERC1155Config.setUsingAsCollateral(params.collateralAsset, params.collateralTokenId, false);
             emit IPool.ERC1155ReserveUsedAsCollateralDisabled(
                 params.collateralAsset, params.collateralTokenId, params.user
             );
@@ -426,7 +421,7 @@ library LiquidationLogic {
         if (liquidatorPreviousNTokenBalance == 0) {
             DataTypes.UserERC1155ConfigurationMap storage liquidatorConfig = usersERC1155Config[msg.sender];
             if (ValidationLogic.validateUseERC1155AsCollateral(vars.collateralReserveConfig)) {
-                liquidatorConfig.setUsingAsCollateral(vars.collateralReserveId, params.collateralTokenId, true);
+                liquidatorConfig.setUsingAsCollateral(params.collateralAsset, params.collateralTokenId, true);
                 emit IPool.ERC1155ReserveUsedAsCollateralEnabled(
                     params.collateralAsset, params.collateralTokenId, msg.sender
                 );

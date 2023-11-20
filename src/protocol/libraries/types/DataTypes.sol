@@ -55,8 +55,6 @@ library DataTypes {
         address nTokenAddress;
         address configurationProvider;
         uint256 liquidationProtocolFee;
-        //the id of the reserve. Represents the position in the list of the active ERC1155 reserves
-        uint16 id;
     }
 
     struct ERC1155ReserveConfiguration {
@@ -78,16 +76,16 @@ library DataTypes {
     }
 
     struct ERC1155ReserveUsageData {
-        uint256 reserveId;
+        address asset;
         uint256 tokenId;
     }
 
     struct UserERC1155ConfigurationMap {
         // List of ERC1155 reserves used by user
         ERC1155ReserveUsageData[] usedERC1155Reserves;
-        // Mapping matching given reserveId and tokenId to index in usedERC1155Reserves array + 1
+        // Mapping matching given asset and tokenId to index in usedERC1155Reserves array + 1
         // Index 0 is used for not used reserves
-        mapping(uint256 reserveId => mapping(uint256 tokenId => uint256 indexPlus1)) usedERC1155ReservesMap;
+        mapping(address asset => mapping(uint256 tokenId => uint256 indexPlus1)) usedERC1155ReservesMap;
     }
 
     struct ReserveCache {
@@ -261,6 +259,7 @@ library DataTypes {
     }
 
     struct ValidateERC1155LiquidationCallParams {
+        address collateralReserveAddress;
         uint256 collateralReserveTokenId;
         ReserveCache debtReserveCache;
         uint256 totalDebt;

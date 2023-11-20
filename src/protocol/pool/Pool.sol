@@ -159,7 +159,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig[msg.sender],
             _usersERC1155Config[msg.sender],
             DataTypes.ExecuteWithdrawParams({
@@ -184,7 +183,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig[msg.sender],
             _usersERC1155Config[msg.sender],
             DataTypes.ExecuteWithdrawERC1155Params({
@@ -209,7 +207,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig[onBehalfOf],
             _usersERC1155Config[onBehalfOf],
             DataTypes.ExecuteBorrowParams({
@@ -276,7 +273,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig[msg.sender],
             _usersERC1155Config[msg.sender],
             asset,
@@ -298,7 +294,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig,
             _usersERC1155Config,
             DataTypes.ExecuteLiquidationCallParams({
@@ -327,7 +322,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig,
             _usersERC1155Config,
             DataTypes.ExecuteERC1155LiquidationCallParams({
@@ -373,7 +367,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig[onBehalfOf],
             _usersERC1155Config[onBehalfOf],
             flashParams
@@ -432,7 +425,7 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             oracle: ADDRESSES_PROVIDER.getPriceOracle()
         });
         return PoolLogic.executeGetUserAccountData(
-            _reserves, _reservesList, _erc1155Reserves, _erc1155ReservesList, _usersERC1155Config[user], params
+            _reserves, _reservesList, _erc1155Reserves, _usersERC1155Config[user], params
         );
     }
 
@@ -523,7 +516,6 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             _reserves,
             _reservesList,
             _erc1155Reserves,
-            _erc1155ReservesList,
             _usersConfig,
             _usersERC1155Config,
             DataTypes.FinalizeTransferParams({
@@ -558,7 +550,7 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             oracle: ADDRESSES_PROVIDER.getPriceOracle()
         });
         SupplyLogic.executeFinalizeERC1155Transfer(
-            _reserves, _reservesList, _erc1155Reserves, _erc1155ReservesList, _usersConfig, _usersERC1155Config, params
+            _reserves, _reservesList, _erc1155Reserves, _usersConfig, _usersERC1155Config, params
         );
     }
 

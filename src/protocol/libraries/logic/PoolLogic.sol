@@ -132,7 +132,6 @@ library PoolLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.CalculateUserAccountDataParams memory params
     )
@@ -148,9 +147,7 @@ library PoolLogic {
         )
     {
         (totalCollateralBase, totalDebtBase, ltv, currentLiquidationThreshold, healthFactor,) = GenericLogic
-            .calculateUserAccountData(
-            reservesData, reservesList, erc1155ReservesData, erc1155ReservesList, userERC1155Config, params
-        );
+            .calculateUserAccountData(reservesData, reservesList, erc1155ReservesData, userERC1155Config, params);
 
         availableBorrowsBase = GenericLogic.calculateAvailableBorrows(totalCollateralBase, totalDebtBase, ltv);
     }

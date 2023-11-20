@@ -66,7 +66,6 @@ library GenericLogic {
         mapping(address => DataTypes.ReserveData) storage reservesData,
         mapping(uint256 => address) storage reservesList,
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
-        mapping(uint256 => address) storage erc1155ReservesList,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
         DataTypes.CalculateUserAccountDataParams memory params
     ) internal view returns (uint256, uint256, uint256, uint256, uint256, bool) {
@@ -129,7 +128,7 @@ library GenericLogic {
         }
 
         for (vars.i = 0; vars.i < userERC1155Config.usedERC1155Reserves.length; vars.i++) {
-            vars.currentReserveAddress = erc1155ReservesList[userERC1155Config.usedERC1155Reserves[vars.i].reserveId];
+            vars.currentReserveAddress = userERC1155Config.usedERC1155Reserves[vars.i].asset;
             vars.currentReserveTokenId = userERC1155Config.usedERC1155Reserves[vars.i].tokenId;
 
             DataTypes.ERC1155ReserveData storage currentReserve = erc1155ReservesData[vars.currentReserveAddress];
