@@ -9,14 +9,14 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {PoolAddressesProvider} from "src/protocol/configuration/PoolAddressesProvider.sol";
 import {ACLManager} from "src/protocol/configuration/ACLManager.sol";
-import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
-import {ERC1155Mock} from "test/mocks/ERC1155Mock.sol";
-import {ERC1155ConfigurationProviderMock} from "test/mocks/ERC1155ConfigurationProviderMock.sol";
+import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
+import {ERC1155Mock} from "src/mocks/ERC1155Mock.sol";
+import {ERC1155ConfigurationProviderMock} from "src/mocks/ERC1155ConfigurationProviderMock.sol";
 import {YToken} from "src/protocol/tokenization/YToken.sol";
 import {NToken} from "src/protocol/tokenization/NToken.sol";
 import {VariableDebtToken} from "src/protocol/tokenization/VariableDebtToken.sol";
 import {DefaultReserveInterestRateStrategy} from "src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
-import {YLDROracleMock} from "./mocks/YLDROracleMock.sol";
+import {YLDROracleMock} from "src/mocks/YLDROracleMock.sol";
 import {Errors} from "src/protocol/libraries/helpers/Errors.sol";
 import {DataTypes} from "src/protocol/libraries/types/DataTypes.sol";
 
