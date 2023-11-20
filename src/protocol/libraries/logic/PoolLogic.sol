@@ -9,6 +9,7 @@ import {Errors} from "../helpers/Errors.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
+import {ERC1155ReserveLogic} from "./ERC1155ReserveLogic.sol";
 import {ValidationLogic} from "./ValidationLogic.sol";
 import {GenericLogic} from "./GenericLogic.sol";
 import {IPool} from "../../../interfaces/IPool.sol";
@@ -22,6 +23,7 @@ library PoolLogic {
     using SafeERC20 for IERC20;
     using WadRayMath for uint256;
     using ReserveLogic for DataTypes.ReserveData;
+    using ERC1155ReserveLogic for DataTypes.ERC1155ReserveData;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     /**
@@ -55,6 +57,18 @@ library PoolLogic {
         reservesData[params.asset].id = params.reservesCount;
         reservesList[params.reservesCount] = params.asset;
         return true;
+    }
+
+    /**
+     * @notice Initialize an ERC1155 asset reserve
+     * @param erc1155ReservesData The state of all the ERC1155 reserves
+     * @param params Additional parameters needed for initiation
+     */
+    function executeInitERC1155Reserve(
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        DataTypes.InitERC1155ReserveParams memory params
+    ) external {
+        erc1155ReservesData[params.asset].init(params.nTokenAddress, params.configurationProvider);
     }
 
     /**
@@ -114,6 +128,20 @@ library PoolLogic {
         ValidationLogic.validateDropReserve(reservesList, reserve, asset);
         reservesList[reservesData[asset].id] = address(0);
         delete reservesData[asset];
+    }
+
+    /**
+     * @notice Drop a reserve
+     * @param erc1155ReservesData The state of all the reserves
+     * @param asset The address of the underlying asset of the reserve
+     */
+    function executeDropERC1155Reserve(
+        mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
+        address asset
+    ) external {
+        DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[asset];
+        ValidationLogic.validateDropERC1155Reserve(reserve, asset);
+        delete erc1155ReservesData[asset];
     }
 
     /**

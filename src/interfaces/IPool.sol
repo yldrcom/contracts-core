@@ -489,11 +489,27 @@ interface IPool {
     ) external;
 
     /**
+     * @notice Initializes a reserve, activating it, assigning an nToken and configuration provider
+     * @dev Only callable by the PoolConfigurator contract
+     * @param asset The address of the underlying asset of the reserve
+     * @param nTokenAddress The address of the nToken that will be assigned to the reserve
+     * @param configurationProvider The address of the provider of configuration for the reserve
+     */
+    function initERC1155Reserve(address asset, address nTokenAddress, address configurationProvider) external;
+
+    /**
      * @notice Drop a reserve
      * @dev Only callable by the PoolConfigurator contract
      * @param asset The address of the underlying asset of the reserve
      */
     function dropReserve(address asset) external;
+
+    /**
+     * @notice Drop a ERC1155 reserve
+     * @dev Only callable by the PoolConfigurator contract
+     * @param asset The address of the underlying asset of the reserve
+     */
+    function dropERC1155Reserve(address asset) external;
 
     /**
      * @notice Updates the address of the interest rate strategy contract
@@ -502,6 +518,22 @@ interface IPool {
      * @param rateStrategyAddress The address of the interest rate strategy contract
      */
     function setReserveInterestRateStrategyAddress(address asset, address rateStrategyAddress) external;
+
+    /**
+     * @notice Updates the address of the configuration provider for a ERC1155 reserve
+     * @dev Only callable by the PoolConfigurator contract
+     * @param asset The address of the underlying asset of the reserve
+     * @param configurationProvider The address of the new configuration provider
+     */
+    function setERC1155ReserveConfigurationProvider(address asset, address configurationProvider) external;
+
+    /**
+     * @notice Updates the liquidation protocol fee for a ERC1155 reserve
+     * @dev Only callable by the PoolConfigurator contract
+     * @param asset The address of the underlying asset of the reserve
+     * @param liquidationProtocolFee New liquidation protocol fee
+     */
+    function setERC1155ReserveLiquidationProtocolFee(address asset, uint256 liquidationProtocolFee) external;
 
     /**
      * @notice Sets the configuration bitmap of the reserve as a whole
@@ -524,6 +556,16 @@ interface IPool {
      * @return The configuration of the user
      */
     function getUserConfiguration(address user) external view returns (DataTypes.UserConfigurationMap memory);
+
+    /**
+     * @notice Returns the list of ERC1155 reserves used by a user
+     * @param user The user address
+     * @return The list of ERC1155 reserves used as a collateral by a user
+     */
+    function getUserUsedERC1155Reserves(address user)
+        external
+        view
+        returns (DataTypes.ERC1155ReserveUsageData[] memory);
 
     /**
      * @notice Returns the normalized income of the reserve
@@ -552,6 +594,13 @@ interface IPool {
      * @return The state and configuration data of the reserve
      */
     function getReserveData(address asset) external view returns (DataTypes.ReserveData memory);
+
+    /**
+     * @notice Returns the state and configuration of the ERC1155 reserve
+     * @param asset The address of the underlying asset of the reserve
+     * @return The state and configuration data of the reserve
+     */
+    function getERC1155ReserveData(address asset) external view returns (DataTypes.ERC1155ReserveData memory);
 
     /**
      * @notice Validates and finalizes an yToken transfer

@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import {IPoolConfigurator} from "../../../interfaces/IPoolConfigurator.sol";
 import {IPool} from "../../../interfaces/IPool.sol";
 import {IInitializableYToken} from "../../../interfaces/IInitializableYToken.sol";
+import {INToken} from "../../../interfaces/INToken.sol";
 import {IInitializableDebtToken} from "../../../interfaces/IInitializableDebtToken.sol";
 import {
     ITransparentUpgradeableProxy,
@@ -81,6 +82,25 @@ library ConfiguratorLogic {
     }
 
     /**
+     * @notice Initialize a reserve by creating and initializing yToken and variable debt token
+     * @dev Emits the `ReserveInitialized` event
+     * @param pool The Pool in which the reserve will be initialized
+     * @param input The needed parameters for the initialization
+     */
+    function executeInitERC1155Reserve(IPool pool, ConfiguratorInputTypes.InitERC1155ReserveInput calldata input)
+        public
+    {
+        address nTokenProxyAddress = _initTokenWithProxy(
+            input.nTokenImpl,
+            abi.encodeCall(INToken.initialize, (address(pool), input.treasury, input.underlyingAsset, input.params))
+        );
+
+        pool.initERC1155Reserve(input.underlyingAsset, nTokenProxyAddress, input.configurationProvider);
+
+        emit IPoolConfigurator.ERC1155ReserveInitialized(input.underlyingAsset, nTokenProxyAddress);
+    }
+
+    /**
      * @notice Updates the yToken implementation and initializes it
      * @dev Emits the `YTokenUpgraded` event
      * @param cachedPool The Pool containing the reserve with the yToken
@@ -108,6 +128,23 @@ library ConfiguratorLogic {
         _upgradeTokenImplementation(reserveData.yTokenAddress, input.implementation, encodedCall);
 
         emit IPoolConfigurator.YTokenUpgraded(input.asset, reserveData.yTokenAddress, input.implementation);
+    }
+
+    /**
+     * @notice Updates the nToken implementation and initializes it
+     * @dev Emits the `NTokenUpgraded` event
+     * @param cachedPool The Pool containing the reserve with the yToken
+     * @param input The parameters needed for the initialize call
+     */
+    function executeUpdateNToken(IPool cachedPool, ConfiguratorInputTypes.UpdateNTokenInput calldata input) public {
+        DataTypes.ERC1155ReserveData memory reserveData = cachedPool.getERC1155ReserveData(input.asset);
+
+        bytes memory encodedCall =
+            abi.encodeCall(INToken.initialize, (address(cachedPool), input.treasury, input.asset, input.params));
+
+        _upgradeTokenImplementation(reserveData.nTokenAddress, input.implementation, encodedCall);
+
+        emit IPoolConfigurator.NTokenUpgraded(input.asset, reserveData.nTokenAddress, input.implementation);
     }
 
     /**

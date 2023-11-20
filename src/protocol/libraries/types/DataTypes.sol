@@ -291,4 +291,10 @@ library DataTypes {
         uint16 reservesCount;
         uint16 maxNumberReserves;
     }
+
+    struct InitERC1155ReserveParams {
+        address asset;
+        address nTokenAddress;
+        address configurationProvider;
+    }
 }

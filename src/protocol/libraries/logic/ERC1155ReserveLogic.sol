@@ -29,4 +29,19 @@ library ERC1155ReserveLogic {
     {
         return IERC1155ConfigurationProvider(erc1155Reserve.configurationProvider).getERC1155ReserveConfig(tokenId);
     }
+
+    /**
+     * @notice Initializes a reserve.
+     * @param reserve The reserve object
+     * @param nTokenAddress The address of the overlying ntoken contract
+     * @param configurationProvider The address of the configuration provider
+     */
+    function init(DataTypes.ERC1155ReserveData storage reserve, address nTokenAddress, address configurationProvider)
+        internal
+    {
+        require(reserve.nTokenAddress == address(0), Errors.RESERVE_ALREADY_INITIALIZED);
+
+        reserve.configurationProvider = configurationProvider;
+        reserve.nTokenAddress = nTokenAddress;
+    }
 }

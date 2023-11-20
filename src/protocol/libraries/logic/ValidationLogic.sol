@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {INToken} from "src/interfaces/INToken.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IReserveInterestRateStrategy} from "../../../interfaces/IReserveInterestRateStrategy.sol";
@@ -497,6 +498,17 @@ library ValidationLogic {
             IERC20(reserve.yTokenAddress).totalSupply() == 0 && reserve.accruedToTreasury == 0,
             Errors.UNDERLYING_CLAIMABLE_RIGHTS_NOT_ZERO
         );
+    }
+
+    /**
+     * @notice Validates a drop ERC1155 reserve action.
+     * @param reserve The reserve object
+     * @param asset The address of the reserve's underlying asset
+     */
+    function validateDropERC1155Reserve(DataTypes.ERC1155ReserveData storage reserve, address asset) internal view {
+        // For non-existent reserve, asset will be zero, so this actually checks if the reserve exists too
+        require(asset != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
+        require(INToken(reserve.nTokenAddress).totalSupply() == 0, Errors.UNDERLYING_CLAIMABLE_RIGHTS_NOT_ZERO);
     }
 
     /**

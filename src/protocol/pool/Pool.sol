@@ -404,6 +404,17 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
     }
 
     /// @inheritdoc IPool
+    function getERC1155ReserveData(address asset)
+        external
+        view
+        virtual
+        override
+        returns (DataTypes.ERC1155ReserveData memory)
+    {
+        return _erc1155Reserves[asset];
+    }
+
+    /// @inheritdoc IPool
     function getUserAccountData(address user)
         external
         view
@@ -449,6 +460,15 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
         returns (DataTypes.UserConfigurationMap memory)
     {
         return _usersConfig[user];
+    }
+
+    /// @inheritdoc IPool
+    function getUserUsedERC1155Reserves(address user)
+        external
+        view
+        returns (DataTypes.ERC1155ReserveUsageData[] memory)
+    {
+        return _usersERC1155Config[user].usedERC1155Reserves;
     }
 
     /// @inheritdoc IPool
@@ -580,8 +600,30 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
     }
 
     /// @inheritdoc IPool
+    function initERC1155Reserve(address asset, address nTokenAddress, address configurationProvider)
+        external
+        virtual
+        override
+        onlyPoolConfigurator
+    {
+        PoolLogic.executeInitERC1155Reserve(
+            _erc1155Reserves,
+            DataTypes.InitERC1155ReserveParams({
+                asset: asset,
+                nTokenAddress: nTokenAddress,
+                configurationProvider: configurationProvider
+            })
+        );
+    }
+
+    /// @inheritdoc IPool
     function dropReserve(address asset) external virtual override onlyPoolConfigurator {
         PoolLogic.executeDropReserve(_reserves, _reservesList, asset);
+    }
+
+    /// @inheritdoc IPool
+    function dropERC1155Reserve(address asset) external virtual override onlyPoolConfigurator {
+        PoolLogic.executeDropERC1155Reserve(_erc1155Reserves, asset);
     }
 
     /// @inheritdoc IPool
@@ -594,6 +636,31 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
         require(asset != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
         require(_reserves[asset].id != 0 || _reservesList[0] == asset, Errors.ASSET_NOT_LISTED);
         _reserves[asset].interestRateStrategyAddress = rateStrategyAddress;
+    }
+
+    /// @inheritdoc IPool
+    function setERC1155ReserveConfigurationProvider(address asset, address configurationProvider)
+        external
+        virtual
+        override
+        onlyPoolConfigurator
+    {
+        require(asset != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
+        require(_erc1155Reserves[asset].nTokenAddress != address(0), Errors.ASSET_NOT_LISTED);
+        _erc1155Reserves[asset].configurationProvider = configurationProvider;
+    }
+
+    /// @inheritdoc IPool
+    function setERC1155ReserveLiquidationProtocolFee(address asset, uint256 liquidationProtocolFee)
+        external
+        virtual
+        override
+        onlyPoolConfigurator
+    {
+        require(asset != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
+        require(_erc1155Reserves[asset].nTokenAddress != address(0), Errors.ASSET_NOT_LISTED);
+
+        _erc1155Reserves[asset].liquidationProtocolFee = liquidationProtocolFee;
     }
 
     /// @inheritdoc IPool

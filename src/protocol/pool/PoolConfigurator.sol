@@ -84,14 +84,37 @@ contract PoolConfigurator is Initializable, IPoolConfigurator {
     }
 
     /// @inheritdoc IPoolConfigurator
+    function initERC1155Reserves(ConfiguratorInputTypes.InitERC1155ReserveInput[] calldata input)
+        external
+        override
+        onlyAssetListingOrPoolAdmins
+    {
+        IPool cachedPool = _pool;
+        for (uint256 i = 0; i < input.length; i++) {
+            ConfiguratorLogic.executeInitERC1155Reserve(cachedPool, input[i]);
+        }
+    }
+
+    /// @inheritdoc IPoolConfigurator
     function dropReserve(address asset) external override onlyPoolAdmin {
         _pool.dropReserve(asset);
         emit ReserveDropped(asset);
     }
 
     /// @inheritdoc IPoolConfigurator
+    function dropERC1155Reserve(address asset) external override onlyPoolAdmin {
+        _pool.dropERC1155Reserve(asset);
+        emit ERC1155ReserveDropped(asset);
+    }
+
+    /// @inheritdoc IPoolConfigurator
     function updateYToken(ConfiguratorInputTypes.UpdateYTokenInput calldata input) external override onlyPoolAdmin {
         ConfiguratorLogic.executeUpdateYToken(_pool, input);
+    }
+
+    /// @inheritdoc IPoolConfigurator
+    function updateNToken(ConfiguratorInputTypes.UpdateNTokenInput calldata input) external override onlyPoolAdmin {
+        ConfiguratorLogic.executeUpdateNToken(_pool, input);
     }
 
     /// @inheritdoc IPoolConfigurator
@@ -226,6 +249,15 @@ contract PoolConfigurator is Initializable, IPoolConfigurator {
     }
 
     /// @inheritdoc IPoolConfigurator
+    function setERC1155LiquidationProtocolFee(address asset, uint256 newFee) external override onlyRiskOrPoolAdmins {
+        require(newFee <= PercentageMath.PERCENTAGE_FACTOR, Errors.INVALID_LIQUIDATION_PROTOCOL_FEE);
+        DataTypes.ERC1155ReserveData memory currentConfig = _pool.getERC1155ReserveData(asset);
+        uint256 oldFee = currentConfig.liquidationProtocolFee;
+        _pool.setERC1155ReserveLiquidationProtocolFee(asset, newFee);
+        emit ERC1155LiquidationProtocolFeeChanged(asset, oldFee, newFee);
+    }
+
+    /// @inheritdoc IPoolConfigurator
     function setReserveInterestRateStrategyAddress(address asset, address newRateStrategyAddress)
         external
         override
@@ -235,6 +267,18 @@ contract PoolConfigurator is Initializable, IPoolConfigurator {
         address oldRateStrategyAddress = reserve.interestRateStrategyAddress;
         _pool.setReserveInterestRateStrategyAddress(asset, newRateStrategyAddress);
         emit ReserveInterestRateStrategyChanged(asset, oldRateStrategyAddress, newRateStrategyAddress);
+    }
+
+    /// @inheritdoc IPoolConfigurator
+    function setERC1155ReserveConfigurationProvider(address asset, address newConfigurationProvider)
+        external
+        override
+        onlyRiskOrPoolAdmins
+    {
+        DataTypes.ERC1155ReserveData memory reserve = _pool.getERC1155ReserveData(asset);
+        address oldConfigurationProvider = reserve.configurationProvider;
+        _pool.setERC1155ReserveConfigurationProvider(asset, newConfigurationProvider);
+        emit ERC1155ReserveConfigurationProviderChanged(asset, oldConfigurationProvider, newConfigurationProvider);
     }
 
     /// @inheritdoc IPoolConfigurator

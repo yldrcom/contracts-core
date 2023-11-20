@@ -17,12 +17,27 @@ library ConfiguratorInputTypes {
         bytes params;
     }
 
+    struct InitERC1155ReserveInput {
+        address nTokenImpl;
+        address underlyingAsset;
+        address treasury;
+        address configurationProvider;
+        bytes params;
+    }
+
     struct UpdateYTokenInput {
         address asset;
         address treasury;
         address incentivesController;
         string name;
         string symbol;
+        address implementation;
+        bytes params;
+    }
+
+    struct UpdateNTokenInput {
+        address asset;
+        address treasury;
         address implementation;
         bytes params;
     }

@@ -21,6 +21,13 @@ interface IPoolConfigurator {
     );
 
     /**
+     * @dev Emitted when a ERC1155 reserve is initialized.
+     * @param asset The address of the underlying asset of the reserve
+     * @param nToken The address of the associated yToken contract
+     */
+    event ERC1155ReserveInitialized(address indexed asset, address indexed nToken);
+
+    /**
      * @dev Emitted when borrowing is enabled or disabled on a reserve.
      * @param asset The address of the underlying asset of the reserve
      * @param enabled True if borrowing is enabled, false otherwise
@@ -73,6 +80,12 @@ interface IPoolConfigurator {
     event ReserveDropped(address indexed asset);
 
     /**
+     * @dev Emitted when a ERC1155 reserve is dropped.
+     * @param asset The address of the underlying asset of the reserve
+     */
+    event ERC1155ReserveDropped(address indexed asset);
+
+    /**
      * @dev Emitted when a reserve factor is updated.
      * @param asset The address of the underlying asset of the reserve
      * @param oldReserveFactor The old reserve factor, expressed in bps
@@ -105,6 +118,14 @@ interface IPoolConfigurator {
     event LiquidationProtocolFeeChanged(address indexed asset, uint256 oldFee, uint256 newFee);
 
     /**
+     * @dev Emitted when the liquidation protocol fee of a reserve is updated.
+     * @param asset The address of the underlying asset of the reserve
+     * @param oldFee The old liquidation protocol fee, expressed in bps
+     * @param newFee The new liquidation protocol fee, expressed in bps
+     */
+    event ERC1155LiquidationProtocolFeeChanged(address indexed asset, uint256 oldFee, uint256 newFee);
+
+    /**
      * @dev Emitted when a reserve interest strategy contract is updated.
      * @param asset The address of the underlying asset of the reserve
      * @param oldStrategy The address of the old interest strategy contract
@@ -113,12 +134,28 @@ interface IPoolConfigurator {
     event ReserveInterestRateStrategyChanged(address indexed asset, address oldStrategy, address newStrategy);
 
     /**
+     * @dev Emitted when a ERC1155 reserve configuration provider contract is updated.
+     * @param asset The address of the underlying asset of the reserve
+     * @param oldProvider The address of the old configuration provider contract
+     * @param newProvider The address of the new configuration provider contract
+     */
+    event ERC1155ReserveConfigurationProviderChanged(address indexed asset, address oldProvider, address newProvider);
+
+    /**
      * @dev Emitted when an yToken implementation is upgraded.
      * @param asset The address of the underlying asset of the reserve
      * @param proxy The yToken proxy address
      * @param implementation The new yToken implementation
      */
     event YTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
+
+    /**
+     * @dev Emitted when an nToken implementation is upgraded.
+     * @param asset The address of the underlying asset of the reserve
+     * @param proxy The nToken proxy address
+     * @param implementation The new nToken implementation
+     */
+    event NTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
 
     /**
      * @dev Emitted when the implementation of a variable debt token is upgraded.
@@ -151,10 +188,22 @@ interface IPoolConfigurator {
     function initReserves(ConfiguratorInputTypes.InitReserveInput[] calldata input) external;
 
     /**
+     * @notice Initializes multiple reserves.
+     * @param input The array of initialization parameters
+     */
+    function initERC1155Reserves(ConfiguratorInputTypes.InitERC1155ReserveInput[] calldata input) external;
+
+    /**
      * @dev Updates the yToken implementation for the reserve.
      * @param input The yToken update parameters
      */
     function updateYToken(ConfiguratorInputTypes.UpdateYTokenInput calldata input) external;
+
+    /**
+     * @dev Updates the nToken implementation for the reserve.
+     * @param input The nToken update parameters
+     */
+    function updateNToken(ConfiguratorInputTypes.UpdateNTokenInput calldata input) external;
 
     /**
      * @notice Updates the variable debt token implementation for the asset.
@@ -230,6 +279,13 @@ interface IPoolConfigurator {
     function setReserveInterestRateStrategyAddress(address asset, address newRateStrategyAddress) external;
 
     /**
+     * @notice Sets the configuration provider of a ERC1155 reserve.
+     * @param asset The address of the underlying asset of the reserve
+     * @param newConfigurationProvider The address of the new configuration provider contract
+     */
+    function setERC1155ReserveConfigurationProvider(address asset, address newConfigurationProvider) external;
+
+    /**
      * @notice Pauses or unpauses all the protocol reserves. In the paused state all the protocol interactions
      * are suspended.
      * @param paused True if protocol needs to be paused, false otherwise
@@ -258,10 +314,23 @@ interface IPoolConfigurator {
     function setLiquidationProtocolFee(address asset, uint256 newFee) external;
 
     /**
+     * @notice Updates the liquidation protocol fee of ERC1155 reserve.
+     * @param asset The address of the underlying asset of the reserve
+     * @param newFee The new liquidation protocol fee of the reserve, expressed in bps
+     */
+    function setERC1155LiquidationProtocolFee(address asset, uint256 newFee) external;
+
+    /**
      * @notice Drops a reserve entirely.
      * @param asset The address of the reserve to drop
      */
     function dropReserve(address asset) external;
+
+    /**
+     * @notice Drops a ERC1155 reserve entirely.
+     * @param asset The address of the reserve to drop
+     */
+    function dropERC1155Reserve(address asset) external;
 
     /**
      * @notice Updates the total flash loan premium.
