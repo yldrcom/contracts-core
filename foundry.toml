@@ -6,3 +6,12 @@ solc = "0.8.23"
 ignored_error_codes = ["license"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[etherscan]
+mainnet = { key = "${ETHERSCAN_TOKEN}" }
+goerli = { key = "${ETHERSCAN_TOKEN}" }
+polygon = { key = "${POLYGONSCAN_TOKEN}" }
+mumbai = { key = "${POLYGONSCAN_TOKEN}" }
+moonbeam = { key = "${MOONSCAN_TOKEN}" }
+moonbase = { key = "${MOONSCAN_TOKEN}" }
+arbitrum_one = { key = "${ARBISCAN_TOKEN}", chain = "arbitrum" }

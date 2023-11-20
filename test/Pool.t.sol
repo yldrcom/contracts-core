@@ -122,7 +122,8 @@ contract PoolTest is Test {
         oracle.setAssetPrice(address(usdc), 1e8);
         oracle.setAssetPrice(address(weth), 1000e8);
 
-        ConfiguratorInputTypes.InitERC1155ReserveInput[] memory erc1155Reserves = new ConfiguratorInputTypes.InitERC1155ReserveInput[](1);
+        ConfiguratorInputTypes.InitERC1155ReserveInput[] memory erc1155Reserves =
+            new ConfiguratorInputTypes.InitERC1155ReserveInput[](1);
         erc1155Reserves[0] = ConfiguratorInputTypes.InitERC1155ReserveInput({
             nTokenImpl: address(new NToken()),
             underlyingAsset: address(nfts),
@@ -200,14 +201,17 @@ contract PoolTest is Test {
         nfts.mint(1, 100);
 
         vm.startPrank(ADMIN);
-        configurationProvider.setERC1155ReserveConfig(1, DataTypes.ERC1155ReserveConfiguration({
-            isActive: true,
-            isFrozen: false,
-            isPaused: false,
-            ltv: 0.5e4,
-            liquidationThreshold: 0.6e4,
-            liquidationBonus: 1.1e4
-        }));
+        configurationProvider.setERC1155ReserveConfig(
+            1,
+            DataTypes.ERC1155ReserveConfiguration({
+                isActive: true,
+                isFrozen: false,
+                isPaused: false,
+                ltv: 0.5e4,
+                liquidationThreshold: 0.6e4,
+                liquidationBonus: 1.1e4
+            })
+        );
         oracle.setERC1155AssetPrice(address(nfts), 1, 100e8);
 
         vm.startPrank(BOB);
@@ -216,13 +220,7 @@ contract PoolTest is Test {
         vm.startPrank(ALICE);
         pool.supplyERC1155(address(nfts), 1, 10, ALICE, 0);
 
-        (
-            uint256 totalCollateralBase,
-            ,
-            ,
-            ,
-            ,
-        ) = pool.getUserAccountData(ALICE);
+        (uint256 totalCollateralBase,,,,,) = pool.getUserAccountData(ALICE);
 
         assertEq(totalCollateralBase, 10e8);
 
@@ -234,27 +232,14 @@ contract PoolTest is Test {
         vm.startPrank(ADMIN);
         oracle.setERC1155AssetPrice(address(nfts), 1, 70e8);
 
-        (
-            ,
-            ,
-            ,
-            ,
-            ,
-            uint256 healthFactor
-        ) = pool.getUserAccountData(ALICE);
+        (,,,,, uint256 healthFactor) = pool.getUserAccountData(ALICE);
 
         assertLt(healthFactor, 1e18);
 
         vm.startPrank(CAROL);
         pool.erc1155LiquidationCall(address(nfts), 1, address(usdc), ALICE, 5e6, false);
 
-        (
-            totalCollateralBase,
-            ,
-            ,
-            ,
-            ,
-        ) = pool.getUserAccountData(ALICE);
+        (totalCollateralBase,,,,,) = pool.getUserAccountData(ALICE);
 
         assertGt(totalCollateralBase, 0);
         assertGt(nfts.balanceOf(CAROL, 1), 0);

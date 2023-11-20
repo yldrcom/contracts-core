@@ -7,6 +7,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ERC1155ConfigurationProviderMock is Ownable, IERC1155ConfigurationProvider {
     constructor() Ownable(msg.sender) {}
+
     mapping(uint256 tokenId => DataTypes.ERC1155ReserveConfiguration) public reserveConfigs;
 
     function getERC1155ReserveConfig(uint256 tokenId)
@@ -17,7 +18,10 @@ contract ERC1155ConfigurationProviderMock is Ownable, IERC1155ConfigurationProvi
         return reserveConfigs[tokenId];
     }
 
-    function setERC1155ReserveConfig(uint256 tokenId, DataTypes.ERC1155ReserveConfiguration memory config) external onlyOwner {
+    function setERC1155ReserveConfig(uint256 tokenId, DataTypes.ERC1155ReserveConfiguration memory config)
+        external
+        onlyOwner
+    {
         reserveConfigs[tokenId] = config;
     }
 }
