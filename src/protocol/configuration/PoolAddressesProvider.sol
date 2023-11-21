@@ -4,9 +4,9 @@ pragma solidity ^0.8.10;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
 import {
-    ITransparentUpgradeableProxy,
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+    ITransparentAdminUpgradeableProxy,
+    TransparentAdminUpgradeableProxy
+} from "src/protocol/libraries/upgradeability/TransparentAdminUpgradeableProxy.sol";
 
 /**
  * @title PoolAddressesProvider
@@ -165,11 +165,11 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
         bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
 
         if (proxyAddress == address(0)) {
-            TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(newAddress, address(this), params);
+            TransparentAdminUpgradeableProxy proxy = new TransparentAdminUpgradeableProxy(newAddress, address(this), params);
             _addresses[id] = proxyAddress = address(proxy);
             emit ProxyCreated(id, proxyAddress, newAddress);
         } else {
-            ITransparentUpgradeableProxy(proxyAddress).upgradeToAndCall(newAddress, params);
+            ITransparentAdminUpgradeableProxy(proxyAddress).upgradeToAndCall(newAddress, params);
         }
     }
 

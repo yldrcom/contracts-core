@@ -5,8 +5,6 @@ import {PoolConfigurator} from "src/protocol/pool/PoolConfigurator.sol";
 import {IPoolConfigurator, ConfiguratorInputTypes} from "src/interfaces/IPoolConfigurator.sol";
 import {Pool} from "src/protocol/pool/Pool.sol";
 import {IPool} from "src/interfaces/IPool.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {PoolAddressesProvider} from "src/protocol/configuration/PoolAddressesProvider.sol";
 import {ACLManager} from "src/protocol/configuration/ACLManager.sol";
 import {ERC20Mock} from "src/mocks/ERC20Mock.sol";

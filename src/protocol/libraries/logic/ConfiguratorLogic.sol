@@ -7,9 +7,9 @@ import {IInitializableYToken} from "../../../interfaces/IInitializableYToken.sol
 import {INToken} from "../../../interfaces/INToken.sol";
 import {IInitializableDebtToken} from "../../../interfaces/IInitializableDebtToken.sol";
 import {
-    ITransparentUpgradeableProxy,
-    TransparentUpgradeableProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+    ITransparentAdminUpgradeableProxy,
+    TransparentAdminUpgradeableProxy
+} from "src/protocol/libraries/upgradeability/TransparentAdminUpgradeableProxy.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ConfiguratorInputTypes} from "../types/ConfiguratorInputTypes.sol";
@@ -188,7 +188,7 @@ library ConfiguratorLogic {
      * @return The address of initialized proxy
      */
     function _initTokenWithProxy(address implementation, bytes memory initParams) internal returns (address) {
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(implementation, address(this), initParams);
+        TransparentAdminUpgradeableProxy proxy = new TransparentAdminUpgradeableProxy(implementation, address(this), initParams);
         return address(proxy);
     }
 
@@ -202,7 +202,7 @@ library ConfiguratorLogic {
     function _upgradeTokenImplementation(address proxyAddress, address implementation, bytes memory initParams)
         internal
     {
-        ITransparentUpgradeableProxy proxy = ITransparentUpgradeableProxy(proxyAddress);
+        ITransparentAdminUpgradeableProxy proxy = ITransparentAdminUpgradeableProxy(proxyAddress);
         proxy.upgradeToAndCall(implementation, initParams);
     }
 }
