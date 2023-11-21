@@ -1,3 +1,12 @@
+[rpc_endpoints]
+mainnet = "${MAINNET_RPC}"
+goerli = "${GOERLI_RPC}"
+polygon = "${POLYGON_MAINNET_RPC}"
+mumbai = "${MUMBAI_RPC}"
+moonbeam = "${MOONBEAM_MAINNET_RPC}"
+moonbase = "${MOONBASE_RPC}"
+arbitrum_one = "${ARBITRUM_RPC}"
+
 [profile.default]
 src = "src"
 out = "out"
