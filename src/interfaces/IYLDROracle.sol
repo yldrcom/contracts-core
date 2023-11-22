@@ -25,6 +25,13 @@ interface IYLDROracle is IPriceOracleGetter {
     event AssetSourceUpdated(address indexed asset, address indexed source);
 
     /**
+     * @dev Emitted after the price source of an ERC1155 asset is updated
+     * @param asset The address of the asset
+     * @param source The price source of the asset
+     */
+    event ERC1155AssetSourceUpdated(address indexed asset, address indexed source);
+
+    /**
      * @dev Emitted after the address of fallback oracle is updated
      * @param fallbackOracle The address of the fallback oracle
      */
@@ -42,6 +49,13 @@ interface IYLDROracle is IPriceOracleGetter {
      * @param sources The addresses of the price sources
      */
     function setAssetSources(address[] calldata assets, address[] calldata sources) external;
+
+    /**
+     * @notice Sets or replaces price sources of ERC1155 assets
+     * @param assets The addresses of the assets
+     * @param sources The addresses of the price sources
+     */
+    function setERC1155AssetSources(address[] calldata assets, address[] calldata sources) external;
 
     /**
      * @notice Sets the fallback oracle

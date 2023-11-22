@@ -26,7 +26,7 @@ contract DeployScript is Script {
         addressesProvider.setPoolConfiguratorImpl(address(new PoolConfigurator()));
 
         YLDROracle oracle =
-            new YLDROracle(addressesProvider, new address[](0), new address[](0), address(0), address(0), 10 ** 8);
+        new YLDROracle(addressesProvider, new address[](0), new address[](0), new address[](0), new address[](0), address(0), address(0), 10 ** 8);
         addressesProvider.setPriceOracle(address(oracle));
     }
 }

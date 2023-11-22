@@ -52,6 +52,8 @@ contract YLDROracle is IYLDROracle {
         IPoolAddressesProvider provider,
         address[] memory assets,
         address[] memory sources,
+        address[] memory erc1155Assets,
+        address[] memory erc1155Sources,
         address fallbackOracle,
         address baseCurrency,
         uint256 baseCurrencyUnit
@@ -59,6 +61,7 @@ contract YLDROracle is IYLDROracle {
         ADDRESSES_PROVIDER = provider;
         _setFallbackOracle(fallbackOracle);
         _setAssetsSources(assets, sources);
+        _setERC1155AssetsSources(erc1155Assets, erc1155Sources);
         BASE_CURRENCY = baseCurrency;
         BASE_CURRENCY_UNIT = baseCurrencyUnit;
         emit BaseCurrencySet(baseCurrency, baseCurrencyUnit);
@@ -71,6 +74,15 @@ contract YLDROracle is IYLDROracle {
         onlyAssetListingOrPoolAdmins
     {
         _setAssetsSources(assets, sources);
+    }
+
+    /// @inheritdoc IYLDROracle
+    function setERC1155AssetSources(address[] calldata assets, address[] calldata sources)
+        external
+        override
+        onlyAssetListingOrPoolAdmins
+    {
+        _setERC1155AssetsSources(assets, sources);
     }
 
     /// @inheritdoc IYLDROracle
@@ -88,6 +100,19 @@ contract YLDROracle is IYLDROracle {
         for (uint256 i = 0; i < assets.length; i++) {
             assetsSources[assets[i]] = IChainlinkAggregator(sources[i]);
             emit AssetSourceUpdated(assets[i], sources[i]);
+        }
+    }
+
+    /**
+     * @notice Internal function to set the sources for each ERC1155 asset
+     * @param assets The addresses of the assets
+     * @param sources The address of the source of each asset
+     */
+    function _setERC1155AssetsSources(address[] memory assets, address[] memory sources) internal {
+        require(assets.length == sources.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+        for (uint256 i = 0; i < assets.length; i++) {
+            erc1155AssetsSources[assets[i]] = IERC1155PriceOracle(sources[i]);
+            emit ERC1155AssetSourceUpdated(assets[i], sources[i]);
         }
     }
 
