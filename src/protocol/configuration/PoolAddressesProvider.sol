@@ -165,7 +165,8 @@ contract PoolAddressesProvider is Ownable, IPoolAddressesProvider {
         bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
 
         if (proxyAddress == address(0)) {
-            TransparentAdminUpgradeableProxy proxy = new TransparentAdminUpgradeableProxy(newAddress, address(this), params);
+            TransparentAdminUpgradeableProxy proxy =
+                new TransparentAdminUpgradeableProxy(newAddress, address(this), params);
             _addresses[id] = proxyAddress = address(proxy);
             emit ProxyCreated(id, proxyAddress, newAddress);
         } else {

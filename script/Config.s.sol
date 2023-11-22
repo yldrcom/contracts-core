@@ -57,8 +57,6 @@ contract ConfigScript is Script {
         configurator.initReserves(reserves);
         configurator.setReserveBorrowing(address(underlying), true);
 
-        configurator.configureReserveAsCollateral(
-            address(underlying), ltv, liquidationThreshold, liquidationBonus
-        );
+        configurator.configureReserveAsCollateral(address(underlying), ltv, liquidationThreshold, liquidationBonus);
     }
 }

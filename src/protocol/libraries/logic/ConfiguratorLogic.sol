@@ -188,7 +188,8 @@ library ConfiguratorLogic {
      * @return The address of initialized proxy
      */
     function _initTokenWithProxy(address implementation, bytes memory initParams) internal returns (address) {
-        TransparentAdminUpgradeableProxy proxy = new TransparentAdminUpgradeableProxy(implementation, address(this), initParams);
+        TransparentAdminUpgradeableProxy proxy =
+            new TransparentAdminUpgradeableProxy(implementation, address(this), initParams);
         return address(proxy);
     }
 
