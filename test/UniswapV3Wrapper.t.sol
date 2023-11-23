@@ -174,10 +174,14 @@ contract UniswapV3WrapperTest is BaseTest {
         vm.startPrank(ALICE);
     }
 
-    function _acquireWrapperUniswapV3Position(address token0, address token1, uint256 amount0Max, uint256 amount1Max, UniswapV3Testing.PositionType posType) internal returns(uint256 tokenId, uint256 amount0, uint256 amount1) {
-        (tokenId, amount0, amount1) = uniswapV3.acquireUniswapPosition(
-            token0, token1, amount0Max, amount1Max, posType
-        );
+    function _acquireWrapperUniswapV3Position(
+        address token0,
+        address token1,
+        uint256 amount0Max,
+        uint256 amount1Max,
+        UniswapV3Testing.PositionType posType
+    ) internal returns (uint256 tokenId, uint256 amount0, uint256 amount1) {
+        (tokenId, amount0, amount1) = uniswapV3.acquireUniswapPosition(token0, token1, amount0Max, amount1Max, posType);
 
         uniswapV3.positionManger.safeTransferFrom(ALICE, address(uniswapV3Wrapper), tokenId, "");
     }

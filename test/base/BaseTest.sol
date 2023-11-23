@@ -29,7 +29,7 @@ contract BaseTest is Test {
     }
 
     modifier recoverPrankIfAny() {
-        (VmSafe.CallerMode mode, address sender, ) = vm.readCallers();
+        (VmSafe.CallerMode mode, address sender,) = vm.readCallers();
         bool willNeedRecovery = mode == VmSafe.CallerMode.RecurrentPrank;
         vm.stopPrank();
         _;

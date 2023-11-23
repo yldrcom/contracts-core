@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import {ERC1155SupplyUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
+import {IERC1155Supply} from "src/interfaces/IERC1155Supply.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-interface IERC1155UniswapV3Wrapper is IERC721Receiver {
+interface IERC1155UniswapV3Wrapper is IERC721Receiver, IERC1155Supply {
     error OnlyPositionManager();
 
     function positionManager() external view returns (INonfungiblePositionManager);
