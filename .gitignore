@@ -14,3 +14,13 @@ docs/
 
 # Mac OS files
 **/.DS_Store
+node_modules
+.env
+
+# TypeChain files
+/typechain
+/typechain-types
+
+# solidity-coverage files
+/coverage
+/coverage.json

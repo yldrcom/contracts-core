@@ -1,0 +1,13 @@
+{
+  "name": "yldr-lending-core",
+  "version": "1.19.2",
+  "description": "YLDR Protocol core smart contracts",
+  "main": "dist/helpers/index.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "@typechain/ethers-v5": "^10.1.0",
+    "typechain": "^8.1.0"
+  }
+}
