@@ -45,7 +45,7 @@ contract NToken is ERC1155SupplyUpgradeable, ERC1155HolderUpgradeable, INToken {
     }
 
     /// @inheritdoc INToken
-    function mint(address caller, address onBehalfOf, uint256 underlyingTokenId, uint256 amount)
+    function mint(address onBehalfOf, uint256 underlyingTokenId, uint256 amount)
         external
         virtual
         override
@@ -55,7 +55,7 @@ contract NToken is ERC1155SupplyUpgradeable, ERC1155HolderUpgradeable, INToken {
         // This may cause problems with underlying tokens which may same tokenId several times
         _mint(onBehalfOf, underlyingTokenId, amount, bytes(""));
 
-        return (balanceOf(caller, underlyingTokenId) == amount);
+        return (balanceOf(onBehalfOf, underlyingTokenId) == amount);
     }
 
     /// @inheritdoc INToken

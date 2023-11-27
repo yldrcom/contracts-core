@@ -97,7 +97,7 @@ library SupplyLogic {
         );
 
         bool isFirstSupply =
-            INToken(reserve.nTokenAddress).mint(msg.sender, params.onBehalfOf, params.tokenId, params.amount);
+            INToken(reserve.nTokenAddress).mint(params.onBehalfOf, params.tokenId, params.amount);
 
         if (isFirstSupply) {
             if (ValidationLogic.validateUseERC1155AsCollateral(reserveConfig)) {

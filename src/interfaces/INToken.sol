@@ -29,13 +29,12 @@ interface INToken is IERC1155Supply {
 
     /**
      * @notice Mints `tokenId` nToken to `onBehalfOf`
-     * @param caller The address performing the mint
      * @param onBehalfOf The address of the user that will receive the minted nToken
      * @param tokenId The tokenId getting minted
      * @param amount The amount getting minted
      * @return `true` if the the previous balance of the user was 0
      */
-    function mint(address caller, address onBehalfOf, uint256 tokenId, uint256 amount) external returns (bool);
+    function mint(address onBehalfOf, uint256 tokenId, uint256 amount) external returns (bool);
 
     /**
      * @notice Burns nToken from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
