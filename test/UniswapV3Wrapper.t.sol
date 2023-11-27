@@ -58,7 +58,11 @@ contract UniswapV3WrapperTest is BaseTest {
 
         uniswapV3Wrapper = ERC1155UniswapV3Wrapper(
             address(
-                new TransparentUpgradeableProxy(address(new ERC1155UniswapV3Wrapper()), ADMIN, abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, (uniswapV3.positionManger)))
+                new TransparentUpgradeableProxy(
+                    address(new ERC1155UniswapV3Wrapper()),
+                    ADMIN,
+                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, (uniswapV3.positionManger))
+                )
             )
         );
 
@@ -85,8 +89,9 @@ contract UniswapV3WrapperTest is BaseTest {
         erc1155Assets[0] = address(uniswapV3Wrapper);
         erc1155Sources[0] = address(new ERC1155UniswapV3Oracle(addressesProvider, uniswapV3Wrapper));
 
-        oracle =
-        new YLDROracle(addressesProvider, assets, sources, erc1155Assets, erc1155Sources, address(0), address(0), 10 ** 8);
+        oracle = new YLDROracle(
+            addressesProvider, assets, sources, erc1155Assets, erc1155Sources, address(0), address(0), 10 ** 8
+        );
 
         aclManager.addPoolAdmin(ADMIN);
         addressesProvider.setACLManager(address(aclManager));
