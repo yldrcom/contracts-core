@@ -1,15 +1,15 @@
 pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {ERC20Ownable} from "src/mocks/ERC20Ownable.sol";
+import {ERC20Ownable} from "../src/mocks/ERC20Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IPoolAddressesProvider} from "src/interfaces/IPoolAddressesProvider.sol";
-import {ACLManager} from "src/protocol/configuration/ACLManager.sol";
-import {PoolConfigurator} from "src/protocol/pool/PoolConfigurator.sol";
-import {Pool} from "src/protocol/pool/Pool.sol";
-import {IYLDROracle} from "src/interfaces/IYLDROracle.sol";
-import {IPoolConfigurator, ConfiguratorInputTypes} from "src/interfaces/IPoolConfigurator.sol";
-import {DefaultReserveInterestRateStrategy} from "src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
+import {IPoolAddressesProvider} from "../src/interfaces/IPoolAddressesProvider.sol";
+import {ACLManager} from "../src/protocol/configuration/ACLManager.sol";
+import {PoolConfigurator} from "../src/protocol/pool/PoolConfigurator.sol";
+import {Pool} from "../src/protocol/pool/Pool.sol";
+import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
+import {IPoolConfigurator, ConfiguratorInputTypes} from "../src/interfaces/IPoolConfigurator.sol";
+import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
 
 contract ConfigScript is Script {
     function initReserve(

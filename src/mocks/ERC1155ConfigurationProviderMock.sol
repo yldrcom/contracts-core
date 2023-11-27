@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {IERC1155ConfigurationProvider} from "src/interfaces/IERC1155ConfigurationProvider.sol";
-import {DataTypes} from "src/protocol/libraries/types/DataTypes.sol";
+import {IERC1155ConfigurationProvider} from "../interfaces/IERC1155ConfigurationProvider.sol";
+import {DataTypes} from "../protocol/libraries/types/DataTypes.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ERC1155ConfigurationProviderMock is Ownable, IERC1155ConfigurationProvider {

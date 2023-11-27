@@ -1,6 +1,6 @@
 pragma solidity ^0.8.20;
 
-import {IChainlinkAggregator} from "src/interfaces/ext/IChainlinkAggregator.sol";
+import {IChainlinkAggregator} from "../interfaces/ext/IChainlinkAggregator.sol";
 
 contract ChainlinkAggregatorMock is IChainlinkAggregator {
     int256 public latestAnswer;

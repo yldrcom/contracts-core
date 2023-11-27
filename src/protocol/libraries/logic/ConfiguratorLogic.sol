@@ -9,7 +9,7 @@ import {IInitializableDebtToken} from "../../../interfaces/IInitializableDebtTok
 import {
     ITransparentAdminUpgradeableProxy,
     TransparentAdminUpgradeableProxy
-} from "src/protocol/libraries/upgradeability/TransparentAdminUpgradeableProxy.sol";
+} from "../upgradeability/TransparentAdminUpgradeableProxy.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {ConfiguratorInputTypes} from "../types/ConfiguratorInputTypes.sol";

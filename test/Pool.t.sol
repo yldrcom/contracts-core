@@ -1,17 +1,17 @@
 pragma solidity ^0.8.20;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {IPool} from "src/interfaces/IPool.sol";
-import {IYLDROracle} from "src/interfaces/IYLDROracle.sol";
-import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
-import {ERC1155Mock} from "src/mocks/ERC1155Mock.sol";
-import {ERC1155ConfigurationProviderMock} from "src/mocks/ERC1155ConfigurationProviderMock.sol";
-import {ERC1155PriceOracleMock} from "src/mocks/ERC1155PriceOracleMock.sol";
-import {Errors} from "src/protocol/libraries/helpers/Errors.sol";
-import {DataTypes} from "src/protocol/libraries/types/DataTypes.sol";
+import {IPool} from "../src/interfaces/IPool.sol";
+import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
+import {ERC20Mock} from "../src/mocks/ERC20Mock.sol";
+import {ERC1155Mock} from "../src/mocks/ERC1155Mock.sol";
+import {ERC1155ConfigurationProviderMock} from "../src/mocks/ERC1155ConfigurationProviderMock.sol";
+import {ERC1155PriceOracleMock} from "../src/mocks/ERC1155PriceOracleMock.sol";
+import {Errors} from "../src/protocol/libraries/helpers/Errors.sol";
+import {DataTypes} from "../src/protocol/libraries/types/DataTypes.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {PoolTesting} from "test/libraries/PoolTesting.sol";
-import {ChainlinkAggregatorMock} from "src/mocks/ChainlinkAggregatorMock.sol";
+import {ChainlinkAggregatorMock} from "../src/mocks/ChainlinkAggregatorMock.sol";
 
 contract PoolTest is BaseTest {
     using PoolTesting for PoolTesting.Data;

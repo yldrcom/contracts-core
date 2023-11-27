@@ -1,22 +1,22 @@
 pragma solidity 0.8.23;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {IPoolConfigurator, ConfiguratorInputTypes} from "src/interfaces/IPoolConfigurator.sol";
-import {Pool} from "src/protocol/pool/Pool.sol";
-import {IPool} from "src/interfaces/IPool.sol";
-import {PoolAddressesProvider} from "src/protocol/configuration/PoolAddressesProvider.sol";
-import {PoolConfigurator} from "src/protocol/pool/PoolConfigurator.sol";
-import {ACLManager} from "src/protocol/configuration/ACLManager.sol";
-import {ERC20Mock} from "src/mocks/ERC20Mock.sol";
-import {ERC1155Mock} from "src/mocks/ERC1155Mock.sol";
-import {ERC1155ConfigurationProviderMock} from "src/mocks/ERC1155ConfigurationProviderMock.sol";
-import {YToken} from "src/protocol/tokenization/YToken.sol";
-import {NToken} from "src/protocol/tokenization/NToken.sol";
-import {VariableDebtToken} from "src/protocol/tokenization/VariableDebtToken.sol";
-import {DefaultReserveInterestRateStrategy} from "src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
-import {YLDROracle} from "src/misc/YLDROracle.sol";
-import {Errors} from "src/protocol/libraries/helpers/Errors.sol";
-import {DataTypes} from "src/protocol/libraries/types/DataTypes.sol";
+import {IPoolConfigurator, ConfiguratorInputTypes} from "../../src/interfaces/IPoolConfigurator.sol";
+import {Pool} from "../../src/protocol/pool/Pool.sol";
+import {IPool} from "../../src/interfaces/IPool.sol";
+import {PoolAddressesProvider} from "../../src/protocol/configuration/PoolAddressesProvider.sol";
+import {PoolConfigurator} from "../../src/protocol/pool/PoolConfigurator.sol";
+import {ACLManager} from "../../src/protocol/configuration/ACLManager.sol";
+import {ERC20Mock} from "../../src/mocks/ERC20Mock.sol";
+import {ERC1155Mock} from "../../src/mocks/ERC1155Mock.sol";
+import {ERC1155ConfigurationProviderMock} from "../../src/mocks/ERC1155ConfigurationProviderMock.sol";
+import {YToken} from "../../src/protocol/tokenization/YToken.sol";
+import {NToken} from "../../src/protocol/tokenization/NToken.sol";
+import {VariableDebtToken} from "../../src/protocol/tokenization/VariableDebtToken.sol";
+import {DefaultReserveInterestRateStrategy} from "../../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
+import {YLDROracle} from "../../src/misc/YLDROracle.sol";
+import {Errors} from "../../src/protocol/libraries/helpers/Errors.sol";
+import {DataTypes} from "../../src/protocol/libraries/types/DataTypes.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 library PoolTesting {

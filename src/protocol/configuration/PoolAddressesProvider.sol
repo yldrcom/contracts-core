@@ -6,7 +6,7 @@ import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.so
 import {
     ITransparentAdminUpgradeableProxy,
     TransparentAdminUpgradeableProxy
-} from "src/protocol/libraries/upgradeability/TransparentAdminUpgradeableProxy.sol";
+} from "../libraries/upgradeability/TransparentAdminUpgradeableProxy.sol";
 
 /**
  * @title PoolAddressesProvider

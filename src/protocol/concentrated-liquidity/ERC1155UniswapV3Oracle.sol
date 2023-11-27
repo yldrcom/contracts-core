@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {IERC1155PriceOracle} from "src/interfaces/IERC1155PriceOracle.sol";
-import {IERC1155UniswapV3Wrapper} from "src/interfaces/IERC1155UniswapV3Wrapper.sol";
-import {IPoolAddressesProvider} from "src/interfaces/IPoolAddressesProvider.sol";
+import {IERC1155PriceOracle} from "../../interfaces/IERC1155PriceOracle.sol";
+import {IERC1155UniswapV3Wrapper} from "../../interfaces/IERC1155UniswapV3Wrapper.sol";
+import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IYLDROracle} from "src/interfaces/IYLDROracle.sol";
+import {IYLDROracle} from "../../interfaces/IYLDROracle.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {UniswapV3Position} from "./libraries/UniswapV3Position.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";

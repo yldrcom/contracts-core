@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
-import {IERC1155ConfigurationProvider} from "src/interfaces/IERC1155ConfigurationProvider.sol";
-import {IERC1155UniswapV3Wrapper} from "src/interfaces/IERC1155UniswapV3Wrapper.sol";
+import {IERC1155ConfigurationProvider} from "../../interfaces/IERC1155ConfigurationProvider.sol";
+import {IERC1155UniswapV3Wrapper} from "../../interfaces/IERC1155UniswapV3Wrapper.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-import {DataTypes} from "src/protocol/libraries/types/DataTypes.sol";
-import {IPool} from "src/interfaces/IPool.sol";
-import {ReserveConfiguration} from "src/protocol/libraries/configuration/ReserveConfiguration.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {IPool} from "../../interfaces/IPool.sol";
+import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ERC1155UniswapV3ConfigurationProvider is IERC1155ConfigurationProvider {
