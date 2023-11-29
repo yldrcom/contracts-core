@@ -109,6 +109,11 @@ library UniswapV3Position {
         view
         returns (uint256 amount0, uint256 amount1)
     {
+        // Non-zero positions can't have unclaimed fees by designe of position manager
+        if (position.liquidity == 0) {
+            return (position.tokensOwed0, position.tokensOwed1);
+        }
+        
         (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) = _getFeeGrowthInside(position);
         amount0 = position.tokensOwed0
             + uint128(
