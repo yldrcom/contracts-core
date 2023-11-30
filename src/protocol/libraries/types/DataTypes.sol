@@ -125,6 +125,7 @@ library DataTypes {
         bool receiveNToken;
         address priceOracle;
         address priceOracleSentinel;
+        uint256 maxERC1155CollateralReserves;
     }
 
     struct ExecuteSupplyParams {
@@ -140,6 +141,7 @@ library DataTypes {
         uint256 amount;
         address onBehalfOf;
         uint16 referralCode;
+        uint256 maxERC1155CollateralReserves;
     }
 
     struct ExecuteBorrowParams {
@@ -197,6 +199,7 @@ library DataTypes {
         uint256[] amounts;
         uint256 reservesCount;
         address oracle;
+        uint256 maxERC1155CollateralReserves;
     }
 
     struct FlashloanParams {

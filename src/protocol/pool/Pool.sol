@@ -118,7 +118,8 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
                 tokenId: tokenId,
                 amount: amount,
                 onBehalfOf: onBehalfOf,
-                referralCode: referralCode
+                referralCode: referralCode,
+                maxERC1155CollateralReserves: _maxERC1155CollateralReserves
             })
         );
     }
@@ -333,7 +334,8 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
                 user: user,
                 receiveNToken: receiveNToken,
                 priceOracle: ADDRESSES_PROVIDER.getPriceOracle(),
-                priceOracleSentinel: ADDRESSES_PROVIDER.getPriceOracleSentinel()
+                priceOracleSentinel: ADDRESSES_PROVIDER.getPriceOracleSentinel(),
+                maxERC1155CollateralReserves: _maxERC1155CollateralReserves
             })
         );
     }
@@ -523,6 +525,11 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
     }
 
     /// @inheritdoc IPool
+    function MAX_ERC1155_COLLATERAL_RESERVES() public view virtual override returns (uint256) {
+        return _maxERC1155CollateralReserves;
+    }
+
+    /// @inheritdoc IPool
     function finalizeTransfer(
         address asset,
         address from,
@@ -567,7 +574,8 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
             ids: ids,
             amounts: amounts,
             reservesCount: _reservesCount,
-            oracle: ADDRESSES_PROVIDER.getPriceOracle()
+            oracle: ADDRESSES_PROVIDER.getPriceOracle(),
+            maxERC1155CollateralReserves: _maxERC1155CollateralReserves
         });
         SupplyLogic.executeFinalizeERC1155Transfer(
             _reserves, _reservesList, _erc1155Reserves, _usersConfig, _usersERC1155Config, params
@@ -684,6 +692,16 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
     {
         _flashLoanPremiumTotal = flashLoanPremiumTotal;
         _flashLoanPremiumToProtocol = flashLoanPremiumToProtocol;
+    }
+
+    /// @inheritdoc IPool
+    function updateMaxERC1155CollateralReserves(uint256 maxERC1155CollateralReservesNumber)
+        external
+        virtual
+        override
+        onlyPoolConfigurator
+    {
+        _maxERC1155CollateralReserves = maxERC1155CollateralReservesNumber;
     }
 
     /// @inheritdoc IPool

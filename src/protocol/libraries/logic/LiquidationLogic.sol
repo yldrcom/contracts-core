@@ -420,7 +420,11 @@ library LiquidationLogic {
 
         if (liquidatorPreviousNTokenBalance == 0) {
             DataTypes.UserERC1155ConfigurationMap storage liquidatorConfig = usersERC1155Config[msg.sender];
-            if (ValidationLogic.validateUseERC1155AsCollateral(vars.collateralReserveConfig)) {
+            if (
+                ValidationLogic.validateUseERC1155AsCollateral(
+                    vars.collateralReserveConfig, liquidatorConfig, params.maxERC1155CollateralReserves
+                )
+            ) {
                 liquidatorConfig.setUsingAsCollateral(params.collateralAsset, params.collateralTokenId, true);
                 emit IPool.ERC1155ReserveUsedAsCollateralEnabled(
                     params.collateralAsset, params.collateralTokenId, msg.sender

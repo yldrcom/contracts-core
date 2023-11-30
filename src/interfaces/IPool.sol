@@ -671,6 +671,13 @@ interface IPool {
     function updateFlashloanPremiums(uint128 flashLoanPremiumTotal, uint128 flashLoanPremiumToProtocol) external;
 
     /**
+     * @notice Updates max amount of ERC1155 collaterals user may have.
+     * @dev Only callable by the PoolConfigurator contract
+     * @param maxERC1155CollateralReservesNumber The new value
+     */
+    function updateMaxERC1155CollateralReserves(uint256 maxERC1155CollateralReservesNumber) external;
+
+    /**
      * @notice Returns the total fee on flash loans
      * @return The total fee on flashloans
      */
@@ -687,6 +694,12 @@ interface IPool {
      * @return The maximum number of reserves supported
      */
     function MAX_NUMBER_RESERVES() external view returns (uint16);
+
+    /**
+     * @notice Returns the maximum number of ERC1155 collateral reserves which can be used by a single user
+     * @return The maximum number of ERC1155 collateral reserves supported
+     */
+    function MAX_ERC1155_COLLATERAL_RESERVES() external view returns (uint256);
 
     /**
      * @notice Mints the assets accrued through the reserve factor to the treasury in the form of yTokens

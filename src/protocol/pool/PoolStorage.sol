@@ -41,4 +41,7 @@ contract PoolStorage {
 
     // Maximum number of active reserves there have been in the protocol. It is the upper bound of the reserves list
     uint16 internal _reservesCount;
+
+    // Maximum number of ERC1155 collateral reserves a user can have
+    uint256 internal _maxERC1155CollateralReserves;
 }

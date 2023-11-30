@@ -182,6 +182,15 @@ interface IPoolConfigurator {
     );
 
     /**
+     * @dev Emitted when the maximum number of ERC1155 collateral reserves a user can have is updated.
+     * @param oldMaxERC1155CollateralReserves The old maximum number of ERC1155 collateral reserves
+     * @param newMaxERC1155CollateralReserves The new maximum number of ERC1155 collateral reserves
+     */
+    event MaxERC1155CollateralReservesUpdated(
+        uint256 oldMaxERC1155CollateralReserves, uint256 newMaxERC1155CollateralReserves
+    );
+
+    /**
      * @notice Initializes multiple reserves.
      * @param input The array of initialization parameters
      */
@@ -350,4 +359,10 @@ interface IPoolConfigurator {
      * @param newFlashloanPremiumToProtocol The part of the flashloan premium sent to the protocol treasury
      */
     function updateFlashloanPremiumToProtocol(uint128 newFlashloanPremiumToProtocol) external;
+
+    /**
+     * @notice Updates the maximum count of ERC1155 collateral reserves a user can have
+     * @param newMaxERC1155CollateralReserves The count of ERC1155 collateral reserves
+     */
+    function updateMaxERC1155CollateralReserves(uint256 newMaxERC1155CollateralReserves) external;
 }

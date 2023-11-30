@@ -90,21 +90,27 @@ library SupplyLogic {
         DataTypes.ERC1155ReserveData storage reserve = erc1155ReservesData[params.asset];
         DataTypes.ERC1155ReserveConfiguration memory reserveConfig = reserve.getConfiguration(params.tokenId);
 
-        ValidationLogic.validateSupplyERC1155(reserveConfig, params.amount);
+        ValidationLogic.validateSupplyERC1155(
+            reserveConfig,
+            userERC1155Config,
+            params.asset,
+            params.tokenId,
+            params.amount,
+            params.maxERC1155CollateralReserves
+        );
 
         IERC1155(params.asset).safeTransferFrom(
             msg.sender, reserve.nTokenAddress, params.tokenId, params.amount, bytes("")
         );
 
-        bool isFirstSupply =
-            INToken(reserve.nTokenAddress).mint(params.onBehalfOf, params.tokenId, params.amount);
+        bool isFirstSupply = INToken(reserve.nTokenAddress).balanceOf(params.onBehalfOf, params.tokenId) == 0;
 
         if (isFirstSupply) {
-            if (ValidationLogic.validateUseERC1155AsCollateral(reserveConfig)) {
-                userERC1155Config.setUsingAsCollateral(params.asset, params.tokenId, true);
-                emit IPool.ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
-            }
+            userERC1155Config.setUsingAsCollateral(params.asset, params.tokenId, true);
+            emit IPool.ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.tokenId, params.onBehalfOf);
         }
+
+        INToken(reserve.nTokenAddress).mint(params.onBehalfOf, params.tokenId, params.amount);
 
         emit IPool.SupplyERC1155(
             params.asset, msg.sender, params.onBehalfOf, params.tokenId, params.amount, params.referralCode
@@ -386,7 +392,11 @@ library SupplyLogic {
                 }
 
                 if (!toERC1155Config.isUsingAsCollateral(params.asset, params.ids[vars.i])) {
-                    if (ValidationLogic.validateUseERC1155AsCollateral(vars.reserveConfig)) {
+                    if (
+                        ValidationLogic.validateUseERC1155AsCollateral(
+                            vars.reserveConfig, toERC1155Config, params.maxERC1155CollateralReserves
+                        )
+                    ) {
                         toERC1155Config.setUsingAsCollateral(params.asset, params.ids[vars.i], true);
                         emit IPool.ERC1155ReserveUsedAsCollateralEnabled(params.asset, params.ids[vars.i], params.to);
                     }

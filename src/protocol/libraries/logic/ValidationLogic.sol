@@ -88,15 +88,26 @@ library ValidationLogic {
      * @param reserveConfig The config of the reserve
      * @param amount The amount to be supplied
      */
-    function validateSupplyERC1155(DataTypes.ERC1155ReserveConfiguration memory reserveConfig, uint256 amount)
-        internal
-        pure
-    {
+    function validateSupplyERC1155(
+        DataTypes.ERC1155ReserveConfiguration memory reserveConfig,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
+        address underlying,
+        uint256 tokenId,
+        uint256 amount,
+        uint256 maxERC1155CollateralReserves
+    ) internal view {
         require(amount != 0, Errors.INVALID_AMOUNT);
 
         require(reserveConfig.isActive, Errors.RESERVE_INACTIVE);
         require(!reserveConfig.isPaused, Errors.RESERVE_PAUSED);
         require(!reserveConfig.isFrozen, Errors.RESERVE_FROZEN);
+
+        if (!userERC1155Config.isUsingAsCollateral(underlying, tokenId)) {
+            require(
+                validateUseERC1155AsCollateral(reserveConfig, userERC1155Config, maxERC1155CollateralReserves),
+                Errors.ERC1155_RESERVE_CANNOT_BE_USED_AS_COLLATERAL
+            );
+        }
     }
 
     /**
@@ -531,11 +542,17 @@ library ValidationLogic {
      * @param reserveConfig The reserve configuration
      * @return True if the asset can be activated as collateral, false otherwise
      */
-    function validateUseERC1155AsCollateral(DataTypes.ERC1155ReserveConfiguration memory reserveConfig)
-        internal
-        pure
-        returns (bool)
-    {
+    function validateUseERC1155AsCollateral(
+        DataTypes.ERC1155ReserveConfiguration memory reserveConfig,
+        DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
+        uint256 maxERC1155CollateralReserves
+    ) internal view returns (bool) {
+        if (maxERC1155CollateralReserves == 0) {
+            return false;
+        }
+        if (userERC1155Config.getUsedReservesCount() >= maxERC1155CollateralReserves) {
+            return false;
+        }
         return reserveConfig.ltv != 0;
     }
 }

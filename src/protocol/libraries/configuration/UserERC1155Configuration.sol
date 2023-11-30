@@ -69,4 +69,13 @@ library UserERC1155Configuration {
     {
         return self.usedERC1155ReservesMap[asset][tokenId] > 0;
     }
+
+    /**
+     * @notice Returns count of the reserves used as collateral by the user
+     * @param self The configuration object
+     * @return The number of reserves used as collateral
+     */
+    function getUsedReservesCount(DataTypes.UserERC1155ConfigurationMap storage self) internal view returns (uint256) {
+        return self.usedERC1155Reserves.length;
+    }
 }

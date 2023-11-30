@@ -309,6 +309,17 @@ contract PoolConfigurator is Initializable, IPoolConfigurator {
         emit FlashloanPremiumToProtocolUpdated(oldFlashloanPremiumToProtocol, newFlashloanPremiumToProtocol);
     }
 
+    /// @inheritdoc IPoolConfigurator
+    function updateMaxERC1155CollateralReserves(uint256 newMaxERC1155CollateralReserves)
+        external
+        override
+        onlyPoolAdmin
+    {
+        uint256 oldMaxERC1155CollateralReserves = _pool.MAX_ERC1155_COLLATERAL_RESERVES();
+        _pool.updateMaxERC1155CollateralReserves(newMaxERC1155CollateralReserves);
+        emit MaxERC1155CollateralReservesUpdated(oldMaxERC1155CollateralReserves, newMaxERC1155CollateralReserves);
+    }
+
     function _checkNoSuppliers(address asset) internal view {
         (uint256 accruedToTreasury, uint256 totalYTokens,,,,,,) =
             IPoolDataProvider(_addressesProvider.getPoolDataProvider()).getReserveData(asset);
