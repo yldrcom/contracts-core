@@ -38,7 +38,7 @@ contract PoolTest is BaseTest {
         _addAndDealToken(usdc);
         _addAndDealToken(weth);
 
-        poolTesting.init(ADMIN);
+        poolTesting.init(ADMIN, 2);
 
         pool = IPool(poolTesting.addressesProvider.getPool());
         oracle = IYLDROracle(poolTesting.addressesProvider.getPriceOracle());
@@ -164,4 +164,6 @@ contract PoolTest is BaseTest {
 
         pool.withdrawERC1155(address(nfts), 1, type(uint256).max, ALICE);
     }
+
+    function test_supplyERC1155_onBehalfOf(address onBehalfOf) public {}
 }

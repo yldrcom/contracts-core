@@ -40,7 +40,7 @@ contract UniswapV3WrapperTest is BaseTest {
         uniswapV3.init(INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88));
 
         vm.startPrank(ADMIN);
-        poolTesting.init(ADMIN);
+        poolTesting.init(ADMIN, 2);
 
         pool = IPool(poolTesting.addressesProvider.getPool());
         oracle = IYLDROracle(poolTesting.addressesProvider.getPriceOracle());

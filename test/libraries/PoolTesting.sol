@@ -18,6 +18,7 @@ import {YLDROracle} from "../../src/misc/YLDROracle.sol";
 import {Errors} from "../../src/protocol/libraries/helpers/Errors.sol";
 import {DataTypes} from "../../src/protocol/libraries/types/DataTypes.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {YLDRProtocolDataProvider} from "../../src/misc/YLDRProtocolDataProvider.sol";
 
 library PoolTesting {
     struct Data {
@@ -28,7 +29,7 @@ library PoolTesting {
         address variableDebtTokenImpl;
     }
 
-    function init(Data storage self, address admin) internal {
+    function init(Data storage self, address admin, uint256 maxERC1155CollateralReserves) internal {
         self.admin = admin;
         self.addressesProvider = new PoolAddressesProvider("YLDR", admin);
         self.addressesProvider.setACLAdmin(admin);
@@ -50,10 +51,15 @@ library PoolTesting {
         self.addressesProvider.setPoolImpl(address(new Pool(self.addressesProvider)));
         self.addressesProvider.setPoolConfiguratorImpl(address(new PoolConfigurator()));
         self.addressesProvider.setPriceOracle(address(oracle));
+        self.addressesProvider.setPoolDataProvider(address(new YLDRProtocolDataProvider(self.addressesProvider)));
 
         self.yTokenImpl = address(new YToken(Pool(self.addressesProvider.getPool())));
         self.nTokenImpl = address(new NToken());
         self.variableDebtTokenImpl = address(new VariableDebtToken(Pool(self.addressesProvider.getPool())));
+
+        IPoolConfigurator(self.addressesProvider.getPoolConfigurator()).updateMaxERC1155CollateralReserves(
+            maxERC1155CollateralReserves
+        );
     }
 
     function addReserve(
@@ -124,5 +130,11 @@ library PoolTesting {
         address[] memory sources = new address[](1);
         sources[0] = priceSource;
         YLDROracle(self.addressesProvider.getPriceOracle()).setERC1155AssetSources(assets, sources);
+    }
+
+    function configureReserveAsCollateral(Data storage self, address asset, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) internal {
+        PoolConfigurator(self.addressesProvider.getPoolConfigurator()).configureReserveAsCollateral(
+            asset, ltv, liquidationThreshold, liquidationBonus
+        );
     }
 }
