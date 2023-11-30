@@ -9,7 +9,9 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
 import {FullMath} from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import {PositionKey} from "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
 import {UniswapV3Position} from "./libraries/UniswapV3Position.sol";
-import {IERC1155UniswapV3Wrapper, IERC721Receiver, IERC1155Supply} from "../../interfaces/IERC1155UniswapV3Wrapper.sol";
+import {
+    IERC1155UniswapV3Wrapper, IERC721Receiver, IERC1155Supply
+} from "../../interfaces/IERC1155UniswapV3Wrapper.sol";
 
 contract ERC1155UniswapV3Wrapper is ERC1155SupplyUpgradeable, IERC1155UniswapV3Wrapper {
     using UniswapV3Position for UniswapV3Position.UniswapV3PositionData;
