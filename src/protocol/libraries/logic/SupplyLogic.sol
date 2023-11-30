@@ -181,7 +181,7 @@ library SupplyLogic {
                 erc1155ReservesData,
                 userConfig,
                 userERC1155Config,
-                params.asset,
+                reserve.configuration.getLtv(),
                 msg.sender,
                 params.reservesCount,
                 params.oracle
@@ -249,7 +249,7 @@ library SupplyLogic {
                 erc1155ReservesData,
                 userConfig,
                 userERC1155Config,
-                params.asset,
+                vars.reserveConfig.ltv,
                 msg.sender,
                 params.reservesCount,
                 params.oracle
@@ -299,7 +299,7 @@ library SupplyLogic {
                         erc1155ReservesData,
                         usersConfig[params.from],
                         usersERC1155Config[params.from],
-                        params.asset,
+                        reserve.configuration.getLtv(),
                         params.from,
                         params.reservesCount,
                         params.oracle
@@ -376,7 +376,7 @@ library SupplyLogic {
                             erc1155ReservesData,
                             fromConfig,
                             fromERC1155Config,
-                            params.asset,
+                            vars.reserveConfig.ltv,
                             params.from,
                             params.reservesCount,
                             params.oracle
@@ -452,7 +452,7 @@ library SupplyLogic {
                 erc1155ReservesData,
                 userConfig,
                 userERC1155Config,
-                asset,
+                reserve.configuration.getLtv(),
                 msg.sender,
                 reservesCount,
                 priceOracle

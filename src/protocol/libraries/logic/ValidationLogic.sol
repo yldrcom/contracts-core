@@ -441,7 +441,7 @@ library ValidationLogic {
      * @param reservesData The state of all the reserves
      * @param reservesList The addresses of all the active reserves
      * @param userConfig The state of the user for the specific reserve
-     * @param asset The asset for which the ltv will be validated
+     * @param reserveLtv The LTV of asset for which the ltv will be validated
      * @param from The user from which the yTokens are being transferred
      * @param reservesCount The number of available reserves
      * @param oracle The price oracle
@@ -452,13 +452,11 @@ library ValidationLogic {
         mapping(address => DataTypes.ERC1155ReserveData) storage erc1155ReservesData,
         DataTypes.UserConfigurationMap memory userConfig,
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
-        address asset,
+        uint256 reserveLtv,
         address from,
         uint256 reservesCount,
         address oracle
     ) internal view {
-        DataTypes.ReserveData memory reserve = reservesData[asset];
-
         (, bool hasZeroLtvCollateral) = validateHealthFactor(
             reservesData,
             reservesList,
@@ -472,7 +470,7 @@ library ValidationLogic {
             })
         );
 
-        require(!hasZeroLtvCollateral || reserve.configuration.getLtv() == 0, Errors.LTV_VALIDATION_FAILED);
+        require(!hasZeroLtvCollateral || reserveLtv == 0, Errors.LTV_VALIDATION_FAILED);
     }
 
     /**
