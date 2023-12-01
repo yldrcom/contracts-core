@@ -164,6 +164,4 @@ contract PoolTest is BaseTest {
 
         pool.withdrawERC1155(address(nfts), 1, type(uint256).max, ALICE);
     }
-
-    function test_supplyERC1155_onBehalfOf(address onBehalfOf) public {}
 }

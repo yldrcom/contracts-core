@@ -68,8 +68,6 @@ library LiquidationLogic {
         uint256 liquidationBonus;
         uint256 healthFactor;
         uint256 liquidationProtocolFeeAmount;
-        address collateralPriceSource;
-        address debtPriceSource;
         IYToken collateralYToken;
         DataTypes.ReserveCache debtReserveCache;
     }
@@ -128,8 +126,8 @@ library LiquidationLogic {
             })
         );
 
-        (vars.collateralYToken, vars.collateralPriceSource, vars.debtPriceSource, vars.liquidationBonus) =
-            _getConfigurationData(collateralReserve, params);
+        (vars.collateralYToken, vars.liquidationBonus) =
+            _getConfigurationData(collateralReserve);
 
         vars.userCollateralBalance = vars.collateralYToken.balanceOf(params.user);
 
@@ -137,8 +135,8 @@ library LiquidationLogic {
         _calculateAvailableCollateralToLiquidate(
             collateralReserve,
             vars.debtReserveCache,
-            vars.collateralPriceSource,
-            vars.debtPriceSource,
+            params.collateralAsset,
+            params.debtAsset,
             vars.actualDebtToLiquidate,
             vars.userCollateralBalance,
             vars.liquidationBonus,
@@ -210,7 +208,6 @@ library LiquidationLogic {
         uint256 liquidationBonus;
         uint256 healthFactor;
         uint256 liquidationProtocolFeeAmount;
-        address debtPriceSource;
         INToken collateralNToken;
         DataTypes.ERC1155ReserveConfiguration collateralReserveConfig;
         DataTypes.ReserveCache debtReserveCache;
@@ -277,7 +274,6 @@ library LiquidationLogic {
         );
 
         vars.collateralNToken = INToken(collateralReserve.nTokenAddress);
-        vars.debtPriceSource = params.debtAsset;
         vars.liquidationBonus = vars.collateralReserveConfig.liquidationBonus;
 
         vars.userCollateralBalance = vars.collateralNToken.balanceOf(params.user, params.collateralTokenId);
@@ -288,7 +284,7 @@ library LiquidationLogic {
             vars.debtReserveCache,
             params.collateralAsset,
             params.collateralTokenId,
-            vars.debtPriceSource,
+            params.debtAsset,
             vars.actualDebtToLiquidate,
             vars.userCollateralBalance,
             vars.liquidationBonus,
@@ -491,23 +487,16 @@ library LiquidationLogic {
     /**
      * @notice Returns the configuration data for the debt and the collateral reserves.
      * @param collateralReserve The data of the collateral reserve
-     * @param params The additional parameters needed to execute the liquidation function
      * @return The collateral yToken
-     * @return The address to use as price source for the collateral
-     * @return The address to use as price source for the debt
      * @return The liquidation bonus to apply to the collateral
      */
     function _getConfigurationData(
-        DataTypes.ReserveData storage collateralReserve,
-        DataTypes.ExecuteLiquidationCallParams memory params
-    ) internal view returns (IYToken, address, address, uint256) {
+        DataTypes.ReserveData storage collateralReserve
+    ) internal view returns (IYToken, uint256) {
         IYToken collateralYToken = IYToken(collateralReserve.yTokenAddress);
         uint256 liquidationBonus = collateralReserve.configuration.getLiquidationBonus();
 
-        address collateralPriceSource = params.collateralAsset;
-        address debtPriceSource = params.debtAsset;
-
-        return (collateralYToken, collateralPriceSource, debtPriceSource, liquidationBonus);
+        return (collateralYToken, liquidationBonus);
     }
 
     struct AvailableCollateralToLiquidateLocalVars {

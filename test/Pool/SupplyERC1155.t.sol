@@ -124,6 +124,27 @@ contract SupplyERC1155Test is BasePoolTest {
         pool.supplyERC1155(address(nfts), 3, 100, ALICE, 0);
     }
 
+    function test_takes_asset() public {
+        vm.startPrank(ADMIN);
+        configurationProvider.setERC1155ReserveConfig(1, DataTypes.ERC1155ReserveConfiguration({
+            isActive: true,
+            isFrozen: false,
+            isPaused: false,
+            ltv: 0.5e4,
+            liquidationThreshold: 0.6e4,
+            liquidationBonus: 1.1e4
+        }));
+
+        INToken nToken = INToken(pool.getERC1155ReserveData(address(nfts)).nTokenAddress);
+
+        vm.startPrank(ALICE);
+        pool.supplyERC1155({asset: address(nfts), tokenId: 1, amount: 60, onBehalfOf: ALICE, referralCode: 0});
+
+        assertEq(nfts.balanceOf(address(nToken), 1), 60);
+        assertEq(nToken.balanceOf(ALICE, 1), 60);
+        assertEq(nfts.balanceOf(ALICE, 1), 40);
+    }
+
     function test_receives_n_token(uint256 amountToMint, uint256 amountToSupply) public {
         vm.assume(amountToMint > 0);
         vm.assume(amountToSupply > 0);
@@ -197,5 +218,6 @@ contract SupplyERC1155Test is BasePoolTest {
         assertEq(nToken.balanceOf(ALICE, 1), 0);
         assertEq(nToken.totalSupply(1), 10);
         assertEq(nToken.balanceOf(BOB, 1), 10);
+        assertEq(nfts.balanceOf(ALICE, 1), 90);
     }
 }

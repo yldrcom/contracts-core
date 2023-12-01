@@ -128,4 +128,25 @@ contract WithdrawERC1155Test is BasePoolTest {
         vm.expectRevert(bytes(Errors.LTV_VALIDATION_FAILED));
         pool.withdrawERC1155({asset: address(nfts), tokenId: 1, amount: 1, to: ALICE});
     }
+
+    function test_transfers_asset() public {
+        vm.startPrank(ALICE);
+        pool.withdrawERC1155({asset: address(nfts), tokenId: 1, amount: 1, to: ALICE});
+
+        assertEq(nfts.balanceOf(ALICE, 1), 1);
+    }
+
+    function test_burns_ntoken() public {
+        INToken nToken = INToken(pool.getERC1155ReserveData(address(nfts)).nTokenAddress);
+        uint256 supplyBefore = nToken.totalSupply(1);
+        uint256 aliceBalanceBefore = nToken.balanceOf(ALICE, 1);
+        uint256 nftBalanceBefore = nfts.balanceOf(address(nToken), 1);
+
+        vm.startPrank(ALICE);
+        pool.withdrawERC1155({asset: address(nfts), tokenId: 1, amount: 1, to: ALICE});
+
+        assertEq(nToken.totalSupply(1), supplyBefore - 1);
+        assertEq(nToken.balanceOf(ALICE, 1), aliceBalanceBefore - 1);
+        assertEq(nfts.balanceOf(address(nToken), 1), nftBalanceBefore - 1);
+    }
 }
