@@ -57,7 +57,7 @@ contract UniswapV3WrapperTest is BaseTest {
                 new TransparentUpgradeableProxy(
                     address(new ERC1155UniswapV3Wrapper()),
                     ADMIN,
-                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, (uniswapV3.positionManger))
+                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, (uniswapV3.positionManager))
                 )
             )
         );
@@ -98,7 +98,7 @@ contract UniswapV3WrapperTest is BaseTest {
     ) internal returns (uint256 tokenId, uint256 amount0, uint256 amount1) {
         (tokenId, amount0, amount1) = uniswapV3.acquireUniswapPosition(token0, token1, amount0Max, amount1Max, posType);
 
-        uniswapV3.positionManger.safeTransferFrom(ALICE, address(uniswapV3Wrapper), tokenId, "");
+        uniswapV3.positionManager.safeTransferFrom(ALICE, address(uniswapV3Wrapper), tokenId, "");
     }
 
     function test_position_value() public {
@@ -141,7 +141,7 @@ contract UniswapV3WrapperTest is BaseTest {
         uniswapV3Wrapper.unwrap(ALICE, tokenId, ALICE);
 
         assertEq(uniswapV3Wrapper.balanceOf(ALICE, tokenId), 0);
-        assertEq(uniswapV3.positionManger.ownerOf(tokenId), ALICE);
+        assertEq(uniswapV3.positionManager.ownerOf(tokenId), ALICE);
     }
 
     function test_supply() public {

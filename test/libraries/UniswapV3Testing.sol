@@ -12,14 +12,14 @@ library UniswapV3Testing {
     using SafeERC20 for IERC20Metadata;
 
     struct Data {
-        INonfungiblePositionManager positionManger;
+        INonfungiblePositionManager positionManager;
         IUniswapV3Factory factory;
     }
 
     uint24 constant DEFAULT_USED_FEE = 500;
 
     function init(Data storage self, INonfungiblePositionManager _positionManager) internal {
-        self.positionManger = _positionManager;
+        self.positionManager = _positionManager;
         self.factory = IUniswapV3Factory(_positionManager.factory());
     }
 
@@ -39,8 +39,8 @@ library UniswapV3Testing {
     ) internal returns (uint256 tokenId, uint256 amount0, uint256 amount1) {
         IUniswapV3Pool pool = IUniswapV3Pool(self.factory.getPool(token0, token1, DEFAULT_USED_FEE));
 
-        IERC20Metadata(token0).forceApprove(address(self.positionManger), type(uint256).max);
-        IERC20Metadata(token1).forceApprove(address(self.positionManger), type(uint256).max);
+        IERC20Metadata(token0).forceApprove(address(self.positionManager), type(uint256).max);
+        IERC20Metadata(token1).forceApprove(address(self.positionManager), type(uint256).max);
 
         (, int24 tick,,,,,) = pool.slot0();
         tick -= tick % pool.tickSpacing();
@@ -58,7 +58,7 @@ library UniswapV3Testing {
             tickUpper = tick - 200;
         }
 
-        (tokenId,, amount0, amount1) = self.positionManger.mint(
+        (tokenId,, amount0, amount1) = self.positionManager.mint(
             INonfungiblePositionManager.MintParams({
                 token0: address(token0),
                 token1: address(token1),
