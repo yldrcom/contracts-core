@@ -126,8 +126,7 @@ library LiquidationLogic {
             })
         );
 
-        (vars.collateralYToken, vars.liquidationBonus) =
-            _getConfigurationData(collateralReserve);
+        (vars.collateralYToken, vars.liquidationBonus) = _getConfigurationData(collateralReserve);
 
         vars.userCollateralBalance = vars.collateralYToken.balanceOf(params.user);
 
@@ -490,9 +489,11 @@ library LiquidationLogic {
      * @return The collateral yToken
      * @return The liquidation bonus to apply to the collateral
      */
-    function _getConfigurationData(
-        DataTypes.ReserveData storage collateralReserve
-    ) internal view returns (IYToken, uint256) {
+    function _getConfigurationData(DataTypes.ReserveData storage collateralReserve)
+        internal
+        view
+        returns (IYToken, uint256)
+    {
         IYToken collateralYToken = IYToken(collateralReserve.yTokenAddress);
         uint256 liquidationBonus = collateralReserve.configuration.getLiquidationBonus();
 
