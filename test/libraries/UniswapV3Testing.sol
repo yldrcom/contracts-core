@@ -74,4 +74,18 @@ library UniswapV3Testing {
             })
         );
     }
+
+    // Contract using this must have sufficient token balances and implement uniswapv3swapcallback
+    function movePoolPrice(Data storage self, address token0, address token1, uint24 fee, uint160 targetSqrtPriceX96)
+        internal
+    {
+        IUniswapV3Pool pool = IUniswapV3Pool(self.factory.getPool(token0, token1, fee));
+
+        (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
+        if (sqrtPriceX96 > targetSqrtPriceX96) {
+            pool.swap(Utils.getCurrentCaller(), true, type(int256).max, targetSqrtPriceX96, "");
+        } else {
+            pool.swap(Utils.getCurrentCaller(), false, type(int256).max, targetSqrtPriceX96, "");
+        }
+    }
 }
