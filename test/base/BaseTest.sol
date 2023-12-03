@@ -21,11 +21,13 @@ contract BaseTest is Test {
         callers.push(ALICE = vm.addr(0xa111ce));
         callers.push(BOB = vm.addr(0xb0b));
         callers.push(CAROL = vm.addr(0xca10c));
+        callers.push(address(this));
 
         vm.label(ADMIN, "ADMIN");
         vm.label(ALICE, "ALICE");
         vm.label(BOB, "BOB");
         vm.label(CAROL, "CAROL");
+        vm.label(address(this), "TEST_CONTRACT");
     }
 
     modifier recoverPrankIfAny() {
