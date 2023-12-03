@@ -10,6 +10,7 @@ import {Pool} from "../src/protocol/pool/Pool.sol";
 import {YLDROracle} from "../src/misc/YLDROracle.sol";
 import {IPoolConfigurator, ConfiguratorInputTypes} from "../src/interfaces/IPoolConfigurator.sol";
 import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
+import {YLDRProtocolDataProvider} from "../src/misc/YLDRProtocolDataProvider.sol";
 
 contract DeployScript is Script {
     function protocol() public {
@@ -20,10 +21,12 @@ contract DeployScript is Script {
         PoolAddressesProvider addressesProvider = new PoolAddressesProvider("YLDR", deployer);
         addressesProvider.setACLAdmin(deployer);
         ACLManager aclManager = new ACLManager(addressesProvider);
+        YLDRProtocolDataProvider dataProvider = new YLDRProtocolDataProvider(addressesProvider);
         aclManager.addPoolAdmin(deployer);
         addressesProvider.setACLManager(address(aclManager));
         addressesProvider.setPoolImpl(address(new Pool(addressesProvider)));
         addressesProvider.setPoolConfiguratorImpl(address(new PoolConfigurator()));
+        addressesProvider.setPoolDataProvider(address(dataProvider));
 
         YLDROracle oracle = new YLDROracle(
             addressesProvider,

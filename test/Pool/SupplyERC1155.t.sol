@@ -126,14 +126,17 @@ contract SupplyERC1155Test is BasePoolTest {
 
     function test_takes_asset() public {
         vm.startPrank(ADMIN);
-        configurationProvider.setERC1155ReserveConfig(1, DataTypes.ERC1155ReserveConfiguration({
-            isActive: true,
-            isFrozen: false,
-            isPaused: false,
-            ltv: 0.5e4,
-            liquidationThreshold: 0.6e4,
-            liquidationBonus: 1.1e4
-        }));
+        configurationProvider.setERC1155ReserveConfig(
+            1,
+            DataTypes.ERC1155ReserveConfiguration({
+                isActive: true,
+                isFrozen: false,
+                isPaused: false,
+                ltv: 0.5e4,
+                liquidationThreshold: 0.6e4,
+                liquidationBonus: 1.1e4
+            })
+        );
 
         INToken nToken = INToken(pool.getERC1155ReserveData(address(nfts)).nTokenAddress);
 

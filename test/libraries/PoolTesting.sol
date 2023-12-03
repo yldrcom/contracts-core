@@ -132,7 +132,13 @@ library PoolTesting {
         YLDROracle(self.addressesProvider.getPriceOracle()).setERC1155AssetSources(assets, sources);
     }
 
-    function configureReserveAsCollateral(Data storage self, address asset, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus) internal {
+    function configureReserveAsCollateral(
+        Data storage self,
+        address asset,
+        uint256 ltv,
+        uint256 liquidationThreshold,
+        uint256 liquidationBonus
+    ) internal {
         PoolConfigurator(self.addressesProvider.getPoolConfigurator()).configureReserveAsCollateral(
             asset, ltv, liquidationThreshold, liquidationBonus
         );

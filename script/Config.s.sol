@@ -10,6 +10,13 @@ import {Pool} from "../src/protocol/pool/Pool.sol";
 import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
 import {IPoolConfigurator, ConfiguratorInputTypes} from "../src/interfaces/IPoolConfigurator.sol";
 import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
+import {ERC1155UniswapV3Wrapper} from "../src/protocol/concentrated-liquidity/ERC1155UniswapV3Wrapper.sol";
+import {ERC1155UniswapV3Oracle} from "../src/protocol/concentrated-liquidity/ERC1155UniswapV3Oracle.sol";
+import {ERC1155UniswapV3ConfigurationProvider} from
+    "../src/protocol/concentrated-liquidity/ERC1155UniswapV3ConfigurationProvider.sol";
+import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {IPool} from "../src/interfaces/IPool.sol";
 
 contract ConfigScript is Script {
     function initReserve(
@@ -58,5 +65,45 @@ contract ConfigScript is Script {
         configurator.setReserveBorrowing(address(underlying), true);
 
         configurator.configureReserveAsCollateral(address(underlying), ltv, liquidationThreshold, liquidationBonus);
+    }
+
+    function deployAndInitUniswapV3(
+        IPoolAddressesProvider provider,
+        INonfungiblePositionManager positionManager,
+        address nTokenImpl
+    ) public {
+        vm.startBroadcast();
+
+        (, address deployer,) = vm.readCallers();
+
+        ERC1155UniswapV3Wrapper wrapper = ERC1155UniswapV3Wrapper(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new ERC1155UniswapV3Wrapper()),
+                    deployer,
+                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, (positionManager))
+                )
+            )
+        );
+        ERC1155UniswapV3Oracle oracle = new ERC1155UniswapV3Oracle(provider, wrapper);
+        ERC1155UniswapV3ConfigurationProvider configProvider =
+            new ERC1155UniswapV3ConfigurationProvider(IPool(provider.getPool()), wrapper);
+
+        ConfiguratorInputTypes.InitERC1155ReserveInput[] memory erc1155Reserves =
+            new ConfiguratorInputTypes.InitERC1155ReserveInput[](1);
+        erc1155Reserves[0] = ConfiguratorInputTypes.InitERC1155ReserveInput({
+            nTokenImpl: nTokenImpl,
+            underlyingAsset: address(wrapper),
+            treasury: deployer,
+            configurationProvider: address(configProvider),
+            params: ""
+        });
+        PoolConfigurator(provider.getPoolConfigurator()).initERC1155Reserves(erc1155Reserves);
+
+        address[] memory assets = new address[](1);
+        assets[0] = address(wrapper);
+        address[] memory sources = new address[](1);
+        sources[0] = address(oracle);
+        IYLDROracle(provider.getPriceOracle()).setERC1155AssetSources(assets, sources);
     }
 }

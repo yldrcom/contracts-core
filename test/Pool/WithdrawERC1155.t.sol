@@ -104,7 +104,12 @@ contract WithdrawERC1155Test is BasePoolTest {
         pool.borrow({asset: address(weth), amount: 0.1e18, onBehalfOf: ALICE, referralCode: 0});
 
         vm.startPrank(ADMIN);
-        poolTesting.configureReserveAsCollateral({asset: address(usdc), ltv: 0, liquidationThreshold: 0.1e4, liquidationBonus: 1.05e4});
+        poolTesting.configureReserveAsCollateral({
+            asset: address(usdc),
+            ltv: 0,
+            liquidationThreshold: 0.1e4,
+            liquidationBonus: 1.05e4
+        });
 
         vm.startPrank(ALICE);
         vm.expectRevert(bytes(Errors.LTV_VALIDATION_FAILED));
@@ -122,7 +127,12 @@ contract WithdrawERC1155Test is BasePoolTest {
         pool.borrow({asset: address(weth), amount: 0.1e18, onBehalfOf: ALICE, referralCode: 0});
 
         vm.startPrank(ADMIN);
-        poolTesting.configureReserveAsCollateral({asset: address(usdc), ltv: 0, liquidationThreshold: 0.1e4, liquidationBonus: 1.05e4});
+        poolTesting.configureReserveAsCollateral({
+            asset: address(usdc),
+            ltv: 0,
+            liquidationThreshold: 0.1e4,
+            liquidationBonus: 1.05e4
+        });
 
         vm.startPrank(ALICE);
         vm.expectRevert(bytes(Errors.LTV_VALIDATION_FAILED));
