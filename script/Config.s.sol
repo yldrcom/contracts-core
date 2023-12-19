@@ -19,25 +19,34 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
 import {IPool} from "../src/interfaces/IPool.sol";
 
 contract ConfigScript is Script {
+    struct InitReserveArgs {
+        IPoolAddressesProvider provider;
+        IERC20Metadata underlying;
+        address yTokenImpl;
+        address variableDebtImpl;
+        address priceFeed;
+        uint256 ltv;
+        uint256 liquidationThreshold;
+        uint256 liquidationBonus;
+        uint256 reserveFactor;
+        uint256 optimalUsage;
+        uint256 baseVariableBorrowRate;
+        uint256 slope1;
+        uint256 slope2;
+    }
+    
     function initReserve(
-        IPoolAddressesProvider provider,
-        IERC20Metadata underlying,
-        address yTokenImpl,
-        address variableDebtImpl,
-        address priceFeed,
-        uint256 ltv,
-        uint256 liquidationThreshold,
-        uint256 liquidationBonus
+        InitReserveArgs memory params
     ) public {
         vm.startBroadcast();
 
-        IPoolConfigurator configurator = IPoolConfigurator(provider.getPoolConfigurator());
-        IYLDROracle oracle = IYLDROracle(provider.getPriceOracle());
+        IPoolConfigurator configurator = IPoolConfigurator(params.provider.getPoolConfigurator());
+        IYLDROracle oracle = IYLDROracle(params.provider.getPriceOracle());
 
         address[] memory assets = new address[](1);
-        assets[0] = address(underlying);
+        assets[0] = address(params.underlying);
         address[] memory sources = new address[](1);
-        sources[0] = priceFeed;
+        sources[0] = params.priceFeed;
 
         oracle.setAssetSources(assets, sources);
 
@@ -45,26 +54,27 @@ contract ConfigScript is Script {
 
         ConfiguratorInputTypes.InitReserveInput[] memory reserves = new ConfiguratorInputTypes.InitReserveInput[](1);
         reserves[0] = ConfiguratorInputTypes.InitReserveInput({
-            yTokenImpl: yTokenImpl,
-            variableDebtTokenImpl: variableDebtImpl,
-            underlyingAssetDecimals: underlying.decimals(),
+            yTokenImpl: params.yTokenImpl,
+            variableDebtTokenImpl: params.variableDebtImpl,
+            underlyingAssetDecimals: params.underlying.decimals(),
             interestRateStrategyAddress: address(
-                new DefaultReserveInterestRateStrategy(provider, 0.8e27, 0, 0.02e27, 0.8e27)
+                new DefaultReserveInterestRateStrategy(params.provider, params.optimalUsage, params.baseVariableBorrowRate, params.slope1, params.slope2)
                 ),
-            underlyingAsset: address(underlying),
+            underlyingAsset: address(params.underlying),
             treasury: deployer,
             incentivesController: address(0),
-            yTokenName: string.concat("YLDR Interest bearing ", underlying.symbol()),
-            yTokenSymbol: string.concat("y", underlying.symbol()),
-            variableDebtTokenName: string.concat("YLDR Variable Debt ", underlying.symbol()),
-            variableDebtTokenSymbol: string.concat("v", underlying.symbol()),
+            yTokenName: string.concat("YLDR Interest bearing ", params.underlying.symbol()),
+            yTokenSymbol: string.concat("y", params.underlying.symbol()),
+            variableDebtTokenName: string.concat("YLDR Variable Debt ", params.underlying.symbol()),
+            variableDebtTokenSymbol: string.concat("v", params.underlying.symbol()),
             params: ""
         });
 
         configurator.initReserves(reserves);
-        configurator.setReserveBorrowing(address(underlying), true);
+        configurator.setReserveBorrowing(address(params.underlying), true);
+        configurator.setReserveFactor(address(params.underlying), params.reserveFactor);
 
-        configurator.configureReserveAsCollateral(address(underlying), ltv, liquidationThreshold, liquidationBonus);
+        configurator.configureReserveAsCollateral(address(params.underlying), params.ltv, params.liquidationThreshold, params.liquidationBonus);
     }
 
     function deployAndInitUniswapV3(
