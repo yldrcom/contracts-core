@@ -53,13 +53,11 @@ interface IPool {
      * @dev Emitted on withdrawERC1155()
      * @param reserve The address of the underlying asset of the reserve
      * @param user The address initiating the withdrawal
-     * @param onBehalfOf The beneficiary of the withdrawal, receiving the yTokens
+     * @param to The beneficiary of the withdrawal, receiving the yTokens
      * @param tokenId The tokenId withdrawn
      * @param amount The amount withdrawn
      */
-    event WithdrawERC1155(
-        address indexed reserve, address user, address indexed onBehalfOf, uint256 tokenId, uint256 amount
-    );
+    event WithdrawERC1155(address indexed reserve, address user, address indexed to, uint256 tokenId, uint256 amount);
 
     /**
      * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
