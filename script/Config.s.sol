@@ -34,10 +34,8 @@ contract ConfigScript is Script {
         uint256 slope1;
         uint256 slope2;
     }
-    
-    function initReserve(
-        InitReserveArgs memory params
-    ) public {
+
+    function initReserve(InitReserveArgs memory params) public {
         vm.startBroadcast();
 
         IPoolConfigurator configurator = IPoolConfigurator(params.provider.getPoolConfigurator());
@@ -58,7 +56,9 @@ contract ConfigScript is Script {
             variableDebtTokenImpl: params.variableDebtImpl,
             underlyingAssetDecimals: params.underlying.decimals(),
             interestRateStrategyAddress: address(
-                new DefaultReserveInterestRateStrategy(params.provider, params.optimalUsage, params.baseVariableBorrowRate, params.slope1, params.slope2)
+                new DefaultReserveInterestRateStrategy(
+                    params.provider, params.optimalUsage, params.baseVariableBorrowRate, params.slope1, params.slope2
+                )
                 ),
             underlyingAsset: address(params.underlying),
             treasury: deployer,
@@ -74,7 +74,9 @@ contract ConfigScript is Script {
         configurator.setReserveBorrowing(address(params.underlying), true);
         configurator.setReserveFactor(address(params.underlying), params.reserveFactor);
 
-        configurator.configureReserveAsCollateral(address(params.underlying), params.ltv, params.liquidationThreshold, params.liquidationBonus);
+        configurator.configureReserveAsCollateral(
+            address(params.underlying), params.ltv, params.liquidationThreshold, params.liquidationBonus
+        );
     }
 
     function deployAndInitUniswapV3(

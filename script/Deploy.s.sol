@@ -39,5 +39,12 @@ contract DeployScript is Script {
             10 ** 8
         );
         addressesProvider.setPriceOracle(address(oracle));
+
+        console2.log("PoolAddressesProvider:", address(addressesProvider));
+        console2.log("Pool:", addressesProvider.getPool());
+        console2.log("PoolConfigurator:", addressesProvider.getPoolConfigurator());
+        console2.log("PoolDataProvider:", addressesProvider.getPoolDataProvider());
+        console2.log("PriceOracle:", addressesProvider.getPriceOracle());
+        console2.log("ACLManager:", addressesProvider.getACLManager());
     }
 }
