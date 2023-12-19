@@ -25,3 +25,15 @@ mumbai = { key = "${POLYGONSCAN_TOKEN}" }
 moonbeam = { key = "${MOONSCAN_TOKEN}" }
 moonbase = { key = "${MOONSCAN_TOKEN}" }
 arbitrum_one = { key = "${ARBISCAN_TOKEN}", chain = "arbitrum" }
+
+[profile.mainnet_libs]
+libraries = [
+            "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xac82748a93cc98e6e9a36fff80f4e1bc40ca573f",
+            "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe283911bbb6454a1a1442410d12d5f33df88daa0",
+            "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x4b17e8da6a9138ff0b0ccd2eb2e1279646e3dfc8",
+            "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x1d225d6975f77f2e9ff1f37fde85ebd752743c33",
+            "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x4c04e52328c84022a24e89458628a3ef45bcd3b5",
+            "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x5ff675d0ea4a0fa5fad769b1b76060bf58d4ced4"
+            ]
+out = "out/temp"
+cache_path = "cache/temp"
