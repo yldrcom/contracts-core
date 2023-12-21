@@ -134,7 +134,7 @@ contract UniswapV3WrapperTest is BaseTest {
     }
 
     function test_unwrap() public {
-        (uint256 tokenId, uint256 amount0, uint256 amount1) = _acquireWrapperUniswapV3Position(
+        (uint256 tokenId,,) = _acquireWrapperUniswapV3Position(
             address(usdc), address(weth), 1000e6, 1e18, UniswapV3Testing.PositionType.Both
         );
 
@@ -145,7 +145,7 @@ contract UniswapV3WrapperTest is BaseTest {
     }
 
     function test_supply() public {
-        (uint256 tokenId, uint256 amount0, uint256 amount1) = _acquireWrapperUniswapV3Position(
+        (uint256 tokenId,,) = _acquireWrapperUniswapV3Position(
             address(usdc), address(weth), 1000e6, 1e18, UniswapV3Testing.PositionType.Both
         );
 
@@ -157,7 +157,7 @@ contract UniswapV3WrapperTest is BaseTest {
     }
 
     function test_supply_reverts_if_unsupported() public {
-        (uint256 tokenId, uint256 amount0, uint256 amount1) = _acquireWrapperUniswapV3Position(
+        (uint256 tokenId,,) = _acquireWrapperUniswapV3Position(
             address(weth), address(usdt), 1e18, 1000e6, UniswapV3Testing.PositionType.Both
         );
 

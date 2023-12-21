@@ -10,7 +10,7 @@ import {PoolTesting} from "../libraries/PoolTesting.sol";
 contract WithdrawERC1155Test is BasePoolTest {
     using PoolTesting for PoolTesting.Data;
 
-    constructor() public {
+    constructor() {
         nfts.mint(1, 100);
         nfts.mint(2, 100);
         nfts.mint(3, 100);

@@ -375,7 +375,6 @@ library ValidationLogic {
 
     function validateERC1155LiquidationCall(
         DataTypes.UserERC1155ConfigurationMap storage userERC1155Config,
-        DataTypes.ERC1155ReserveData storage collateralReserve,
         DataTypes.ERC1155ReserveConfiguration memory collateralReserveConfig,
         DataTypes.ValidateERC1155LiquidationCallParams memory params
     ) internal view {

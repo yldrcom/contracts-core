@@ -79,13 +79,13 @@ contract PoolTest is BaseTest {
     function _test_supply_borrow_repay_withdraw(bool direction) internal {
         (address collateral, address debt) = direction ? (address(usdc), address(weth)) : (address(weth), address(usdc));
         vm.startPrank(ALICE);
-        pool.supply(address(usdc), 10_000e6, ALICE, 0);
+        pool.supply(debt, 10_000e6, ALICE, 0);
 
         vm.startPrank(BOB);
-        pool.supply(address(weth), 10e18, BOB, 0);
-        pool.borrow(address(usdc), 1_000e6, 0, BOB);
-        pool.repay(address(usdc), 1_000e6, BOB);
-        pool.withdraw(address(weth), 10e18, BOB);
+        pool.supply(collateral, 10e18, BOB, 0);
+        pool.borrow(debt, 1_000e6, 0, BOB);
+        pool.repay(debt, 1_000e6, BOB);
+        pool.withdraw(collateral, 10e18, BOB);
     }
 
     function test_supply_borrow_repay_withdraw() public {

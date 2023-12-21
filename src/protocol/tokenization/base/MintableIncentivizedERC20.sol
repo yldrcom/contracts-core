@@ -14,12 +14,12 @@ abstract contract MintableIncentivizedERC20 is IncentivizedERC20 {
     /**
      * @dev Constructor.
      * @param pool The reference to the main Pool contract
-     * @param name The name of the token
-     * @param symbol The symbol of the token
-     * @param decimals The number of decimals of the token
+     * @param name_ The name of the token
+     * @param symbol_ The symbol of the token
+     * @param decimals_ The number of decimals of the token
      */
-    constructor(IPool pool, string memory name, string memory symbol, uint8 decimals)
-        IncentivizedERC20(pool, name, symbol, decimals)
+    constructor(IPool pool, string memory name_, string memory symbol_, uint8 decimals_)
+        IncentivizedERC20(pool, name_, symbol_, decimals_)
     {
         // Intentionally left blank
     }

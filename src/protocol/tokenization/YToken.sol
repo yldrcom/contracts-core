@@ -48,7 +48,7 @@ contract YToken is Initializable, ScaledBalanceTokenBase, EIP712Base, IYToken {
         uint8 yTokenDecimals,
         string memory yTokenName,
         string memory yTokenSymbol,
-        bytes memory params
+        bytes memory /* params */
     ) public virtual override initializer {
         require(initializingPool == POOL, Errors.POOL_ADDRESSES_DO_NOT_MATCH);
         _setName(yTokenName);

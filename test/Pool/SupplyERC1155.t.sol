@@ -7,7 +7,7 @@ import {Errors} from "../../src/protocol/libraries/helpers/Errors.sol";
 import {INToken} from "../../src/interfaces/INToken.sol";
 
 contract SupplyERC1155Test is BasePoolTest {
-    constructor() public {
+    constructor() {
         nfts.mint(1, 100);
         nfts.mint(2, 100);
         nfts.mint(3, 100);

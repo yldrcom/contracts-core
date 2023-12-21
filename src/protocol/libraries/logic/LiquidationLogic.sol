@@ -260,7 +260,6 @@ library LiquidationLogic {
 
         ValidationLogic.validateERC1155LiquidationCall(
             userERC1155Config,
-            collateralReserve,
             collateralReserve.getConfiguration(params.collateralTokenId),
             DataTypes.ValidateERC1155LiquidationCallParams({
                 collateralReserveAddress: params.collateralAsset,
