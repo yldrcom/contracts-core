@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
 import {IERC1155PriceOracle} from "../../interfaces/IERC1155PriceOracle.sol";
