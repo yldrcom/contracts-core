@@ -12,6 +12,7 @@ import {DataTypes} from "../src/protocol/libraries/types/DataTypes.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {PoolTesting} from "test/libraries/PoolTesting.sol";
 import {ChainlinkAggregatorMock} from "../src/mocks/ChainlinkAggregatorMock.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract PoolTest is BaseTest {
     using PoolTesting for PoolTesting.Data;
@@ -77,15 +78,20 @@ contract PoolTest is BaseTest {
     }
 
     function _test_supply_borrow_repay_withdraw(bool direction) internal {
-        (address collateral, address debt) = direction ? (address(usdc), address(weth)) : (address(weth), address(usdc));
+        (ERC20Mock collateral, ERC20Mock debt) = direction ? (usdc, weth) : (weth, usdc);
+
         vm.startPrank(ALICE);
-        pool.supply(debt, 10_000e6, ALICE, 0);
+        pool.supply(address(debt), debt.balanceOf(ALICE), ALICE, 0);
 
         vm.startPrank(BOB);
-        pool.supply(collateral, 10e18, BOB, 0);
-        pool.borrow(debt, 1_000e6, 0, BOB);
-        pool.repay(debt, 1_000e6, BOB);
-        pool.withdraw(collateral, 10e18, BOB);
+        uint256 amountToSupply =
+            (10_000 * (10 ** 8) * (10 ** collateral.decimals())) / oracle.getAssetPrice(address(collateral));
+        uint256 amountToBorrow = (5_000 * (10 ** 6) * (10 ** debt.decimals())) / oracle.getAssetPrice(address(debt));
+
+        pool.supply(address(collateral), amountToSupply, BOB, 0);
+        pool.borrow(address(debt), amountToBorrow, 0, BOB);
+        pool.repay(address(debt), amountToBorrow, BOB);
+        pool.withdraw(address(collateral), amountToSupply, BOB);
     }
 
     function test_supply_borrow_repay_withdraw() public {
