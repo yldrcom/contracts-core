@@ -28,12 +28,20 @@ arbitrum_one = { key = "${ARBISCAN_TOKEN}", chain = "arbitrum" }
 
 [profile.mainnet_libs]
 libraries = [
-            "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xac82748a93cc98e6e9a36fff80f4e1bc40ca573f",
-            "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe283911bbb6454a1a1442410d12d5f33df88daa0",
-            "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x4b17e8da6a9138ff0b0ccd2eb2e1279646e3dfc8",
-            "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x1d225d6975f77f2e9ff1f37fde85ebd752743c33",
-            "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x4c04e52328c84022a24e89458628a3ef45bcd3b5",
-            "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x5ff675d0ea4a0fa5fad769b1b76060bf58d4ced4"
-            ]
-out = "out/temp"
-cache_path = "cache/temp"
+    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xac82748a93cc98e6e9a36fff80f4e1bc40ca573f",
+    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe283911bbb6454a1a1442410d12d5f33df88daa0",
+    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x4b17e8da6a9138ff0b0ccd2eb2e1279646e3dfc8",
+    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x1d225d6975f77f2e9ff1f37fde85ebd752743c33",
+    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x4c04e52328c84022a24e89458628a3ef45bcd3b5",
+    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x5ff675d0ea4a0fa5fad769b1b76060bf58d4ced4",
+]
+
+[profile.arbitrum_one_libs]
+libraries = [
+    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xd50a98fb8e3e56d31a22071e31b43423f809766e",
+    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xfe09a4e3826fb4c218fb54ba0b445e5123916335",
+    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x0918e8a3ee191146410e84c6560622dc6e1117d0",
+    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x323329d3a2fef7ba1c73c8c0a74ccaed84141507",
+    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x6334992140c532c8132d3dc546c8e2c54be83e91",
+    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x8ae2ee5c2234b4ef88daf935c60c9908e9356ad9",
+]
