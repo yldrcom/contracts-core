@@ -13,7 +13,7 @@ import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultRe
 import {YLDRProtocolDataProvider} from "../src/misc/YLDRProtocolDataProvider.sol";
 
 contract DeployScript is Script {
-    function protocol() public {
+    function protocol(uint256 maxERC1155Reserves) public {
         vm.startBroadcast();
 
         (, address deployer,) = vm.readCallers();
@@ -28,6 +28,8 @@ contract DeployScript is Script {
         addressesProvider.setPoolConfiguratorImpl(address(new PoolConfigurator()));
         addressesProvider.setPoolDataProvider(address(dataProvider));
 
+        IPoolConfigurator poolConfigurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
+
         YLDROracle oracle = new YLDROracle(
             addressesProvider,
             new address[](0),
@@ -39,6 +41,8 @@ contract DeployScript is Script {
             10 ** 8
         );
         addressesProvider.setPriceOracle(address(oracle));
+
+        poolConfigurator.updateMaxERC1155CollateralReserves(maxERC1155Reserves);
 
         console2.log("PoolAddressesProvider:", address(addressesProvider));
         console2.log("Pool:", addressesProvider.getPool());
