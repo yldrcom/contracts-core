@@ -22,6 +22,7 @@ contract ConfigScript is Script {
     struct InitReserveArgs {
         IPoolAddressesProvider provider;
         IERC20Metadata underlying;
+        address interestRateStrategy;
         address yTokenImpl;
         address variableDebtImpl;
         address priceFeed;
@@ -29,10 +30,6 @@ contract ConfigScript is Script {
         uint256 liquidationThreshold;
         uint256 liquidationBonus;
         uint256 reserveFactor;
-        uint256 optimalUsage;
-        uint256 baseVariableBorrowRate;
-        uint256 slope1;
-        uint256 slope2;
     }
 
     function initReserve(InitReserveArgs memory params) public {
@@ -55,11 +52,7 @@ contract ConfigScript is Script {
             yTokenImpl: params.yTokenImpl,
             variableDebtTokenImpl: params.variableDebtImpl,
             underlyingAssetDecimals: params.underlying.decimals(),
-            interestRateStrategyAddress: address(
-                new DefaultReserveInterestRateStrategy(
-                    params.provider, params.optimalUsage, params.baseVariableBorrowRate, params.slope1, params.slope2
-                )
-                ),
+            interestRateStrategyAddress: params.interestRateStrategy,
             underlyingAsset: address(params.underlying),
             treasury: deployer,
             incentivesController: address(0),
