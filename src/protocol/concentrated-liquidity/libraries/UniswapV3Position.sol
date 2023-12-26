@@ -115,17 +115,20 @@ library UniswapV3Position {
         }
 
         (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) = _getFeeGrowthInside(position);
-        amount0 = position.tokensOwed0
-            + uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside0X128 - position.feeGrowthInside0LastX128, position.liquidity, FixedPoint128.Q128
-                )
-            );
-        amount1 = position.tokensOwed1
-            + uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside1X128 - position.feeGrowthInside1LastX128, position.liquidity, FixedPoint128.Q128
-                )
-            );
+        unchecked {
+            // overflow in fee growth subtraction is expected
+            amount0 = position.tokensOwed0
+                + uint128(
+                    FullMath.mulDiv(
+                        feeGrowthInside0X128 - position.feeGrowthInside0LastX128, position.liquidity, FixedPoint128.Q128
+                    )
+                );
+            amount1 = position.tokensOwed1
+                + uint128(
+                    FullMath.mulDiv(
+                        feeGrowthInside1X128 - position.feeGrowthInside1LastX128, position.liquidity, FixedPoint128.Q128
+                    )
+                );
+        }
     }
 }
