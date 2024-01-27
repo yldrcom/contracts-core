@@ -143,16 +143,6 @@ contract YLDROracle is IYLDROracle {
         }
     }
 
-    /// @inheritdoc IPriceOracleGetter
-    function getERC1155AssetPrice(address asset, uint256 tokenId) external view returns (uint256) {
-        IERC1155PriceOracle source = erc1155AssetsSources[asset];
-        if (address(source) == address(0)) {
-            return _fallbackOracle.getERC1155AssetPrice(asset, tokenId);
-        } else {
-            return source.getAssetPrice(tokenId);
-        }
-    }
-
     /// @inheritdoc IYLDROracle
     function getAssetsPrices(address[] calldata assets) external view override returns (uint256[] memory) {
         uint256[] memory prices = new uint256[](assets.length);
@@ -165,6 +155,34 @@ contract YLDROracle is IYLDROracle {
     /// @inheritdoc IYLDROracle
     function getSourceOfAsset(address asset) external view override returns (address) {
         return address(assetsSources[asset]);
+    }
+
+    /// @inheritdoc IPriceOracleGetter
+    function getERC1155AssetPrice(address asset, uint256 tokenId) public view override returns (uint256) {
+        IERC1155PriceOracle source = erc1155AssetsSources[asset];
+        if (address(source) == address(0)) {
+            return _fallbackOracle.getERC1155AssetPrice(asset, tokenId);
+        } else {
+            return source.getAssetPrice(tokenId);
+        }
+    }
+
+    /// @inheritdoc IYLDROracle
+    function getERC1155AssetsPrices(address[] calldata assets, uint256[] calldata ids)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory prices = new uint256[](assets.length);
+        for (uint256 i = 0; i < assets.length; i++) {
+            prices[i] = getERC1155AssetPrice(assets[i], ids[i]);
+        }
+        return prices;
+    }
+
+    /// @inheritdoc IYLDROracle
+    function getSourceOfERC1155Asset(address asset) external view override returns (address) {
+        return address(erc1155AssetsSources[asset]);
     }
 
     /// @inheritdoc IYLDROracle
