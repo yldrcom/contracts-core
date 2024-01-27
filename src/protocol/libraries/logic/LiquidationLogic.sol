@@ -21,6 +21,7 @@ import {INToken} from "../../../interfaces/INToken.sol";
 import {IPool} from "../../../interfaces/IPool.sol";
 import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
 import {IPriceOracleGetter} from "../../../interfaces/IPriceOracleGetter.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title LiquidationLogic library
@@ -644,8 +645,12 @@ library LiquidationLogic {
         vars.liquidationProtocolFeePercentage = collateralReserve.liquidationProtocolFee;
 
         // This is the base collateral to liquidate based on the given debt to cover
-        vars.baseCollateral = ((vars.debtAssetPrice * debtToCover * vars.collateralTotalSupply))
-            / (vars.collateralPrice * vars.debtAssetUnit);
+        vars.baseCollateral = Math.mulDiv(
+            vars.debtAssetPrice * debtToCover,
+            vars.collateralTotalSupply,
+            vars.collateralPrice * vars.debtAssetUnit,
+            Math.Rounding.Ceil
+        );
 
         vars.maxCollateralToLiquidate = vars.baseCollateral.percentMul(liquidationBonus);
 
