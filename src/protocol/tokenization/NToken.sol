@@ -36,6 +36,9 @@ contract NToken is ERC1155SupplyUpgradeable, ERC1155HolderUpgradeable, INToken {
         initializer
     {
         __ERC1155_init("");
+        __ERC1155Supply_init();
+        __ERC1155Holder_init();
+
         _underlyingAsset = underlyingAsset;
         _treasury = treasury;
 
