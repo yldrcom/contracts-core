@@ -134,7 +134,7 @@ contract YLDROracle is IYLDROracle {
         } else if (address(source) == address(0)) {
             return _fallbackOracle.getAssetPrice(asset);
         } else {
-            int256 price = source.latestAnswer();
+            (, int256 price,,,) = source.latestRoundData();
             if (price > 0) {
                 return uint256(price);
             } else {
