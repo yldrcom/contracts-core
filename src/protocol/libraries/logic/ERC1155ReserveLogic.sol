@@ -1,18 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155ConfigurationProvider} from "../../../interfaces/IERC1155ConfigurationProvider.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IVariableDebtToken} from "../../../interfaces/IVariableDebtToken.sol";
-import {IReserveInterestRateStrategy} from "../../../interfaces/IReserveInterestRateStrategy.sol";
-import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
-import {MathUtils} from "../math/MathUtils.sol";
-import {WadRayMath} from "../math/WadRayMath.sol";
-import {PercentageMath} from "../math/PercentageMath.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /**
  * @title ERC1155ReserveLogic library
