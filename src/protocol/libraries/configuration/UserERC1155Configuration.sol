@@ -28,7 +28,9 @@ library UserERC1155Configuration {
             self.usedERC1155Reserves.push(DataTypes.ERC1155ReserveUsageData({asset: asset, tokenId: tokenId}));
             self.usedERC1155ReservesMap[asset][tokenId] = self.usedERC1155Reserves.length;
         } else {
-            // This will cause underflow for non-existent reserves
+            if (self.usedERC1155ReservesMap[asset][tokenId] == 0) {
+                revert(Errors.ERC1155_RESERVE_NOT_USED_AS_COLLATERAL);
+            }
             uint256 index = self.usedERC1155ReservesMap[asset][tokenId] - 1;
 
             delete self.usedERC1155ReservesMap[asset][tokenId];
