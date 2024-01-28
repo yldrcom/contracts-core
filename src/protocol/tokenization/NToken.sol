@@ -28,6 +28,10 @@ contract NToken is ERC1155SupplyUpgradeable, ERC1155HolderUpgradeable, INToken {
         _;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @inheritdoc INToken
     function initialize(address _pool, address treasury, address underlyingAsset, bytes memory params)
         public
