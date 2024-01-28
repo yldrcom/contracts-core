@@ -52,17 +52,9 @@ contract NToken is ERC1155SupplyUpgradeable, ERC1155HolderUpgradeable, INToken {
     }
 
     /// @inheritdoc INToken
-    function mint(address onBehalfOf, uint256 underlyingTokenId, uint256 amount)
-        external
-        virtual
-        override
-        onlyPool
-        returns (bool)
-    {
+    function mint(address onBehalfOf, uint256 underlyingTokenId, uint256 amount) external virtual override onlyPool {
         // This may cause problems with underlying tokens which may same tokenId several times
         _mint(onBehalfOf, underlyingTokenId, amount, bytes(""));
-
-        return (balanceOf(onBehalfOf, underlyingTokenId) == amount);
     }
 
     /// @inheritdoc INToken
