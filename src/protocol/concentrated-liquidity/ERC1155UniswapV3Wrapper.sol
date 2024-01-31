@@ -19,6 +19,10 @@ contract ERC1155UniswapV3Wrapper is ERC1155SupplyUpgradeable, IERC1155UniswapV3W
     INonfungiblePositionManager public positionManager;
     IUniswapV3Factory public factory;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(INonfungiblePositionManager _positionManager) public initializer {
         __ERC1155_init("");
         positionManager = _positionManager;
