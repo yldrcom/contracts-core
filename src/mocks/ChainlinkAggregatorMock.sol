@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 import {IChainlinkAggregator} from "../interfaces/ext/IChainlinkAggregator.sol";
 
 contract ChainlinkAggregatorMock is IChainlinkAggregator {
-    int256 public latestAnswer;
+    int256 private latestAnswer;
 
     constructor(int256 answer) {
         latestAnswer = answer;
@@ -27,5 +27,15 @@ contract ChainlinkAggregatorMock is IChainlinkAggregator {
 
     function getTimestamp(uint256) external pure returns (uint256) {
         revert("not implemented");
+    }
+
+    function latestRoundData()
+        public
+        view
+        virtual
+        override
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
+    {
+        return (0, latestAnswer, 0, 0, 0);
     }
 }

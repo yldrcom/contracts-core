@@ -20,8 +20,6 @@ library ReserveConfiguration {
     uint256 internal constant FROZEN_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant BORROWING_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant PAUSED_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 internal constant BORROWABLE_IN_ISOLATION_MASK =
-        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant FLASHLOAN_ENABLED_MASK =
         0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant RESERVE_FACTOR_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFF; // prettier-ignore
@@ -29,7 +27,6 @@ library ReserveConfiguration {
     uint256 internal constant SUPPLY_CAP_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFF000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant LIQUIDATION_PROTOCOL_FEE_MASK =
         0xFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
-    uint256 internal constant DEBT_CEILING_MASK = 0xF0000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
 
     /// @dev For the LTV, the start bit is 0 (up to 15), hence no bitshifting is needed
     uint256 internal constant LIQUIDATION_THRESHOLD_START_BIT_POSITION = 16;
@@ -39,13 +36,11 @@ library ReserveConfiguration {
     uint256 internal constant IS_FROZEN_START_BIT_POSITION = 57;
     uint256 internal constant BORROWING_ENABLED_START_BIT_POSITION = 58;
     uint256 internal constant IS_PAUSED_START_BIT_POSITION = 60;
-    uint256 internal constant BORROWABLE_IN_ISOLATION_START_BIT_POSITION = 61;
     uint256 internal constant FLASHLOAN_ENABLED_START_BIT_POSITION = 63;
     uint256 internal constant RESERVE_FACTOR_START_BIT_POSITION = 64;
     uint256 internal constant BORROW_CAP_START_BIT_POSITION = 80;
     uint256 internal constant SUPPLY_CAP_START_BIT_POSITION = 116;
     uint256 internal constant LIQUIDATION_PROTOCOL_FEE_START_BIT_POSITION = 152;
-    uint256 internal constant DEBT_CEILING_START_BIT_POSITION = 212;
 
     uint256 internal constant MAX_VALID_LTV = 65535;
     uint256 internal constant MAX_VALID_LIQUIDATION_THRESHOLD = 65535;
@@ -55,9 +50,6 @@ library ReserveConfiguration {
     uint256 internal constant MAX_VALID_BORROW_CAP = 68719476735;
     uint256 internal constant MAX_VALID_SUPPLY_CAP = 68719476735;
     uint256 internal constant MAX_VALID_LIQUIDATION_PROTOCOL_FEE = 65535;
-    uint256 internal constant MAX_VALID_DEBT_CEILING = 1099511627775;
-
-    uint256 public constant DEBT_CEILING_DECIMALS = 2;
     uint16 public constant MAX_RESERVES_COUNT = 128;
 
     /**

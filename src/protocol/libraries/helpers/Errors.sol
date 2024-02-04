@@ -82,4 +82,5 @@ library Errors {
     string public constant FLASHLOAN_DISABLED = "91"; // FlashLoaning for this asset is disabled
     string public constant CALLER_NOT_NTOKEN = "92"; // 'The caller of the function is not an NToken'
     string public constant ERC1155_RESERVE_CANNOT_BE_USED_AS_COLLATERAL = "93"; // ERC1155 reserve can only be supplied if it can be enabled as collateral
+    string public constant ERC1155_RESERVE_NOT_USED_AS_COLLATERAL = "94"; // ERC1155 reserve is not used as collateral.
 }

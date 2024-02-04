@@ -78,6 +78,24 @@ interface IYLDROracle is IPriceOracleGetter {
     function getSourceOfAsset(address asset) external view returns (address);
 
     /**
+     * @notice Returns a list of prices from a list of assets addresses and ids
+     * @param assets The addresses of the asseta
+     * @param ids The tokenIds of the asseta
+     * @return The price of the asset
+     */
+    function getERC1155AssetsPrices(address[] calldata assets, uint256[] calldata ids)
+        external
+        view
+        returns (uint256[] memory);
+
+    /**
+     * @notice Returns the address of the source for an ERC1155 asset address
+     * @param asset The address of the asset
+     * @return The address of the source
+     */
+    function getSourceOfERC1155Asset(address asset) external view returns (address);
+
+    /**
      * @notice Returns the address of the fallback oracle
      * @return The address of the fallback oracle
      */

@@ -69,6 +69,8 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
      */
     constructor(IPoolAddressesProvider provider) {
         ADDRESSES_PROVIDER = provider;
+
+        _disableInitializers();
     }
 
     /**

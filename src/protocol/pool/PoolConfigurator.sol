@@ -66,6 +66,10 @@ contract PoolConfigurator is Initializable, IPoolConfigurator {
         _;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(IPoolAddressesProvider provider) public initializer {
         _addressesProvider = provider;
         _pool = IPool(_addressesProvider.getPool());
