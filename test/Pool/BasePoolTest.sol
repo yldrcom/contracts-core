@@ -2,6 +2,7 @@ pragma solidity ^0.8.20;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {IPool} from "../../src/interfaces/IPool.sol";
+import {IPoolConfigurator} from "../../src/interfaces/IPoolConfigurator.sol";
 import {IYLDROracle} from "../../src/interfaces/IYLDROracle.sol";
 import {ERC20Mock} from "../../src/mocks/ERC20Mock.sol";
 import {ERC1155Mock} from "../../src/mocks/ERC1155Mock.sol";
@@ -16,8 +17,9 @@ import {ChainlinkAggregatorMock} from "../../src/mocks/ChainlinkAggregatorMock.s
 contract BasePoolTest is BaseTest {
     using PoolTesting for PoolTesting.Data;
 
-    IPool pool;
-    IYLDROracle oracle;
+    IPool public pool;
+    IPoolConfigurator public configurator;
+    IYLDROracle public oracle;
 
     ERC20Mock usdc;
     ERC20Mock weth;
@@ -41,10 +43,20 @@ contract BasePoolTest is BaseTest {
         poolTesting.init(ADMIN, 2);
 
         pool = IPool(poolTesting.addressesProvider.getPool());
+        configurator = IPoolConfigurator(poolTesting.addressesProvider.getPoolConfigurator());
         oracle = IYLDROracle(poolTesting.addressesProvider.getPriceOracle());
 
         poolTesting.addReserve(
-            address(usdc), 0.8e27, 0, 0.02e27, 0.8e27, 0.7e4, 0.75e4, 1.05e4, address(new ChainlinkAggregatorMock(1e8))
+            address(usdc),
+            0.8e27,
+            0,
+            0.02e27,
+            0.8e27,
+            0.7e4,
+            0.75e4,
+            1.05e4,
+            address(new ChainlinkAggregatorMock(1e8)),
+            0.15e4
         );
         poolTesting.addReserve(
             address(weth),
@@ -55,8 +67,17 @@ contract BasePoolTest is BaseTest {
             0.7e4,
             0.75e4,
             1.05e4,
-            address(new ChainlinkAggregatorMock(1000e8))
+            address(new ChainlinkAggregatorMock(1000e8)),
+            0.15e4
         );
+
+        address[] memory reserves = pool.getReservesList();
+        for (uint256 i = 0; i < reserves.length; i++) {
+            address asset = reserves[i];
+            deal(asset, ADMIN, 10 ** ERC20Mock(asset).decimals());
+            ERC20Mock(asset).approve(address(pool), 10 ** ERC20Mock(asset).decimals());
+            pool.supply(asset, 10 ** ERC20Mock(asset).decimals(), ADMIN, 0);
+        }
 
         configurationProvider = new ERC1155ConfigurationProviderMock();
         erc1155Oracle = new ERC1155PriceOracleMock();

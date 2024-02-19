@@ -45,7 +45,16 @@ contract PoolTest is BaseTest {
         oracle = IYLDROracle(poolTesting.addressesProvider.getPriceOracle());
 
         poolTesting.addReserve(
-            address(usdc), 0.8e27, 0, 0.02e27, 0.8e27, 0.7e4, 0.75e4, 1.05e4, address(new ChainlinkAggregatorMock(1e8))
+            address(usdc),
+            0.8e27,
+            0,
+            0.02e27,
+            0.8e27,
+            0.7e4,
+            0.75e4,
+            1.05e4,
+            address(new ChainlinkAggregatorMock(1e8)),
+            0.15e4
         );
         poolTesting.addReserve(
             address(weth),
@@ -56,7 +65,8 @@ contract PoolTest is BaseTest {
             0.7e4,
             0.75e4,
             1.05e4,
-            address(new ChainlinkAggregatorMock(1000e8))
+            address(new ChainlinkAggregatorMock(1000e8)),
+            0.15e4
         );
 
         configurationProvider = new ERC1155ConfigurationProviderMock();

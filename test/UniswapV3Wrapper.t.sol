@@ -46,10 +46,28 @@ contract UniswapV3WrapperTest is BaseTest {
         oracle = IYLDROracle(poolTesting.addressesProvider.getPriceOracle());
 
         poolTesting.addReserve(
-            address(usdc), 0.8e27, 0, 0.02e27, 0.8e27, 0.7e4, 0.75e4, 1.05e4, 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6
+            address(usdc),
+            0.8e27,
+            0,
+            0.02e27,
+            0.8e27,
+            0.7e4,
+            0.75e4,
+            1.05e4,
+            0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6,
+            0.15e4
         );
         poolTesting.addReserve(
-            address(weth), 0.8e27, 0, 0.02e27, 0.8e27, 0.7e4, 0.75e4, 1.05e4, 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
+            address(weth),
+            0.8e27,
+            0,
+            0.02e27,
+            0.8e27,
+            0.7e4,
+            0.75e4,
+            1.05e4,
+            0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419,
+            0.15e4
         );
 
         uniswapV3Wrapper = ERC1155UniswapV3Wrapper(

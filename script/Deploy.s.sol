@@ -13,6 +13,15 @@ import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultRe
 import {YLDRProtocolDataProvider} from "../src/misc/YLDRProtocolDataProvider.sol";
 
 contract DeployScript is Script {
+    function pool(address addressesProvider) public {
+        vm.startBroadcast();
+        (, address deployer,) = vm.readCallers();
+
+        Pool pool = new Pool(PoolAddressesProvider(addressesProvider));
+
+        console2.log("Pool:", address(pool));
+    }
+
     function protocol(uint256 maxERC1155Reserves) public {
         vm.startBroadcast();
 

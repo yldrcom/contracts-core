@@ -72,7 +72,8 @@ library PoolTesting {
         uint256 ltv,
         uint256 liquidationThreshold,
         uint256 liquidationBonus,
-        address priceSource
+        address priceSource,
+        uint256 reserveFactor
     ) internal {
         ConfiguratorInputTypes.InitReserveInput[] memory reserves = new ConfiguratorInputTypes.InitReserveInput[](1);
         reserves[0] = ConfiguratorInputTypes.InitReserveInput({
@@ -99,10 +100,12 @@ library PoolTesting {
         });
 
         PoolConfigurator(self.addressesProvider.getPoolConfigurator()).initReserves(reserves);
+        PoolConfigurator(self.addressesProvider.getPoolConfigurator()).setReserveFactor(asset, reserveFactor);
         PoolConfigurator(self.addressesProvider.getPoolConfigurator()).setReserveBorrowing(asset, true);
         PoolConfigurator(self.addressesProvider.getPoolConfigurator()).configureReserveAsCollateral(
             asset, ltv, liquidationThreshold, liquidationBonus
         );
+        PoolConfigurator(self.addressesProvider.getPoolConfigurator()).setReserveFlashLoaning(asset, true);
 
         address[] memory assets = new address[](1);
         assets[0] = asset;

@@ -8,10 +8,10 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 contract BaseTest is Test {
     using SafeERC20 for IERC20Metadata;
 
-    address ADMIN;
-    address ALICE;
-    address BOB;
-    address CAROL;
+    address public ADMIN;
+    address public ALICE;
+    address public BOB;
+    address public CAROL;
 
     address[] callers;
     IERC20Metadata[] tokens;
