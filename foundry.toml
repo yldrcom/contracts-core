@@ -41,7 +41,7 @@ libraries = [
     "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xAb3A01fcc9E7A596e94EC98A488ddC22e6067904",
     "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xcBE1d19d6AE9e4707aa5F104c395a33DfaeC6f9d",
     "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x7F6455c71Fb95912C2E265dC21b6132ae37ebFb8",
-    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x20925520877Ed05b2c1E0115c6d1c9807B34a0c6",
+    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x5Fc33C7732FcECb364a28278cD12d8137FFB90Cb",
     "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x38D99A1e6BC87C6343c7C626bcf27B7b8dDC3392",
     "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0xc62e8d922f00Dcf246a88c40E84de5da496F5b88",
 ]

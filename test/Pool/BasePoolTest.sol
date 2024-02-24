@@ -82,7 +82,9 @@ contract BasePoolTest is BaseTest {
         configurationProvider = new ERC1155ConfigurationProviderMock();
         erc1155Oracle = new ERC1155PriceOracleMock();
 
-        poolTesting.addERC1155Reserve(address(nfts), address(configurationProvider), address(erc1155Oracle));
+        poolTesting.addERC1155Reserve(
+            address(nfts), address(configurationProvider), address(erc1155Oracle), ADMIN, 0.2e4
+        );
         vm.stopPrank();
 
         _approveAllTokensForAllCallers(address(pool));

@@ -72,7 +72,9 @@ contract PoolTest is BaseTest {
         configurationProvider = new ERC1155ConfigurationProviderMock();
         erc1155Oracle = new ERC1155PriceOracleMock();
 
-        poolTesting.addERC1155Reserve(address(nfts), address(configurationProvider), address(erc1155Oracle));
+        poolTesting.addERC1155Reserve(
+            address(nfts), address(configurationProvider), address(erc1155Oracle), ADMIN, 0.2e4
+        );
         vm.stopPrank();
 
         _approveAllTokensForAllCallers(address(pool));
@@ -150,16 +152,16 @@ contract PoolTest is BaseTest {
         pool.supply(address(usdc), 10_000e6, BOB, 0);
 
         vm.startPrank(ALICE);
-        pool.supplyERC1155(address(nfts), 1, 10, ALICE, 0);
+        pool.supplyERC1155(address(nfts), 1, 100, ALICE, 0);
 
         (uint256 totalCollateralBase,,,,,) = pool.getUserAccountData(ALICE);
 
-        assertEq(totalCollateralBase, 10e8);
+        assertEq(totalCollateralBase, 100e8);
 
-        pool.borrow(address(usdc), 5e6, 0, ALICE);
+        pool.borrow(address(usdc), 50e6, 0, ALICE);
 
         vm.expectRevert(bytes(Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW));
-        pool.borrow(address(usdc), 5e6, 0, ALICE);
+        pool.borrow(address(usdc), 50e6, 0, ALICE);
 
         vm.startPrank(ADMIN);
         erc1155Oracle.setAssetPrice(1, 70e8);
@@ -169,7 +171,7 @@ contract PoolTest is BaseTest {
         assertLt(healthFactor, 1e18);
 
         vm.startPrank(CAROL);
-        pool.erc1155LiquidationCall(address(nfts), 1, address(usdc), ALICE, 5e6, false);
+        pool.erc1155LiquidationCall(address(nfts), 1, address(usdc), ALICE, 50e6, false);
 
         (totalCollateralBase,,,,,) = pool.getUserAccountData(ALICE);
 

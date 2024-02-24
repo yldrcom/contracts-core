@@ -114,19 +114,26 @@ library PoolTesting {
         YLDROracle(self.addressesProvider.getPriceOracle()).setAssetSources(assets, sources);
     }
 
-    function addERC1155Reserve(Data storage self, address asset, address configurationProvider, address priceSource)
-        internal
-    {
+    function addERC1155Reserve(
+        Data storage self,
+        address asset,
+        address configurationProvider,
+        address priceSource,
+        address treasury,
+        uint256 liquidationProtocolFee
+    ) internal {
         ConfiguratorInputTypes.InitERC1155ReserveInput[] memory erc1155Reserves =
             new ConfiguratorInputTypes.InitERC1155ReserveInput[](1);
         erc1155Reserves[0] = ConfiguratorInputTypes.InitERC1155ReserveInput({
             nTokenImpl: address(new NToken()),
             underlyingAsset: asset,
-            treasury: self.admin,
+            treasury: treasury,
             configurationProvider: configurationProvider,
             params: ""
         });
-        PoolConfigurator(self.addressesProvider.getPoolConfigurator()).initERC1155Reserves(erc1155Reserves);
+        IPoolConfigurator configurator = IPoolConfigurator(self.addressesProvider.getPoolConfigurator());
+        configurator.initERC1155Reserves(erc1155Reserves);
+        configurator.setERC1155LiquidationProtocolFee(asset, liquidationProtocolFee);
 
         address[] memory assets = new address[](1);
         assets[0] = asset;

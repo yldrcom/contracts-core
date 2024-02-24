@@ -308,22 +308,24 @@ library LiquidationLogic {
 
         debtReserve.updateInterestRates(vars.debtReserveCache, params.debtAsset, vars.actualDebtToLiquidate, 0);
 
+        // Transfer fee to treasury if it is non-zero
+        // Right now we don't have a usecase for NTokens besides wrapping NFTs, thus we are burning them here
+        // If we'll figure out a way for them to accrue yield or add any other incentive for holding those,
+        // it probably makes sense to keep NTokens in treasury as is.
+        if (vars.liquidationProtocolFeeAmount != 0) {
+            vars.collateralNToken.burn(
+                params.user,
+                vars.collateralNToken.RESERVE_TREASURY_ADDRESS(),
+                params.collateralTokenId,
+                vars.liquidationProtocolFeeAmount
+            );
+        }
+
         if (params.receiveNToken) {
             _liquidateNTokens(usersERC1155Config, params, vars);
         } else {
             vars.collateralNToken.burn(
                 params.user, msg.sender, params.collateralTokenId, vars.actualCollateralToLiquidate
-            );
-        }
-
-        // Transfer fee to treasury if it is non-zero
-        if (vars.liquidationProtocolFeeAmount != 0) {
-            vars.collateralNToken.safeTransferFromOnLiquidation(
-                params.user,
-                vars.collateralNToken.RESERVE_TREASURY_ADDRESS(),
-                params.collateralTokenId,
-                vars.liquidationProtocolFeeAmount,
-                bytes("")
             );
         }
 
