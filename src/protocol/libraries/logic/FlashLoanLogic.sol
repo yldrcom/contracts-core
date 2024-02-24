@@ -39,6 +39,7 @@ library FlashLoanLogic {
         uint256 i;
         address currentAsset;
         uint256 currentAmount;
+        uint256 currentPremium;
         uint256[] totalPremiums;
         uint256 flashloanPremiumTotal;
         uint256 flashloanPremiumToProtocol;
@@ -81,8 +82,7 @@ library FlashLoanLogic {
 
         for (vars.i = 0; vars.i < params.assets.length; vars.i++) {
             vars.currentAmount = params.amounts[vars.i];
-            vars.totalPremiums[vars.i] =
-                !params.createPosition[vars.i] ? vars.currentAmount.percentMul(vars.flashloanPremiumTotal) : 0;
+            vars.totalPremiums[vars.i] = vars.currentAmount.percentMul(vars.flashloanPremiumTotal);
             IYToken(reservesData[params.assets[vars.i]].yTokenAddress).transferUnderlyingTo(
                 params.receiverAddress, vars.currentAmount
             );
@@ -96,10 +96,13 @@ library FlashLoanLogic {
         for (vars.i = 0; vars.i < params.assets.length; vars.i++) {
             vars.currentAsset = params.assets[vars.i];
             vars.currentAmount = params.amounts[vars.i];
+            vars.currentPremium = vars.totalPremiums[vars.i];
+
+            DataTypes.ReserveData storage reserve = reservesData[vars.currentAsset];
 
             if (!params.createPosition[vars.i]) {
                 _handleFlashLoanRepayment(
-                    reservesData[vars.currentAsset],
+                    reserve,
                     DataTypes.FlashLoanRepaymentParams({
                         asset: vars.currentAsset,
                         receiverAddress: params.receiverAddress,
@@ -110,6 +113,12 @@ library FlashLoanLogic {
                     })
                 );
             } else {
+                uint256 amountPlusPremium = _updateReserveData(
+                    reserve, reserve.cache(), vars.currentAmount, vars.currentPremium, vars.flashloanPremiumToProtocol
+                );
+
+                // no need to update interest rates as they will be updated in executeBorrow
+
                 // If the user chose to not return the funds, the system checks if there is enough collateral and
                 // eventually opens a debt position
                 BorrowLogic.executeBorrow(
@@ -122,7 +131,7 @@ library FlashLoanLogic {
                         asset: vars.currentAsset,
                         user: msg.sender,
                         onBehalfOf: params.onBehalfOf,
-                        amount: vars.currentAmount,
+                        amount: amountPlusPremium,
                         referralCode: params.referralCode,
                         releaseUnderlying: false,
                         reservesCount: params.reservesCount,
@@ -130,14 +139,13 @@ library FlashLoanLogic {
                         priceOracleSentinel: IPoolAddressesProvider(params.addressesProvider).getPriceOracleSentinel()
                     })
                 );
-                // no premium is paid when taking on the flashloan as debt
                 emit IPool.FlashLoan(
                     params.receiverAddress,
                     msg.sender,
                     vars.currentAsset,
                     vars.currentAmount,
                     true,
-                    0,
+                    vars.currentPremium,
                     params.referralCode
                 );
             }
@@ -186,6 +194,27 @@ library FlashLoanLogic {
         );
     }
 
+    function _updateReserveData(
+        DataTypes.ReserveData storage reserve,
+        DataTypes.ReserveCache memory reserveCache,
+        uint256 amount,
+        uint256 premium,
+        uint256 flashLoanPremiumToProtocol
+    ) internal returns (uint256 amountPlusPremium) {
+        uint256 premiumToProtocol = premium.percentMul(flashLoanPremiumToProtocol);
+        uint256 premiumToLP = premium - premiumToProtocol;
+        amountPlusPremium = amount + premium;
+
+        reserve.updateState(reserveCache);
+
+        reserveCache.nextLiquidityIndex = reserve.cumulateToLiquidityIndex(
+            IERC20(reserveCache.yTokenAddress).totalSupply()
+                + uint256(reserve.accruedToTreasury).rayMul(reserveCache.nextLiquidityIndex),
+            premiumToLP
+        );
+        reserve.accruedToTreasury += premiumToProtocol.rayDiv(reserveCache.nextLiquidityIndex).toUint128();
+    }
+
     /**
      * @notice Handles repayment of flashloaned assets + premium
      * @dev Will pull the amount + premium from the receiver, so must have approved pool
@@ -196,20 +225,12 @@ library FlashLoanLogic {
         DataTypes.ReserveData storage reserve,
         DataTypes.FlashLoanRepaymentParams memory params
     ) internal {
-        uint256 premiumToProtocol = params.totalPremium.percentMul(params.flashLoanPremiumToProtocol);
-        uint256 premiumToLP = params.totalPremium - premiumToProtocol;
-        uint256 amountPlusPremium = params.amount + params.totalPremium;
-
         DataTypes.ReserveCache memory reserveCache = reserve.cache();
-        reserve.updateState(reserveCache);
-        reserveCache.nextLiquidityIndex = reserve.cumulateToLiquidityIndex(
-            IERC20(reserveCache.yTokenAddress).totalSupply()
-                + uint256(reserve.accruedToTreasury).rayMul(reserveCache.nextLiquidityIndex),
-            premiumToLP
+
+        // mutates reserveCache
+        uint256 amountPlusPremium = _updateReserveData(
+            reserve, reserveCache, params.amount, params.totalPremium, params.flashLoanPremiumToProtocol
         );
-
-        reserve.accruedToTreasury += premiumToProtocol.rayDiv(reserveCache.nextLiquidityIndex).toUint128();
-
         reserve.updateInterestRates(reserveCache, params.asset, amountPlusPremium, 0);
 
         IERC20(params.asset).safeTransferFrom(params.receiverAddress, reserveCache.yTokenAddress, amountPlusPremium);

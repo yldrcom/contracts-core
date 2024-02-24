@@ -38,10 +38,10 @@ libraries = [
 
 [profile.arbitrum_one_libs]
 libraries = [
-    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xd50a98fb8e3e56d31a22071e31b43423f809766e",
-    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xfe09a4e3826fb4c218fb54ba0b445e5123916335",
-    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x0918e8a3ee191146410e84c6560622dc6e1117d0",
-    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x323329d3a2fef7ba1c73c8c0a74ccaed84141507",
-    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x6334992140c532c8132d3dc546c8e2c54be83e91",
-    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x8ae2ee5c2234b4ef88daf935c60c9908e9356ad9",
+    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xAb3A01fcc9E7A596e94EC98A488ddC22e6067904",
+    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xcBE1d19d6AE9e4707aa5F104c395a33DfaeC6f9d",
+    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x7F6455c71Fb95912C2E265dC21b6132ae37ebFb8",
+    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x20925520877Ed05b2c1E0115c6d1c9807B34a0c6",
+    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x38D99A1e6BC87C6343c7C626bcf27B7b8dDC3392",
+    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0xc62e8d922f00Dcf246a88c40E84de5da496F5b88",
 ]

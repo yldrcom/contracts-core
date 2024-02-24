@@ -80,7 +80,7 @@ contract Pool is Initializable, PoolStorage, ReentrancyGuardUpgradeable, IPool {
      * @dev Caching the address of the PoolAddressesProvider in order to reduce gas consumption on subsequent operations
      * @param provider The address of the PoolAddressesProvider
      */
-    function initialize(IPoolAddressesProvider provider) external virtual initializer {
+    function initialize(IPoolAddressesProvider provider) external virtual reinitializer(2) {
         require(provider == ADDRESSES_PROVIDER, Errors.INVALID_ADDRESSES_PROVIDER);
 
         __ReentrancyGuard_init();
