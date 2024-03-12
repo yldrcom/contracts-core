@@ -30,8 +30,9 @@ contract ConfigScript is Script {
         uint256 liquidationThreshold;
         uint256 liquidationBonus;
         uint256 reserveFactor;
+        uint256 liquidationProtocolFee;
     }
-
+    // initReserve((address,address,address,address,address,address,uint256,uint256,uint256,uint256,uint256))
     function initReserve(InitReserveArgs memory params) public {
         vm.startBroadcast();
 
@@ -66,6 +67,8 @@ contract ConfigScript is Script {
         configurator.initReserves(reserves);
         configurator.setReserveBorrowing(address(params.underlying), true);
         configurator.setReserveFactor(address(params.underlying), params.reserveFactor);
+        configurator.setReserveFlashLoaning(address(params.underlying), true);
+        configurator.setLiquidationProtocolFee(address(params.underlying), params.liquidationProtocolFee);
 
         configurator.configureReserveAsCollateral(
             address(params.underlying), params.ltv, params.liquidationThreshold, params.liquidationBonus

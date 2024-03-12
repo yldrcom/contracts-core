@@ -15,6 +15,9 @@ solc = "0.8.23"
 ignored_error_codes = ["license"]
 evm_version = "paris"
 
+[invariant]
+fail_on_revert = true
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
 [etherscan]
@@ -44,4 +47,14 @@ libraries = [
     "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x5Fc33C7732FcECb364a28278cD12d8137FFB90Cb",
     "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x38D99A1e6BC87C6343c7C626bcf27B7b8dDC3392",
     "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0xc62e8d922f00Dcf246a88c40E84de5da496F5b88",
+]
+
+[profile.polygon_libs]
+libraries = [
+    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0x4bD51179f30Cd162167D40AF9F6d378FC580C9cd",
+    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xC29CEEfe88a1eD4384a1BaD42592e70a3E3b0B86",
+    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x65E5Ed385C62A786e61Dd863053dE04a24CB627e",
+    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0xaD289BC22E12E4744AE6896c0812A60EE4e04A65",
+    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0xd6f13c8dd1509e6fB5cfBc8194132977c31b7c3D",
+    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x28219423FdA748495E10DFa05F089233A5491e16",
 ]
