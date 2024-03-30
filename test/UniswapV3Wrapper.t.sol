@@ -4,19 +4,17 @@ import {Test, console2} from "forge-std/Test.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
 import {Errors} from "../src/protocol/libraries/helpers/Errors.sol";
 import {DataTypes} from "../src/protocol/libraries/types/DataTypes.sol";
-import {
-    ERC1155UniswapV3Wrapper,
-    INonfungiblePositionManager
-} from "../src/protocol/concentrated-liquidity/ERC1155UniswapV3Wrapper.sol";
-import {ERC1155UniswapV3ConfigurationProvider} from
-    "../src/protocol/concentrated-liquidity/ERC1155UniswapV3ConfigurationProvider.sol";
-import {ERC1155UniswapV3Oracle} from "../src/protocol/concentrated-liquidity/ERC1155UniswapV3Oracle.sol";
+import {ERC1155UniswapV3Wrapper} from "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
+import {ERC1155CLWrapperConfigurationProvider} from
+    "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";
+import {ERC1155CLWrapperOracle} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapperOracle.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {UniswapV3Testing} from "test/libraries/UniswapV3Testing.sol";
 import {PoolTesting} from "test/libraries/PoolTesting.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
+import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 
 contract UniswapV3WrapperTest is BaseTest {
     using UniswapV3Testing for UniswapV3Testing.Data;
@@ -73,17 +71,17 @@ contract UniswapV3WrapperTest is BaseTest {
         uniswapV3Wrapper = ERC1155UniswapV3Wrapper(
             address(
                 new TransparentUpgradeableProxy(
-                    address(new ERC1155UniswapV3Wrapper()),
+                    address(new ERC1155UniswapV3Wrapper(address(uniswapV3.positionManager))),
                     ADMIN,
-                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, (uniswapV3.positionManager))
+                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, ())
                 )
             )
         );
 
         poolTesting.addERC1155Reserve(
             address(uniswapV3Wrapper),
-            address(new ERC1155UniswapV3ConfigurationProvider(pool, uniswapV3Wrapper)),
-            address(new ERC1155UniswapV3Oracle(poolTesting.addressesProvider, uniswapV3Wrapper)),
+            address(new ERC1155CLWrapperConfigurationProvider(pool, uniswapV3Wrapper)),
+            address(new ERC1155CLWrapperOracle(poolTesting.addressesProvider, uniswapV3Wrapper)),
             ADMIN,
             0.2e4
         );

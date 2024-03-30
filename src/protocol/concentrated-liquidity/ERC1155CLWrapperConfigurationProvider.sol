@@ -2,24 +2,22 @@
 pragma solidity ^0.8.10;
 
 import {IERC1155ConfigurationProvider} from "../../interfaces/IERC1155ConfigurationProvider.sol";
-import {IERC1155UniswapV3Wrapper} from "../../interfaces/IERC1155UniswapV3Wrapper.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {IPool} from "../../interfaces/IPool.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {BaseERC1155CLWrapper} from "./erc1155-wrappers/BaseERC1155CLWrapper.sol";
 
-contract ERC1155UniswapV3ConfigurationProvider is IERC1155ConfigurationProvider {
+contract ERC1155CLWrapperConfigurationProvider is IERC1155ConfigurationProvider {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     IPool public immutable pool;
-    IERC1155UniswapV3Wrapper public immutable wrapper;
-    INonfungiblePositionManager public immutable positionManager;
+    BaseERC1155CLWrapper public immutable wrapper;
 
-    constructor(IPool _pool, IERC1155UniswapV3Wrapper _wrapper) {
+    constructor(IPool _pool, BaseERC1155CLWrapper _wrapper) {
         pool = _pool;
         wrapper = _wrapper;
-        positionManager = _wrapper.positionManager();
     }
 
     function getERC1155ReserveConfig(uint256 tokenId)
@@ -27,10 +25,10 @@ contract ERC1155UniswapV3ConfigurationProvider is IERC1155ConfigurationProvider 
         view
         returns (DataTypes.ERC1155ReserveConfiguration memory)
     {
-        (,, address token0, address token1,,,,,,,,) = positionManager.positions(tokenId);
+        BaseERC1155CLWrapper.PositionData memory position = wrapper.getPositionData(tokenId);
 
-        DataTypes.ReserveConfigurationMap memory config0 = pool.getConfiguration(token0);
-        DataTypes.ReserveConfigurationMap memory config1 = pool.getConfiguration(token1);
+        DataTypes.ReserveConfigurationMap memory config0 = pool.getConfiguration(position.token0);
+        DataTypes.ReserveConfigurationMap memory config1 = pool.getConfiguration(position.token1);
 
         (bool isActive0, bool isFrozen0,, bool isPaused0) = config0.getFlags();
         (bool isActive1, bool isFrozen1,, bool isPaused1) = config1.getFlags();

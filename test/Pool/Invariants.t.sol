@@ -44,11 +44,11 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
         address asset = _getAssetByIndex(assetIndex);
         DataTypes.ReserveData memory reserve = parent.pool().getReserveData(asset);
 
-        (,,uint256 availableBorrowsBase,,,) = parent.pool().getUserAccountData(msg.sender);
+        (,, uint256 availableBorrowsBase,,,) = parent.pool().getUserAccountData(msg.sender);
 
         uint256 assetPrice = parent.oracle().getAssetPrice(asset);
-        uint256 maxAmount =
-            (availableBorrowsBase * 1e4 / reserve.configuration.getLtv()) * (10 ** IERC20(asset).decimals()) / assetPrice;
+        uint256 maxAmount = (availableBorrowsBase * 1e4 / reserve.configuration.getLtv())
+            * (10 ** IERC20(asset).decimals()) / assetPrice;
         maxAmount = Math.min(maxAmount, IERC20(reserve.yTokenAddress).balanceOf(msg.sender));
         maxAmount = Math.min(maxAmount, IERC20(asset).balanceOf(reserve.yTokenAddress));
         amount = _bound(amount, 0, maxAmount);
@@ -59,11 +59,11 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
         parent.pool().withdraw(asset, amount, msg.sender);
     }
 
-    function _getMaxBorrowAndAssume(address sender, address asset) internal view returns(uint256 maxBorrow) {
+    function _getMaxBorrowAndAssume(address sender, address asset) internal view returns (uint256 maxBorrow) {
         DataTypes.ReserveData memory reserve = parent.pool().getReserveData(asset);
         uint256 assetPrice = parent.oracle().getAssetPrice(asset);
 
-        (,,uint256 availableBorrowsBase,,,) = parent.pool().getUserAccountData(sender);
+        (,, uint256 availableBorrowsBase,,,) = parent.pool().getUserAccountData(sender);
 
         maxBorrow = availableBorrowsBase * (10 ** IERC20(asset).decimals()) / assetPrice;
         maxBorrow = Math.min(maxBorrow, IERC20(asset).balanceOf(reserve.yTokenAddress));
@@ -101,7 +101,9 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
     function flash(uint256 assetIndex, uint256 amount, bool createPosition) public {
         address asset = _getAssetByIndex(assetIndex);
         DataTypes.ReserveData memory reserve = parent.pool().getReserveData(asset);
-        uint256 maxAmount = createPosition ? _getMaxBorrowAndAssume(address(this), asset) : IERC20(asset).balanceOf(reserve.yTokenAddress);
+        uint256 maxAmount = createPosition
+            ? _getMaxBorrowAndAssume(address(this), asset)
+            : IERC20(asset).balanceOf(reserve.yTokenAddress);
         maxAmount = maxAmount / (1e4 + parent.pool().FLASHLOAN_PREMIUM_TOTAL()) * 1e4;
         amount = _bound(amount, 0, maxAmount);
         vm.assume(amount > 0);
