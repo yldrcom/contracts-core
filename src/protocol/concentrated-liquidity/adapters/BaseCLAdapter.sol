@@ -5,8 +5,8 @@ import {ReserveConfiguration} from "../../libraries/configuration/ReserveConfigu
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {FixedPoint128} from "@uniswap/v3-core/contracts/libraries/FixedPoint128.sol";
 
-/// Generic adapter to UniV3-like concentrated liquidity DEX. Currently oriented 
-/// and has implementations mainly for Uniswap V3 and Algebra contracts, but can 
+/// Generic adapter to UniV3-like concentrated liquidity DEX. Currently oriented
+/// and has implementations mainly for Uniswap V3 and Algebra contracts, but can
 /// also be extended to support other DEXs with similar semantics.
 abstract contract BaseCLAdapter {
     struct PositionData {

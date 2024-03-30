@@ -10,7 +10,8 @@ import {Pool} from "../src/protocol/pool/Pool.sol";
 import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
 import {IPoolConfigurator, ConfiguratorInputTypes} from "../src/interfaces/IPoolConfigurator.sol";
 import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
-import {ERC1155UniswapV3Wrapper} from "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
+import {ERC1155UniswapV3Wrapper} from
+    "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
 import {ERC1155CLWrapperOracle} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapperOracle.sol";
 import {ERC1155CLWrapperConfigurationProvider} from
     "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";

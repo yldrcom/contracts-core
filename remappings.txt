@@ -1,3 +1,4 @@
 @uniswap/=lib/uniswap/
+@algebra/=lib/algebra/
 @openzeppelin/contracts/=lib/openzeppelin/contracts/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-upgradeable/contracts/

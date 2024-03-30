@@ -4,7 +4,8 @@ import {Test, console2} from "forge-std/Test.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
 import {Errors} from "../src/protocol/libraries/helpers/Errors.sol";
 import {DataTypes} from "../src/protocol/libraries/types/DataTypes.sol";
-import {ERC1155UniswapV3Wrapper} from "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
+import {ERC1155UniswapV3Wrapper} from
+    "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
 import {ERC1155CLWrapperConfigurationProvider} from
     "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";
 import {ERC1155CLWrapperOracle} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapperOracle.sol";
