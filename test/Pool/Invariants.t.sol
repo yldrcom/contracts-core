@@ -10,13 +10,14 @@ import {StdUtils} from "forge-std/StdUtils.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
 import {CommonBase} from "forge-std/Base.sol";
 import {ReserveConfiguration} from "../../src/protocol/libraries/configuration/ReserveConfiguration.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract PoolHandler is CommonBase, StdUtils, StdCheats {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     PoolInvariants parent;
 
-    bool flashPosition;
+    bool expectFlash;
 
     constructor(PoolInvariants _parent) {
         parent = _parent;
@@ -43,10 +44,13 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
         address asset = _getAssetByIndex(assetIndex);
         DataTypes.ReserveData memory reserve = parent.pool().getReserveData(asset);
 
-        (uint256 totalCollateralBase,,,,,) = parent.pool().getUserAccountData(msg.sender);
+        (,, uint256 availableBorrowsBase,,,) = parent.pool().getUserAccountData(msg.sender);
 
-        uint256 maxAmount =
-            (totalCollateralBase * 1e4 / reserve.configuration.getLtv()) * (10 ** IERC20(asset).decimals()) / 1e8;
+        uint256 assetPrice = parent.oracle().getAssetPrice(asset);
+        uint256 maxAmount = (availableBorrowsBase * 1e4 / reserve.configuration.getLtv())
+            * (10 ** IERC20(asset).decimals()) / assetPrice;
+        maxAmount = Math.min(maxAmount, IERC20(reserve.yTokenAddress).balanceOf(msg.sender));
+        maxAmount = Math.min(maxAmount, IERC20(asset).balanceOf(reserve.yTokenAddress));
         amount = _bound(amount, 0, maxAmount);
 
         vm.assume(amount > 0);
@@ -55,15 +59,24 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
         parent.pool().withdraw(asset, amount, msg.sender);
     }
 
+    function _getMaxBorrowAndAssume(address sender, address asset) internal view returns (uint256 maxBorrow) {
+        DataTypes.ReserveData memory reserve = parent.pool().getReserveData(asset);
+        uint256 assetPrice = parent.oracle().getAssetPrice(asset);
+
+        (,, uint256 availableBorrowsBase,,,) = parent.pool().getUserAccountData(sender);
+
+        maxBorrow = availableBorrowsBase * (10 ** IERC20(asset).decimals()) / assetPrice;
+        maxBorrow = Math.min(maxBorrow, IERC20(asset).balanceOf(reserve.yTokenAddress));
+
+        vm.assume(maxBorrow > 0);
+    }
+
     function borrow(uint256 assetIndex, uint256 powerPercentToUse) public {
         powerPercentToUse = _bound(powerPercentToUse, 0, 10000);
         address asset = _getAssetByIndex(assetIndex);
+        uint256 maxBorrow = _getMaxBorrowAndAssume(msg.sender, asset);
 
-        (,, uint256 availableBorrowsBase,,,) = parent.pool().getUserAccountData(msg.sender);
-
-        uint256 assetPrice = parent.oracle().getAssetPrice(asset);
-        uint256 amount =
-            (availableBorrowsBase * powerPercentToUse / 10000) * (10 ** IERC20(asset).decimals()) / assetPrice;
+        uint256 amount = maxBorrow * powerPercentToUse / 10000;
 
         vm.assume(amount > 0);
 
@@ -88,8 +101,11 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
     function flash(uint256 assetIndex, uint256 amount, bool createPosition) public {
         address asset = _getAssetByIndex(assetIndex);
         DataTypes.ReserveData memory reserve = parent.pool().getReserveData(asset);
-        amount = _bound(amount, 0, IERC20(asset).balanceOf(reserve.yTokenAddress));
-
+        uint256 maxAmount = createPosition
+            ? _getMaxBorrowAndAssume(address(this), asset)
+            : IERC20(asset).balanceOf(reserve.yTokenAddress);
+        maxAmount = maxAmount / (1e4 + parent.pool().FLASHLOAN_PREMIUM_TOTAL()) * 1e4;
+        amount = _bound(amount, 0, maxAmount);
         vm.assume(amount > 0);
 
         address[] memory assets = new address[](1);
@@ -101,7 +117,10 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
         bool[] memory createPositions = new bool[](1);
         createPositions[0] = createPosition;
 
+        expectFlash = true;
+        vm.stopPrank();
         parent.pool().flashLoan(address(this), assets, amounts, createPositions, address(this), new bytes(0), 0);
+        expectFlash = false;
     }
 
     function executeOperation(
@@ -111,6 +130,7 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
         address,
         bytes calldata
     ) external returns (bool) {
+        vm.assume(expectFlash);
         for (uint256 i = 0; i < assets.length; i++) {
             address asset = assets[i];
             uint256 amount = amounts[i];
@@ -128,7 +148,7 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
 
     function setFlashFees(uint256 totalFee, uint256 protocolFee) public {
         totalFee = _bound(totalFee, 0, 1e4);
-        protocolFee = _bound(protocolFee, 0, totalFee);
+        protocolFee = _bound(protocolFee, 0, 1e4);
 
         vm.startPrank(parent.ADMIN());
         parent.configurator().updateFlashloanPremiumTotal(uint128(totalFee));
@@ -144,7 +164,7 @@ contract PoolHandler is CommonBase, StdUtils, StdCheats {
 contract PoolInvariants is BasePoolTest {
     PoolHandler handler;
 
-    constructor() {
+    function setUp() public {
         handler = new PoolHandler(this);
 
         targetContract(address(handler));

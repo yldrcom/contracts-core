@@ -37,7 +37,7 @@ contract NToken is ERC1155SupplyUpgradeable, ERC1155HolderUpgradeable, INToken {
         public
         virtual
         override
-        initializer
+        reinitializer(3)
     {
         __ERC1155_init("");
         __ERC1155Supply_init();

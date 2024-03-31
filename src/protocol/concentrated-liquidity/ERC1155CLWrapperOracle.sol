@@ -2,30 +2,21 @@
 pragma solidity ^0.8.10;
 
 import {IERC1155PriceOracle} from "../../interfaces/IERC1155PriceOracle.sol";
-import {IERC1155UniswapV3Wrapper} from "../../interfaces/IERC1155UniswapV3Wrapper.sol";
 import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IYLDROracle} from "../../interfaces/IYLDROracle.sol";
-import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-import {UniswapV3Position} from "./libraries/UniswapV3Position.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {LiquidityAmounts} from "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import {TickMath} from "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+import {BaseERC1155CLWrapper} from "./erc1155-wrappers/BaseERC1155CLWrapper.sol";
 
-contract ERC1155UniswapV3Oracle is IERC1155PriceOracle {
-    using UniswapV3Position for UniswapV3Position.UniswapV3PositionData;
-
+contract ERC1155CLWrapperOracle is IERC1155PriceOracle {
     IPoolAddressesProvider public immutable addressesProvider;
-    IERC1155UniswapV3Wrapper public immutable wrapper;
-    INonfungiblePositionManager public immutable positionManager;
-    IUniswapV3Factory public immutable factory;
+    BaseERC1155CLWrapper public immutable wrapper;
 
-    constructor(IPoolAddressesProvider _addressesProvider, IERC1155UniswapV3Wrapper _wrapper) {
+    constructor(IPoolAddressesProvider _addressesProvider, BaseERC1155CLWrapper _wrapper) {
         addressesProvider = _addressesProvider;
         wrapper = _wrapper;
-        positionManager = _wrapper.positionManager();
-        factory = _wrapper.factory();
     }
 
     function _calculateSqrtPriceX96(uint256 token0Rate, uint256 token1Rate, uint8 token0Decimals, uint8 token1Decimals)
@@ -49,9 +40,8 @@ contract ERC1155UniswapV3Oracle is IERC1155PriceOracle {
     }
 
     function getAssetPrice(uint256 tokenId) external view returns (uint256 value) {
-        UniswapV3Position.UniswapV3PositionData memory position =
-            UniswapV3Position.get(positionManager, factory, tokenId);
-        (uint256 fees0, uint256 fees1) = position.getPendingFees();
+        (uint256 fees0, uint256 fees1) = wrapper.getPendingFees(tokenId);
+        BaseERC1155CLWrapper.PositionData memory position = wrapper.getPositionData(tokenId);
 
         IYLDROracle oracle = IYLDROracle(addressesProvider.getPriceOracle());
 

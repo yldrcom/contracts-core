@@ -22,7 +22,7 @@ contract DeployScript is Script {
         console2.log("Pool:", address(pool));
     }
 
-    function protocol(uint256 maxERC1155Reserves) public {
+    function protocol(uint256 maxERC1155Reserves, uint256 flashloanFee) public {
         vm.startBroadcast();
 
         (, address deployer,) = vm.readCallers();
@@ -52,6 +52,9 @@ contract DeployScript is Script {
         addressesProvider.setPriceOracle(address(oracle));
 
         poolConfigurator.updateMaxERC1155CollateralReserves(maxERC1155Reserves);
+
+        poolConfigurator.updateFlashloanPremiumTotal(uint128(flashloanFee));
+        poolConfigurator.updateFlashloanPremiumToProtocol(1e4);
 
         console2.log("PoolAddressesProvider:", address(addressesProvider));
         console2.log("Pool:", addressesProvider.getPool());

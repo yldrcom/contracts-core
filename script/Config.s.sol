@@ -10,10 +10,11 @@ import {Pool} from "../src/protocol/pool/Pool.sol";
 import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
 import {IPoolConfigurator, ConfiguratorInputTypes} from "../src/interfaces/IPoolConfigurator.sol";
 import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
-import {ERC1155UniswapV3Wrapper} from "../src/protocol/concentrated-liquidity/ERC1155UniswapV3Wrapper.sol";
-import {ERC1155UniswapV3Oracle} from "../src/protocol/concentrated-liquidity/ERC1155UniswapV3Oracle.sol";
-import {ERC1155UniswapV3ConfigurationProvider} from
-    "../src/protocol/concentrated-liquidity/ERC1155UniswapV3ConfigurationProvider.sol";
+import {ERC1155UniswapV3Wrapper} from
+    "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
+import {ERC1155CLWrapperOracle} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapperOracle.sol";
+import {ERC1155CLWrapperConfigurationProvider} from
+    "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
@@ -30,7 +31,9 @@ contract ConfigScript is Script {
         uint256 liquidationThreshold;
         uint256 liquidationBonus;
         uint256 reserveFactor;
+        uint256 liquidationProtocolFee;
     }
+    // initReserve((address,address,address,address,address,address,uint256,uint256,uint256,uint256,uint256))
 
     function initReserve(InitReserveArgs memory params) public {
         vm.startBroadcast();
@@ -66,6 +69,8 @@ contract ConfigScript is Script {
         configurator.initReserves(reserves);
         configurator.setReserveBorrowing(address(params.underlying), true);
         configurator.setReserveFactor(address(params.underlying), params.reserveFactor);
+        configurator.setReserveFlashLoaning(address(params.underlying), true);
+        configurator.setLiquidationProtocolFee(address(params.underlying), params.liquidationProtocolFee);
 
         configurator.configureReserveAsCollateral(
             address(params.underlying), params.ltv, params.liquidationThreshold, params.liquidationBonus
@@ -84,15 +89,15 @@ contract ConfigScript is Script {
         ERC1155UniswapV3Wrapper wrapper = ERC1155UniswapV3Wrapper(
             address(
                 new TransparentUpgradeableProxy(
-                    address(new ERC1155UniswapV3Wrapper()),
+                    address(new ERC1155UniswapV3Wrapper(address(positionManager))),
                     deployer,
-                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, (positionManager))
+                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, ())
                 )
             )
         );
-        ERC1155UniswapV3Oracle oracle = new ERC1155UniswapV3Oracle(provider, wrapper);
-        ERC1155UniswapV3ConfigurationProvider configProvider =
-            new ERC1155UniswapV3ConfigurationProvider(IPool(provider.getPool()), wrapper);
+        ERC1155CLWrapperOracle oracle = new ERC1155CLWrapperOracle(provider, wrapper);
+        ERC1155CLWrapperConfigurationProvider configProvider =
+            new ERC1155CLWrapperConfigurationProvider(IPool(provider.getPool()), wrapper);
 
         ConfiguratorInputTypes.InitERC1155ReserveInput[] memory erc1155Reserves =
             new ConfiguratorInputTypes.InitERC1155ReserveInput[](1);
