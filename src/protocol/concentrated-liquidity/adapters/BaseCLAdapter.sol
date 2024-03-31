@@ -59,7 +59,7 @@ abstract contract BaseCLAdapter {
 
     /// @dev Logic is taken from uniswap-v3/core/contracts/libraries/Tick.sol
     function _getFeeGrowthInside(address pool, int24 tickLower, int24 tickUpper)
-        internal
+        private
         view
         returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
     {
