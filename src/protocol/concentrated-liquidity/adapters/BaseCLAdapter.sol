@@ -146,4 +146,6 @@ abstract contract BaseCLAdapter {
                 );
         }
     }
+
+    function _getTickSpacing(address pool) internal view virtual returns (int24);
 }

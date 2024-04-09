@@ -5,6 +5,7 @@ import {IERC1155ConfigurationProvider} from "../../interfaces/IERC1155Configurat
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {IPool} from "../../interfaces/IPool.sol";
+import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {BaseERC1155CLWrapper} from "./erc1155-wrappers/BaseERC1155CLWrapper.sol";
@@ -15,8 +16,8 @@ contract ERC1155CLWrapperConfigurationProvider is IERC1155ConfigurationProvider 
     IPool public immutable pool;
     BaseERC1155CLWrapper public immutable wrapper;
 
-    constructor(IPool _pool, BaseERC1155CLWrapper _wrapper) {
-        pool = _pool;
+    constructor(IPoolAddressesProvider _addressesProvider, BaseERC1155CLWrapper _wrapper) {
+        pool = IPool(_addressesProvider.getPool());
         wrapper = _wrapper;
     }
 

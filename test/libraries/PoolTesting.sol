@@ -88,7 +88,7 @@ library PoolTesting {
                     variableRateSlope1,
                     variableRateSlope2
                 )
-                ),
+            ),
             underlyingAsset: asset,
             treasury: self.admin,
             incentivesController: address(0),

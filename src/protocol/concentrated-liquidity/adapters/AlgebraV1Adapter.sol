@@ -148,9 +148,13 @@ contract AlgebraV1Adapter is BaseCLAdapter {
                 amount1Desired: params.amount1Desired,
                 amount0Min: params.amount0Min,
                 amount1Min: params.amount1Min,
-                recipient: address(this),
+                recipient: params.recipient,
                 deadline: params.deadline
             })
         );
+    }
+
+    function _getTickSpacing(address pool) internal view virtual override returns (int24) {
+        return IAlgebraPool(pool).tickSpacing();
     }
 }
