@@ -39,26 +39,26 @@ abstract contract BaseCLAdapter {
         uint256 deadline;
     }
 
-    function _getPositionData(uint256 tokenId) internal view virtual returns (PositionData memory);
+    function getPositionData(uint256 tokenId) public view virtual returns (PositionData memory);
 
-    function _collectFees(uint256 tokenId, uint128 amount0Max, uint128 amount1Max, address receiver)
-        internal
+    function collectFees(uint256 tokenId, uint128 amount0Max, uint128 amount1Max, address receiver)
+        public
         virtual
         returns (uint256 amount0, uint256 amount1);
 
-    function _increaseLiquidity(uint256 tokenId, uint256 amount0, uint256 amount1)
-        internal
+    function increaseLiquidity(uint256 tokenId, uint256 amount0, uint256 amount1)
+        public
         virtual
         returns (uint256 amount0Resulted, uint256 amount1Resulted);
 
-    function _decreaseLiquidity(uint256 tokenId, uint128 liquidity)
-        internal
+    function decreaseLiquidity(uint256 tokenId, uint128 liquidity)
+        public
         virtual
         returns (uint256 amount0, uint256 amount1);
 
-    function _getPool(PositionData memory position) internal view virtual returns (address);
+    function getPool(PositionData memory position) public view virtual returns (address);
 
-    function _getPositionManager() internal view virtual returns (address);
+    function getPositionManager() public view virtual returns (address);
 
     function _getFeeGrowths(address pool, int24 tick)
         internal
@@ -66,9 +66,9 @@ abstract contract BaseCLAdapter {
         virtual
         returns (uint256 feeGrowthOutside0X128, uint256 feeGrowthOutside1X128);
 
-    function _getPoolState(address pool) internal view virtual returns (uint160 sqrtPriceX96, int24 tick);
+    function getPoolState(address pool) public view virtual returns (uint160 sqrtPriceX96, int24 tick);
 
-    function _getPoolLiquidity(address pool) internal view virtual returns (uint128 liquidity);
+    function getPoolLiquidity(address pool) public view virtual returns (uint128 liquidity);
 
     function _getGlobalFeeGrowths(address pool)
         internal
@@ -76,8 +76,8 @@ abstract contract BaseCLAdapter {
         virtual
         returns (uint256 feeGrowthGlobal0X128, uint256 feeGrowthGlobal1X128);
 
-    function _mintPosition(MintParams memory params)
-        internal
+    function mintPosition(MintParams memory params)
+        public
         virtual
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
 
@@ -88,7 +88,7 @@ abstract contract BaseCLAdapter {
         returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
     {
         unchecked {
-            (, int24 tickCurrent) = _getPoolState(pool);
+            (, int24 tickCurrent) = getPoolState(pool);
 
             (uint256 feeGrowthGlobal0X128, uint256 feeGrowthGlobal1X128) = _getGlobalFeeGrowths(pool);
 
@@ -122,14 +122,14 @@ abstract contract BaseCLAdapter {
         }
     }
 
-    function _getPendingFees(PositionData memory position) internal view returns (uint256 amount0, uint256 amount1) {
+    function getPendingFees(PositionData memory position) public view returns (uint256 amount0, uint256 amount1) {
         // Non-zero positions can't have unclaimed fees by design of position manager
         if (position.liquidity == 0) {
             return (position.tokensOwed0, position.tokensOwed1);
         }
 
         (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
-            _getFeeGrowthInside(_getPool(position), position.tickLower, position.tickUpper);
+            _getFeeGrowthInside(getPool(position), position.tickLower, position.tickUpper);
         unchecked {
             // overflow in fee growth subtraction is expected
             amount0 = position.tokensOwed0
@@ -147,5 +147,5 @@ abstract contract BaseCLAdapter {
         }
     }
 
-    function _getTickSpacing(address pool) internal view virtual returns (int24);
+    function getTickSpacing(address pool) public view virtual returns (int24);
 }

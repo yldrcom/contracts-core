@@ -8,15 +8,18 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {LiquidityAmounts} from "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import {TickMath} from "@uniswap/v3-core/contracts/libraries/TickMath.sol";
-import {BaseERC1155CLWrapper} from "./erc1155-wrappers/BaseERC1155CLWrapper.sol";
+import {ERC1155CLWrapper} from "./ERC1155CLWrapper.sol";
+import {BaseCLAdapter} from "./adapters/BaseCLAdapter.sol";
 
 contract ERC1155CLWrapperOracle is IERC1155PriceOracle {
     IPoolAddressesProvider public immutable addressesProvider;
-    BaseERC1155CLWrapper public immutable wrapper;
+    ERC1155CLWrapper public immutable wrapper;
+    BaseCLAdapter public immutable adapter;
 
-    constructor(IPoolAddressesProvider _addressesProvider, BaseERC1155CLWrapper _wrapper) {
+    constructor(IPoolAddressesProvider _addressesProvider, ERC1155CLWrapper _wrapper) {
         addressesProvider = _addressesProvider;
         wrapper = _wrapper;
+        adapter = _wrapper.adapter();
     }
 
     function _calculateSqrtPriceX96(uint256 token0Rate, uint256 token1Rate, uint8 token0Decimals, uint8 token1Decimals)
@@ -40,8 +43,8 @@ contract ERC1155CLWrapperOracle is IERC1155PriceOracle {
     }
 
     function getAssetPrice(uint256 tokenId) external view returns (uint256 value) {
-        (uint256 fees0, uint256 fees1) = wrapper.getPendingFees(tokenId);
-        BaseERC1155CLWrapper.PositionData memory position = wrapper.getPositionData(tokenId);
+        BaseCLAdapter.PositionData memory position = adapter.getPositionData(tokenId);
+        (uint256 fees0, uint256 fees1) = adapter.getPendingFees(position);
 
         IYLDROracle oracle = IYLDROracle(addressesProvider.getPriceOracle());
 

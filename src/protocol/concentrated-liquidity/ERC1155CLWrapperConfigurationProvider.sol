@@ -8,17 +8,20 @@ import {IPool} from "../../interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "../../interfaces/IPoolAddressesProvider.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {BaseERC1155CLWrapper} from "./erc1155-wrappers/BaseERC1155CLWrapper.sol";
+import {ERC1155CLWrapper} from "./ERC1155CLWrapper.sol";
+import {BaseCLAdapter} from "./adapters/BaseCLAdapter.sol";
 
 contract ERC1155CLWrapperConfigurationProvider is IERC1155ConfigurationProvider {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     IPool public immutable pool;
-    BaseERC1155CLWrapper public immutable wrapper;
+    ERC1155CLWrapper public immutable wrapper;
+    BaseCLAdapter public immutable adapter;
 
-    constructor(IPoolAddressesProvider _addressesProvider, BaseERC1155CLWrapper _wrapper) {
+    constructor(IPoolAddressesProvider _addressesProvider, ERC1155CLWrapper _wrapper) {
         pool = IPool(_addressesProvider.getPool());
         wrapper = _wrapper;
+        adapter = _wrapper.adapter();
     }
 
     function getERC1155ReserveConfig(uint256 tokenId)
@@ -26,7 +29,7 @@ contract ERC1155CLWrapperConfigurationProvider is IERC1155ConfigurationProvider 
         view
         returns (DataTypes.ERC1155ReserveConfiguration memory)
     {
-        BaseERC1155CLWrapper.PositionData memory position = wrapper.getPositionData(tokenId);
+        BaseCLAdapter.PositionData memory position = adapter.getPositionData(tokenId);
 
         DataTypes.ReserveConfigurationMap memory config0 = pool.getConfiguration(position.token0);
         DataTypes.ReserveConfigurationMap memory config1 = pool.getConfiguration(position.token1);

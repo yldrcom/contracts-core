@@ -4,8 +4,8 @@ import {Test, console2} from "forge-std/Test.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
 import {Errors} from "../src/protocol/libraries/helpers/Errors.sol";
 import {DataTypes} from "../src/protocol/libraries/types/DataTypes.sol";
-import {ERC1155UniswapV3Wrapper} from
-    "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
+import {ERC1155CLWrapper} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapper.sol";
+import {UniswapV3Adapter} from "../src/protocol/concentrated-liquidity/adapters/UniswapV3Adapter.sol";
 import {ERC1155CLWrapperConfigurationProvider} from
     "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";
 import {ERC1155CLWrapperOracle} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapperOracle.sol";
@@ -30,7 +30,8 @@ contract UniswapV3WrapperTest is BaseTest {
     IPool pool;
     IYLDROracle oracle;
 
-    ERC1155UniswapV3Wrapper uniswapV3Wrapper;
+    ERC1155CLWrapper uniswapV3Wrapper;
+    UniswapV3Adapter uniswapV3Adapter;
 
     constructor() {
         vm.createSelectFork("mainnet");
@@ -69,12 +70,14 @@ contract UniswapV3WrapperTest is BaseTest {
             0.15e4
         );
 
-        uniswapV3Wrapper = ERC1155UniswapV3Wrapper(
+        uniswapV3Adapter = new UniswapV3Adapter(address(uniswapV3.positionManager));
+
+        uniswapV3Wrapper = ERC1155CLWrapper(
             address(
                 new TransparentUpgradeableProxy(
-                    address(new ERC1155UniswapV3Wrapper(address(uniswapV3.positionManager))),
+                    address(new ERC1155CLWrapper(uniswapV3Adapter)),
                     ADMIN,
-                    abi.encodeCall(ERC1155UniswapV3Wrapper.initialize, ())
+                    abi.encodeCall(ERC1155CLWrapper.initialize, ())
                 )
             )
         );

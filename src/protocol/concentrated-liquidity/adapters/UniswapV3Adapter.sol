@@ -15,7 +15,7 @@ contract UniswapV3Adapter is BaseCLAdapter {
         factory = IUniswapV3Factory(positionManager.factory());
     }
 
-    function _getPositionData(uint256 tokenId) internal view virtual override returns (PositionData memory) {
+    function getPositionData(uint256 tokenId) public view virtual override returns (PositionData memory) {
         (
             ,
             ,
@@ -46,11 +46,11 @@ contract UniswapV3Adapter is BaseCLAdapter {
         });
     }
 
-    function _getPoolState(address pool) internal view virtual override returns (uint160 sqrtPriceX96, int24 tick) {
+    function getPoolState(address pool) public view virtual override returns (uint160 sqrtPriceX96, int24 tick) {
         (sqrtPriceX96, tick,,,,,) = IUniswapV3Pool(pool).slot0();
     }
 
-    function _getPoolLiquidity(address pool) internal view virtual override returns (uint128 liquidity) {
+    function getPoolLiquidity(address pool) public view virtual override returns (uint128 liquidity) {
         liquidity = IUniswapV3Pool(pool).liquidity();
     }
 
@@ -75,8 +75,8 @@ contract UniswapV3Adapter is BaseCLAdapter {
         feeGrowthGlobal1X128 = IUniswapV3Pool(pool).feeGrowthGlobal1X128();
     }
 
-    function _collectFees(uint256 tokenId, uint128 amount0Max, uint128 amount1Max, address receiver)
-        internal
+    function collectFees(uint256 tokenId, uint128 amount0Max, uint128 amount1Max, address receiver)
+        public
         virtual
         override
         returns (uint256 amount0, uint256 amount1)
@@ -91,8 +91,8 @@ contract UniswapV3Adapter is BaseCLAdapter {
         );
     }
 
-    function _increaseLiquidity(uint256 tokenId, uint256 amount0, uint256 amount1)
-        internal
+    function increaseLiquidity(uint256 tokenId, uint256 amount0, uint256 amount1)
+        public
         virtual
         override
         returns (uint256 amount0Resulted, uint256 amount1Resulted)
@@ -109,8 +109,8 @@ contract UniswapV3Adapter is BaseCLAdapter {
         );
     }
 
-    function _decreaseLiquidity(uint256 tokenId, uint128 liquidity)
-        internal
+    function decreaseLiquidity(uint256 tokenId, uint128 liquidity)
+        public
         virtual
         override
         returns (uint256 amount0, uint256 amount1)
@@ -126,16 +126,16 @@ contract UniswapV3Adapter is BaseCLAdapter {
         );
     }
 
-    function _getPool(PositionData memory position) internal view virtual override returns (address) {
+    function getPool(PositionData memory position) public view virtual override returns (address) {
         return factory.getPool(position.token0, position.token1, position.fee);
     }
 
-    function _getPositionManager() internal view override returns (address) {
+    function getPositionManager() public view override returns (address) {
         return address(positionManager);
     }
 
-    function _mintPosition(MintParams memory params)
-        internal
+    function mintPosition(MintParams memory params)
+        public
         override
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
     {
@@ -156,7 +156,7 @@ contract UniswapV3Adapter is BaseCLAdapter {
         );
     }
 
-    function _getTickSpacing(address pool) internal view virtual override returns (int24) {
+    function getTickSpacing(address pool) public view virtual override returns (int24) {
         return IUniswapV3Pool(pool).tickSpacing();
     }
 }

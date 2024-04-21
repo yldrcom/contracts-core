@@ -10,17 +10,15 @@ import {Pool} from "../src/protocol/pool/Pool.sol";
 import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
 import {IPoolConfigurator, ConfiguratorInputTypes} from "../src/interfaces/IPoolConfigurator.sol";
 import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
-import {ERC1155UniswapV3Wrapper} from
-    "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155UniswapV3Wrapper.sol";
 import {ERC1155CLWrapperOracle} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapperOracle.sol";
 import {ERC1155CLWrapperConfigurationProvider} from
     "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
-import {ERC1155AlgebraV1Wrapper} from
-    "../src/protocol/concentrated-liquidity/erc1155-wrappers/ERC1155AlgebraV1Wrapper.sol";
-import {BaseERC1155CLWrapper} from "../src/protocol/concentrated-liquidity/erc1155-wrappers/BaseERC1155CLWrapper.sol";
+import {ERC1155CLWrapper} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapper.sol";
+import {BaseCLAdapter} from "../src/protocol/concentrated-liquidity/adapters/BaseCLAdapter.sol";
+import {AlgebraV1Adapter} from "../src/protocol/concentrated-liquidity/adapters/AlgebraV1Adapter.sol";
 
 contract ConfigScript is Script {
     struct InitReserveArgs {
@@ -80,12 +78,16 @@ contract ConfigScript is Script {
         );
     }
 
-    function _deployCL(
-        IPoolAddressesProvider provider,
-        BaseERC1155CLWrapper wrapper,
-        address nTokenImpl,
-        address multisig
-    ) internal {
+    function _deployCL(IPoolAddressesProvider provider, BaseCLAdapter adapter, address nTokenImpl, address multisig)
+        internal
+    {
+        ERC1155CLWrapper wrapper = ERC1155CLWrapper(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new ERC1155CLWrapper(adapter)), multisig, abi.encodeCall(ERC1155CLWrapper.initialize, ())
+                )
+            )
+        );
         ERC1155CLWrapperOracle oracle = new ERC1155CLWrapperOracle(provider, wrapper);
         ERC1155CLWrapperConfigurationProvider configProvider =
             new ERC1155CLWrapperConfigurationProvider(provider, wrapper);
@@ -122,16 +124,9 @@ contract ConfigScript is Script {
         public
     {
         vm.startBroadcast();
-        ERC1155AlgebraV1Wrapper wrapper = ERC1155AlgebraV1Wrapper(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(new ERC1155AlgebraV1Wrapper(positionManager)),
-                    multisig,
-                    abi.encodeCall(ERC1155AlgebraV1Wrapper.initialize, ())
-                )
-            )
-        );
 
-        _deployCL(provider, wrapper, nTokenImpl, multisig);
+        AlgebraV1Adapter adapter = new AlgebraV1Adapter(positionManager);
+
+        _deployCL(provider, adapter, nTokenImpl, multisig);
     }
 }
