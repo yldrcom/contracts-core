@@ -28,6 +28,7 @@ mumbai = { key = "${POLYGONSCAN_TOKEN}" }
 moonbeam = { key = "${MOONSCAN_TOKEN}" }
 moonbase = { key = "${MOONSCAN_TOKEN}" }
 arbitrum_one = { key = "${ARBISCAN_TOKEN}", chain = "arbitrum" }
+sepolia = { key = "${ETHERSCAN_TOKEN}" }
 
 [profile.mainnet_libs]
 libraries = [

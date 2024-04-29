@@ -18,10 +18,9 @@ contract ERC1155CLWrapperConfigurationProvider is IERC1155ConfigurationProvider 
     ERC1155CLWrapper public immutable wrapper;
     BaseCLAdapter public immutable adapter;
 
-    constructor(IPoolAddressesProvider _addressesProvider, ERC1155CLWrapper _wrapper) {
+    constructor(IPoolAddressesProvider _addressesProvider, BaseCLAdapter _adapter) {
         pool = IPool(_addressesProvider.getPool());
-        wrapper = _wrapper;
-        adapter = _wrapper.adapter();
+        adapter = _adapter;
     }
 
     function getERC1155ReserveConfig(uint256 tokenId)

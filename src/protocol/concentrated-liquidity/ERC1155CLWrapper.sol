@@ -11,6 +11,11 @@ import {CLAdapterWrapper} from "./CLAdapterWrapper.sol";
 contract ERC1155CLWrapper is ERC1155SupplyUpgradeable, IERC721Receiver {
     using CLAdapterWrapper for BaseCLAdapter;
 
+    // Placeholders for addresses used by previous impl.
+    // Zeroed out in initializer, can be removed in future versions.
+    address positionManager;
+    address factory;
+
     BaseCLAdapter public immutable adapter;
 
     constructor(BaseCLAdapter _adapter) {
@@ -19,8 +24,11 @@ contract ERC1155CLWrapper is ERC1155SupplyUpgradeable, IERC721Receiver {
         _disableInitializers();
     }
 
-    function initialize() public initializer {
+    function initialize() public reinitializer(2) {
         __ERC1155_init("");
+
+        positionManager = address(0);
+        factory = address(0);
     }
 
     error OnlyPositionManager();

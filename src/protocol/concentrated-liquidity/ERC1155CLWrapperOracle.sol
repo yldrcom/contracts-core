@@ -13,13 +13,11 @@ import {BaseCLAdapter} from "./adapters/BaseCLAdapter.sol";
 
 contract ERC1155CLWrapperOracle is IERC1155PriceOracle {
     IPoolAddressesProvider public immutable addressesProvider;
-    ERC1155CLWrapper public immutable wrapper;
     BaseCLAdapter public immutable adapter;
 
-    constructor(IPoolAddressesProvider _addressesProvider, ERC1155CLWrapper _wrapper) {
+    constructor(IPoolAddressesProvider _addressesProvider, BaseCLAdapter _adapter) {
         addressesProvider = _addressesProvider;
-        wrapper = _wrapper;
-        adapter = _wrapper.adapter();
+        adapter = _adapter;
     }
 
     function _calculateSqrtPriceX96(uint256 token0Rate, uint256 token1Rate, uint8 token0Decimals, uint8 token1Decimals)

@@ -410,12 +410,7 @@ library LiquidationLogic {
         DataTypes.ExecuteERC1155LiquidationCallParams memory params,
         ERC1155LiquidationCallLocalVars memory vars
     ) internal {
-        uint256 liquidatorPreviousNTokenBalance = vars.collateralNToken.balanceOf(msg.sender, params.collateralTokenId);
-        vars.collateralNToken.safeTransferFromOnLiquidation(
-            params.user, msg.sender, params.collateralTokenId, vars.actualCollateralToLiquidate, bytes("")
-        );
-
-        if (liquidatorPreviousNTokenBalance == 0) {
+        if (vars.collateralNToken.balanceOf(msg.sender, params.collateralTokenId) == 0) {
             DataTypes.UserERC1155ConfigurationMap storage liquidatorConfig = usersERC1155Config[msg.sender];
             if (
                 ValidationLogic.validateUseERC1155AsCollateral(
@@ -428,6 +423,9 @@ library LiquidationLogic {
                 );
             }
         }
+        vars.collateralNToken.safeTransferFromOnLiquidation(
+            params.user, msg.sender, params.collateralTokenId, vars.actualCollateralToLiquidate, bytes("")
+        );
     }
 
     /**

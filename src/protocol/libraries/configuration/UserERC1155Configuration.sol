@@ -25,6 +25,9 @@ library UserERC1155Configuration {
         bool usingAsCollateral
     ) internal {
         if (usingAsCollateral) {
+            if (self.usedERC1155ReservesMap[asset][tokenId] > 0) {
+                revert(Errors.ERC1155_RESERVE_ALREADY_USED_AS_COLLATERAL);
+            }
             self.usedERC1155Reserves.push(DataTypes.ERC1155ReserveUsageData({asset: asset, tokenId: tokenId}));
             self.usedERC1155ReservesMap[asset][tokenId] = self.usedERC1155Reserves.length;
         } else {

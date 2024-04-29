@@ -88,9 +88,9 @@ contract ConfigScript is Script {
                 )
             )
         );
-        ERC1155CLWrapperOracle oracle = new ERC1155CLWrapperOracle(provider, wrapper);
+        ERC1155CLWrapperOracle oracle = new ERC1155CLWrapperOracle(provider, adapter);
         ERC1155CLWrapperConfigurationProvider configProvider =
-            new ERC1155CLWrapperConfigurationProvider(provider, wrapper);
+            new ERC1155CLWrapperConfigurationProvider(provider, adapter);
 
         ConfiguratorInputTypes.InitERC1155ReserveInput[] memory erc1155Reserves =
             new ConfiguratorInputTypes.InitERC1155ReserveInput[](1);
