@@ -19,6 +19,7 @@ import {IPool} from "../src/interfaces/IPool.sol";
 import {ERC1155CLWrapper} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapper.sol";
 import {BaseCLAdapter} from "../src/protocol/concentrated-liquidity/adapters/BaseCLAdapter.sol";
 import {AlgebraV1Adapter} from "../src/protocol/concentrated-liquidity/adapters/AlgebraV1Adapter.sol";
+import {UniswapV3Adapter} from "../src/protocol/concentrated-liquidity/adapters/UniswapV3Adapter.sol";
 
 contract ConfigScript is Script {
     struct InitReserveArgs {
@@ -33,8 +34,8 @@ contract ConfigScript is Script {
         uint256 liquidationBonus;
         uint256 reserveFactor;
         uint256 liquidationProtocolFee;
+        address treasury;
     }
-    // initReserve((address,address,address,address,address,address,uint256,uint256,uint256,uint256,uint256))
 
     function initReserve(InitReserveArgs memory params) public {
         vm.startBroadcast();
@@ -49,8 +50,6 @@ contract ConfigScript is Script {
 
         oracle.setAssetSources(assets, sources);
 
-        (, address deployer,) = vm.readCallers();
-
         ConfiguratorInputTypes.InitReserveInput[] memory reserves = new ConfiguratorInputTypes.InitReserveInput[](1);
         reserves[0] = ConfiguratorInputTypes.InitReserveInput({
             yTokenImpl: params.yTokenImpl,
@@ -58,7 +57,7 @@ contract ConfigScript is Script {
             underlyingAssetDecimals: params.underlying.decimals(),
             interestRateStrategyAddress: params.interestRateStrategy,
             underlyingAsset: address(params.underlying),
-            treasury: deployer,
+            treasury: params.treasury,
             incentivesController: address(0),
             yTokenName: string.concat("YLDR Interest bearing ", params.underlying.symbol()),
             yTokenSymbol: string.concat("y", params.underlying.symbol()),
@@ -78,9 +77,14 @@ contract ConfigScript is Script {
         );
     }
 
-    function _deployCL(IPoolAddressesProvider provider, BaseCLAdapter adapter, address nTokenImpl, address multisig)
-        internal
-    {
+    function _deployCL(
+        IPoolAddressesProvider provider,
+        BaseCLAdapter adapter,
+        address nTokenImpl,
+        address feeCollector,
+        address multisig,
+        bool proposal
+    ) internal {
         ERC1155CLWrapper wrapper = ERC1155CLWrapper(
             address(
                 new TransparentUpgradeableProxy(
@@ -97,7 +101,7 @@ contract ConfigScript is Script {
         erc1155Reserves[0] = ConfiguratorInputTypes.InitERC1155ReserveInput({
             nTokenImpl: nTokenImpl,
             underlyingAsset: address(wrapper),
-            treasury: multisig,
+            treasury: feeCollector,
             configurationProvider: address(configProvider),
             params: ""
         });
@@ -111,22 +115,44 @@ contract ConfigScript is Script {
 
         bytes memory oracleUpdateData = abi.encodeCall(IYLDROracle.setERC1155AssetSources, (assets, sources));
 
-        vm.stopBroadcast();
-        vm.startPrank(multisig);
+        // In proposal mode, do prank instead of broadcast
+        if (proposal) {
+            vm.stopBroadcast();
+            vm.startPrank(multisig);
+
+            console.log(provider.getPoolConfigurator(), vm.toString(initReserveData));
+            console.log(provider.getPriceOracle(), vm.toString(oracleUpdateData));
+        }
+
         provider.getPoolConfigurator().call(initReserveData);
         provider.getPriceOracle().call(oracleUpdateData);
-
-        console.log(provider.getPoolConfigurator(), vm.toString(initReserveData));
-        console.log(provider.getPriceOracle(), vm.toString(oracleUpdateData));
     }
 
-    function algebraV1(IPoolAddressesProvider provider, address positionManager, address nTokenImpl, address multisig)
-        public
-    {
+    function uniswapV3(
+        IPoolAddressesProvider provider,
+        address positionManager,
+        address nTokenImpl,
+        address multisig,
+        bool proposal
+    ) public {
+        vm.startBroadcast();
+
+        UniswapV3Adapter adapter = new UniswapV3Adapter(positionManager);
+
+        _deployCL(provider, adapter, nTokenImpl, multisig, proposal);
+    }
+
+    function algebraV1(
+        IPoolAddressesProvider provider,
+        address positionManager,
+        address nTokenImpl,
+        address multisig,
+        bool proposal
+    ) public {
         vm.startBroadcast();
 
         AlgebraV1Adapter adapter = new AlgebraV1Adapter(positionManager);
 
-        _deployCL(provider, adapter, nTokenImpl, multisig);
+        _deployCL(provider, adapter, nTokenImpl, multisig, proposal);
     }
 }

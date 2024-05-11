@@ -11,6 +11,9 @@ import {YLDROracle} from "../src/misc/YLDROracle.sol";
 import {IPoolConfigurator, ConfiguratorInputTypes} from "../src/interfaces/IPoolConfigurator.sol";
 import {DefaultReserveInterestRateStrategy} from "../src/protocol/pool/DefaultReserveInterestRateStrategy.sol";
 import {YLDRProtocolDataProvider} from "../src/misc/YLDRProtocolDataProvider.sol";
+import {YToken} from "../src/protocol/tokenization/YToken.sol";
+import {VariableDebtToken} from "../src/protocol/tokenization/VariableDebtToken.sol";
+import {IPool} from "../src/interfaces/IPool.sol";
 
 contract DeployScript is Script {
     function pool(address addressesProvider) public {
@@ -55,6 +58,9 @@ contract DeployScript is Script {
 
         poolConfigurator.updateFlashloanPremiumTotal(uint128(flashloanFee));
         poolConfigurator.updateFlashloanPremiumToProtocol(1e4);
+
+        YToken yTokenImpl = new YToken(IPool(addressesProvider.getPool()));
+        VariableDebtToken variableDebtImpl = new VariableDebtToken(IPool(addressesProvider.getPool()));
 
         console2.log("PoolAddressesProvider:", address(addressesProvider));
         console2.log("Pool:", addressesProvider.getPool());

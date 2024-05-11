@@ -6,11 +6,12 @@ mumbai = "${MUMBAI_RPC}"
 moonbeam = "${MOONBEAM_MAINNET_RPC}"
 moonbase = "${MOONBASE_RPC}"
 arbitrum_one = "${ARBITRUM_RPC}"
+base = "${BASE_RPC}"
 
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]
+libs = ["lib"]  
 solc = "0.8.23"
 ignored_error_codes = ["license"]
 evm_version = "paris"
@@ -29,6 +30,7 @@ moonbeam = { key = "${MOONSCAN_TOKEN}" }
 moonbase = { key = "${MOONSCAN_TOKEN}" }
 arbitrum_one = { key = "${ARBISCAN_TOKEN}", chain = "arbitrum" }
 sepolia = { key = "${ETHERSCAN_TOKEN}" }
+base = { key = "${BASESCAN_TOKEN}"}
 
 [profile.mainnet_libs]
 libraries = [
@@ -58,4 +60,14 @@ libraries = [
     "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0xaD289BC22E12E4744AE6896c0812A60EE4e04A65",
     "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0xd6f13c8dd1509e6fB5cfBc8194132977c31b7c3D",
     "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x28219423FdA748495E10DFa05F089233A5491e16",
+]
+
+[profile.base_libs]
+libraries = [
+    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0x26Fc68cE8ED4EF8c90Ff3c90Bf77bbB21C0224e6",
+    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0x8695cA6aBaBbd626C94AC8A74F49B32caf7c65f8",
+    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x5A7B4A6c6D6F53179dcF5C5F5a67B635e67CCD82",
+    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x8F453CDe1c2bECcE6f630a6A3E91C158C87E65cA",
+    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x51A7db09Ec126621cE67053F1e555bbF1f894825",
+    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x2bD4993A15B736aE7Cf0eF955eBD6401F3802790",
 ]
