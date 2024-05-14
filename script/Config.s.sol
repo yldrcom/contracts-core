@@ -132,6 +132,7 @@ contract ConfigScript is Script {
         IPoolAddressesProvider provider,
         address positionManager,
         address nTokenImpl,
+        address feeCollector,
         address multisig,
         bool proposal
     ) public {
@@ -139,13 +140,14 @@ contract ConfigScript is Script {
 
         UniswapV3Adapter adapter = new UniswapV3Adapter(positionManager);
 
-        _deployCL(provider, adapter, nTokenImpl, multisig, proposal);
+        _deployCL(provider, adapter, nTokenImpl, feeCollector, multisig, proposal);
     }
 
     function algebraV1(
         IPoolAddressesProvider provider,
         address positionManager,
         address nTokenImpl,
+        address feeCollector,
         address multisig,
         bool proposal
     ) public {
@@ -153,6 +155,6 @@ contract ConfigScript is Script {
 
         AlgebraV1Adapter adapter = new AlgebraV1Adapter(positionManager);
 
-        _deployCL(provider, adapter, nTokenImpl, multisig, proposal);
+        _deployCL(provider, adapter, nTokenImpl, feeCollector, multisig, proposal);
     }
 }
