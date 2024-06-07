@@ -14,14 +14,20 @@ import {ERC1155CLWrapperOracle} from "../src/protocol/concentrated-liquidity/ERC
 import {ERC1155CLWrapperConfigurationProvider} from
     "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ITransparentUpgradeableProxy,
+    TransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
-import {ERC1155CLWrapper} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapper.sol";
+import {ERC1155CLWrapper, IMerkleDistributor} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapper.sol";
 import {BaseCLAdapter} from "../src/protocol/concentrated-liquidity/adapters/BaseCLAdapter.sol";
 import {AlgebraV1Adapter} from "../src/protocol/concentrated-liquidity/adapters/AlgebraV1Adapter.sol";
 import {UniswapV3Adapter} from "../src/protocol/concentrated-liquidity/adapters/UniswapV3Adapter.sol";
+import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {BaseProposalGenerator} from "./BaseProposalGenerator.sol";
 
-contract ConfigScript is Script {
+contract ConfigScript is BaseProposalGenerator {
     struct InitReserveArgs {
         IPoolAddressesProvider provider;
         IERC20Metadata underlying;
@@ -35,6 +41,7 @@ contract ConfigScript is Script {
         uint256 reserveFactor;
         uint256 liquidationProtocolFee;
         address treasury;
+        bool enableBorrowing;
     }
 
     function initReserve(InitReserveArgs memory params) public {
@@ -67,9 +74,11 @@ contract ConfigScript is Script {
         });
 
         configurator.initReserves(reserves);
-        configurator.setReserveBorrowing(address(params.underlying), true);
+        if (params.enableBorrowing) {
+            configurator.setReserveBorrowing(address(params.underlying), true);
+            configurator.setReserveFlashLoaning(address(params.underlying), true);
+        }
         configurator.setReserveFactor(address(params.underlying), params.reserveFactor);
-        configurator.setReserveFlashLoaning(address(params.underlying), true);
         configurator.setLiquidationProtocolFee(address(params.underlying), params.liquidationProtocolFee);
 
         configurator.configureReserveAsCollateral(
@@ -77,18 +86,23 @@ contract ConfigScript is Script {
         );
     }
 
-    function _deployCL(
+    function deployCL(
         IPoolAddressesProvider provider,
         BaseCLAdapter adapter,
         address nTokenImpl,
         address feeCollector,
         address multisig,
-        bool proposal
-    ) internal {
+        bool proposal,
+        IMerkleDistributor merkleDistributor
+    ) public {
+        vm.startBroadcast();
+
         ERC1155CLWrapper wrapper = ERC1155CLWrapper(
             address(
                 new TransparentUpgradeableProxy(
-                    address(new ERC1155CLWrapper(adapter)), multisig, abi.encodeCall(ERC1155CLWrapper.initialize, ())
+                    address(new ERC1155CLWrapper(adapter, merkleDistributor, multisig)),
+                    multisig,
+                    abi.encodeCall(ERC1155CLWrapper.initialize, ())
                 )
             )
         );
@@ -124,37 +138,34 @@ contract ConfigScript is Script {
             console.log(provider.getPriceOracle(), vm.toString(oracleUpdateData));
         }
 
-        provider.getPoolConfigurator().call(initReserveData);
-        provider.getPriceOracle().call(oracleUpdateData);
+        (bool success,) = provider.getPoolConfigurator().call(initReserveData);
+        require(success);
+        (success,) = provider.getPriceOracle().call(oracleUpdateData);
+        require(success);
     }
 
-    function uniswapV3(
-        IPoolAddressesProvider provider,
-        address positionManager,
-        address nTokenImpl,
-        address feeCollector,
-        address multisig,
-        bool proposal
-    ) public {
+    function upgradeCLWrapper(ERC1155CLWrapper wrapper, IMerkleDistributor merkleDistributor) public {
+        ProxyAdmin admin = ProxyAdmin(address(uint160(uint256(vm.load(address(wrapper), ERC1967Utils.ADMIN_SLOT)))));
+        address multisig = admin.owner();
+
         vm.startBroadcast();
+        ERC1155CLWrapper newImpl = new ERC1155CLWrapper(wrapper.adapter(), merkleDistributor, multisig);
+        vm.stopBroadcast();
 
-        UniswapV3Adapter adapter = new UniswapV3Adapter(positionManager);
+        calls.push(
+            MultiSigCall({
+                target: address(admin),
+                data: abi.encodeCall(
+                    ProxyAdmin.upgradeAndCall,
+                    (
+                        ITransparentUpgradeableProxy(address(wrapper)),
+                        address(newImpl),
+                        abi.encodeCall(ERC1155CLWrapper.initialize, ())
+                    )
+                )
+            })
+        );
 
-        _deployCL(provider, adapter, nTokenImpl, feeCollector, multisig, proposal);
-    }
-
-    function algebraV1(
-        IPoolAddressesProvider provider,
-        address positionManager,
-        address nTokenImpl,
-        address feeCollector,
-        address multisig,
-        bool proposal
-    ) public {
-        vm.startBroadcast();
-
-        AlgebraV1Adapter adapter = new AlgebraV1Adapter(positionManager);
-
-        _deployCL(provider, adapter, nTokenImpl, feeCollector, multisig, proposal);
+        _simulateAndPrintCalls(multisig);
     }
 }

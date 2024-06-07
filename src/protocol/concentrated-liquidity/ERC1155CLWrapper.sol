@@ -7,28 +7,28 @@ import {ERC1155SupplyUpgradeable} from
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {CLAdapterWrapper} from "./CLAdapterWrapper.sol";
+import {IMerkleDistributor} from "../../interfaces/ext/IMerkleDistributor.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ERC1155CLWrapper is ERC1155SupplyUpgradeable, IERC721Receiver {
     using CLAdapterWrapper for BaseCLAdapter;
-
-    // Placeholders for addresses used by previous impl.
-    // Zeroed out in initializer, can be removed in future versions.
-    address positionManager;
-    address factory;
+    using SafeERC20 for IERC20;
 
     BaseCLAdapter public immutable adapter;
+    IMerkleDistributor public immutable distributor;
+    address public immutable rewardsRecipient;
 
-    constructor(BaseCLAdapter _adapter) {
+    constructor(BaseCLAdapter _adapter, IMerkleDistributor _distributor, address _rewardsRecipient) {
         adapter = _adapter;
+        distributor = _distributor;
+        rewardsRecipient = _rewardsRecipient;
 
         _disableInitializers();
     }
 
-    function initialize() public reinitializer(2) {
+    function initialize() public reinitializer(3) {
         __ERC1155_init("");
-
-        positionManager = address(0);
-        factory = address(0);
     }
 
     error OnlyPositionManager();
@@ -92,5 +92,17 @@ contract ERC1155CLWrapper is ERC1155SupplyUpgradeable, IERC721Receiver {
     /// @inheritdoc ERC1155SupplyUpgradeable
     function exists(uint256 id) public view override(ERC1155SupplyUpgradeable) returns (bool) {
         return ERC1155SupplyUpgradeable.exists(id);
+    }
+
+    function claimMerkle(
+        address[] memory users,
+        address[] memory tokens,
+        uint256[] memory amounts,
+        bytes32[][] memory proofs
+    ) external {
+        distributor.claim(users, tokens, amounts, proofs);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i]).safeTransfer(rewardsRecipient, amounts[i]);
+        }
     }
 }

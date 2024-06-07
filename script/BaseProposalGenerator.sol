@@ -17,5 +17,7 @@ contract BaseProposalGenerator is Script {
             require(success);
             console.log(calls[i].target, vm.toString(calls[i].data));
         }
+
+        delete calls;
     }
 }

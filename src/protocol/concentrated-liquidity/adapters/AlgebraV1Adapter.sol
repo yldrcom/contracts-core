@@ -6,13 +6,30 @@ import {INonfungiblePositionManager} from "@algebra/src/interfaces/INonfungibleP
 import {IAlgebraFactory} from "@algebra/src/interfaces/IAlgebraFactory.sol";
 import {IAlgebraPool} from "@algebra/src/interfaces/IAlgebraPool.sol";
 
+interface IAlgebraOld {
+    function globalState()
+        external
+        view
+        returns (
+            uint160 price,
+            int24 tick,
+            uint16 fee,
+            uint16 timepointIndex,
+            uint8 communityFeeToken0,
+            uint8 communityFeeToken1,
+            bool unlocked
+        );
+}
+
 contract AlgebraV1Adapter is BaseCLAdapter {
     INonfungiblePositionManager internal immutable positionManager;
     IAlgebraFactory internal immutable factory;
+    bool internal immutable isAlgebraV19;
 
-    constructor(address _positionManager) {
+    constructor(address _positionManager, bool _isAlgebraV19) {
         positionManager = INonfungiblePositionManager(payable(_positionManager));
         factory = IAlgebraFactory(positionManager.factory());
+        isAlgebraV19 = _isAlgebraV19;
     }
 
     function getPositionData(uint256 tokenId) public view virtual override returns (PositionData memory) {
@@ -46,7 +63,11 @@ contract AlgebraV1Adapter is BaseCLAdapter {
     }
 
     function getPoolState(address pool) public view virtual override returns (uint160 sqrtPriceX96, int24 tick) {
-        (sqrtPriceX96, tick,,,,,,) = IAlgebraPool(pool).globalState();
+        if (isAlgebraV19) {
+            (sqrtPriceX96, tick,,,,,,) = IAlgebraPool(pool).globalState();
+        } else {
+            (sqrtPriceX96, tick,,,,,) = IAlgebraOld(pool).globalState();
+        }
     }
 
     function getPoolLiquidity(address pool) public view virtual override returns (uint128 liquidity) {
@@ -156,5 +177,27 @@ contract AlgebraV1Adapter is BaseCLAdapter {
 
     function getTickSpacing(address pool) public view virtual override returns (int24) {
         return IAlgebraPool(pool).tickSpacing();
+    }
+
+    function getLowLevelPositionData(address pool, address owner, int24 tickLower, int24 tickUpper)
+        public
+        view
+        virtual
+        override
+        returns (
+            uint128 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        )
+    {
+        // https://github.com/cryptoalgebra/AlgebraV1/blob/789384bc5084dd694f3d1e189250491086e44653/src/core/contracts/AlgebraPool.sol#L403
+        bytes32 key;
+        assembly {
+            key := or(shl(24, or(shl(24, owner), and(tickLower, 0xFFFFFF))), and(tickUpper, 0xFFFFFF))
+        }
+        (liquidity,, feeGrowthInside0LastX128, feeGrowthInside1LastX128, tokensOwed0, tokensOwed1) =
+            IAlgebraPool(pool).positions(key);
     }
 }

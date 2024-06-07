@@ -32,42 +32,6 @@ arbitrum_one = { key = "${ARBISCAN_TOKEN}", chain = "arbitrum" }
 sepolia = { key = "${ETHERSCAN_TOKEN}" }
 base = { key = "${BASESCAN_TOKEN}"}
 
-[profile.mainnet_libs]
-libraries = [
-    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xac82748a93cc98e6e9a36fff80f4e1bc40ca573f",
-    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xe283911bbb6454a1a1442410d12d5f33df88daa0",
-    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x4b17e8da6a9138ff0b0ccd2eb2e1279646e3dfc8",
-    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x1d225d6975f77f2e9ff1f37fde85ebd752743c33",
-    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x4c04e52328c84022a24e89458628a3ef45bcd3b5",
-    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x5ff675d0ea4a0fa5fad769b1b76060bf58d4ced4",
-]
-
-[profile.arbitrum_one_libs]
-libraries = [
-    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0xAb3A01fcc9E7A596e94EC98A488ddC22e6067904",
-    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xcBE1d19d6AE9e4707aa5F104c395a33DfaeC6f9d",
-    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x7F6455c71Fb95912C2E265dC21b6132ae37ebFb8",
-    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x5Fc33C7732FcECb364a28278cD12d8137FFB90Cb",
-    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x38D99A1e6BC87C6343c7C626bcf27B7b8dDC3392",
-    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0xc62e8d922f00Dcf246a88c40E84de5da496F5b88",
-]
-
-[profile.polygon_libs]
-libraries = [
-    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0x4bD51179f30Cd162167D40AF9F6d378FC580C9cd",
-    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0xC29CEEfe88a1eD4384a1BaD42592e70a3E3b0B86",
-    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x65E5Ed385C62A786e61Dd863053dE04a24CB627e",
-    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0xaD289BC22E12E4744AE6896c0812A60EE4e04A65",
-    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0xd6f13c8dd1509e6fB5cfBc8194132977c31b7c3D",
-    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x28219423FdA748495E10DFa05F089233A5491e16",
-]
-
-[profile.base_libs]
-libraries = [
-    "src/protocol/libraries/logic/BorrowLogic.sol:BorrowLogic:0x26Fc68cE8ED4EF8c90Ff3c90Bf77bbB21C0224e6",
-    "src/protocol/libraries/logic/ConfiguratorLogic.sol:ConfiguratorLogic:0x8695cA6aBaBbd626C94AC8A74F49B32caf7c65f8",
-    "src/protocol/libraries/logic/FlashLoanLogic.sol:FlashLoanLogic:0x5A7B4A6c6D6F53179dcF5C5F5a67B635e67CCD82",
-    "src/protocol/libraries/logic/LiquidationLogic.sol:LiquidationLogic:0x8F453CDe1c2bECcE6f630a6A3E91C158C87E65cA",
-    "src/protocol/libraries/logic/PoolLogic.sol:PoolLogic:0x51A7db09Ec126621cE67053F1e555bbF1f894825",
-    "src/protocol/libraries/logic/SupplyLogic.sol:SupplyLogic:0x2bD4993A15B736aE7Cf0eF955eBD6401F3802790",
-]
+[bind_json]
+out = "script/JsonBindings.sol"
+include = ["script/**"]

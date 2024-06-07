@@ -4,7 +4,7 @@ import {Test, console2} from "forge-std/Test.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
 import {Errors} from "../src/protocol/libraries/helpers/Errors.sol";
 import {DataTypes} from "../src/protocol/libraries/types/DataTypes.sol";
-import {ERC1155CLWrapper} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapper.sol";
+import {ERC1155CLWrapper, IMerkleDistributor} from "../src/protocol/concentrated-liquidity/ERC1155CLWrapper.sol";
 import {UniswapV3Adapter} from "../src/protocol/concentrated-liquidity/adapters/UniswapV3Adapter.sol";
 import {ERC1155CLWrapperConfigurationProvider} from
     "../src/protocol/concentrated-liquidity/ERC1155CLWrapperConfigurationProvider.sol";
@@ -75,7 +75,7 @@ contract UniswapV3WrapperTest is BaseTest {
         uniswapV3Wrapper = ERC1155CLWrapper(
             address(
                 new TransparentUpgradeableProxy(
-                    address(new ERC1155CLWrapper(uniswapV3Adapter)),
+                    address(new ERC1155CLWrapper(uniswapV3Adapter, IMerkleDistributor(address(0)), ADMIN)),
                     ADMIN,
                     abi.encodeCall(ERC1155CLWrapper.initialize, ())
                 )
