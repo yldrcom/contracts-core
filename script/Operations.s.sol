@@ -21,28 +21,14 @@ contract OperationsScript is BaseProposalGenerator {
         }
     }
 
-    function collectFees(IPoolAddressesProvider addressesProvider) public {
+    function collectFunds(IPoolAddressesProvider addressesProvider, address receiver) public {
         IPool pool = IPool(addressesProvider.getPool());
         address[] memory tokens = _getAllTokens(addressesProvider);
+        address multisig = Ownable(address(addressesProvider)).owner();
 
         vm.startBroadcast();
         pool.mintToTreasury(tokens);
-    }
-
-    function countBalances(IPoolAddressesProvider addressesProvider, address user) public view {
-        IPool pool = IPool(addressesProvider.getPool());
-        address[] memory tokens = _getAllTokens(addressesProvider);
-
-        for (uint256 i = 0; i < tokens.length; i++) {
-            uint256 balance = IERC20(pool.getReserveData(tokens[i]).yTokenAddress).balanceOf(user);
-            console2.log(tokens[i], balance);
-        }
-    }
-
-    function collectFunds(IPoolAddressesProvider addressesProvider, address receiver) public {
-        IPool pool = IPool(addressesProvider.getPool());
-        address multisig = Ownable(address(addressesProvider)).owner();
-        address[] memory tokens = _getAllTokens(addressesProvider);
+        vm.stopBroadcast();
 
         delete calls;
 

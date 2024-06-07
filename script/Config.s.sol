@@ -77,14 +77,16 @@ contract ConfigScript is Script {
         );
     }
 
-    function _deployCL(
+    function deployCL(
         IPoolAddressesProvider provider,
         BaseCLAdapter adapter,
         address nTokenImpl,
         address feeCollector,
         address multisig,
         bool proposal
-    ) internal {
+    ) public {
+        vm.startBroadcast();
+
         ERC1155CLWrapper wrapper = ERC1155CLWrapper(
             address(
                 new TransparentUpgradeableProxy(
@@ -126,35 +128,5 @@ contract ConfigScript is Script {
 
         provider.getPoolConfigurator().call(initReserveData);
         provider.getPriceOracle().call(oracleUpdateData);
-    }
-
-    function uniswapV3(
-        IPoolAddressesProvider provider,
-        address positionManager,
-        address nTokenImpl,
-        address feeCollector,
-        address multisig,
-        bool proposal
-    ) public {
-        vm.startBroadcast();
-
-        UniswapV3Adapter adapter = new UniswapV3Adapter(positionManager);
-
-        _deployCL(provider, adapter, nTokenImpl, feeCollector, multisig, proposal);
-    }
-
-    function algebraV1(
-        IPoolAddressesProvider provider,
-        address positionManager,
-        address nTokenImpl,
-        address feeCollector,
-        address multisig,
-        bool proposal
-    ) public {
-        vm.startBroadcast();
-
-        AlgebraV1Adapter adapter = new AlgebraV1Adapter(positionManager);
-
-        _deployCL(provider, adapter, nTokenImpl, feeCollector, multisig, proposal);
     }
 }

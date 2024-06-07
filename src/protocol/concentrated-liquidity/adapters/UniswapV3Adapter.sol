@@ -159,4 +159,21 @@ contract UniswapV3Adapter is BaseCLAdapter {
     function getTickSpacing(address pool) public view virtual override returns (int24) {
         return IUniswapV3Pool(pool).tickSpacing();
     }
+
+    function getLowLevelPositionData(address pool, address owner, int24 tickLower, int24 tickUpper)
+        public
+        view
+        virtual
+        override
+        returns (
+            uint128 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        )
+    {
+        (liquidity, feeGrowthInside0LastX128, feeGrowthInside1LastX128, tokensOwed0, tokensOwed1) =
+            IUniswapV3Pool(pool).positions(keccak256(abi.encodePacked(owner, tickLower, tickUpper)));
+    }
 }

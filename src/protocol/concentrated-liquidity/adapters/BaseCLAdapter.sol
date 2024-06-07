@@ -148,4 +148,16 @@ abstract contract BaseCLAdapter {
     }
 
     function getTickSpacing(address pool) public view virtual returns (int24);
+
+    function getLowLevelPositionData(address pool, address owner, int24 tickLower, int24 tickUpper)
+        public
+        view
+        virtual
+        returns (
+            uint128 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        );
 }
