@@ -6,8 +6,8 @@ import {BaseCLAdapter} from "../../protocol/concentrated-liquidity/adapters/Base
 
 interface BaseALMOracle is IChainlinkAggregator {
     /// @notice Underlying CL pool
-    function pool() external view returns(address);
+    function pool() external view returns (address);
 
     /// @notice CL adapter for underlying pool CL protocol
-    function adapter() external view returns(BaseCLAdapter);
+    function adapter() external view returns (BaseCLAdapter);
 }

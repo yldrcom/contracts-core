@@ -11,7 +11,7 @@ base = "${BASE_RPC}"
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]  
+libs = ["lib"]
 solc = "0.8.23"
 ignored_error_codes = ["license"]
 evm_version = "paris"
