@@ -16,6 +16,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IYLDROracle} from "../src/interfaces/IYLDROracle.sol";
 import {INonfungiblePositionManager} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import {IPoolConfigurator} from "../src/interfaces/IPoolConfigurator.sol";
 
 contract UniswapV3WrapperTest is BaseTest {
     using UniswapV3Testing for UniswapV3Testing.Data;
@@ -185,6 +186,28 @@ contract UniswapV3WrapperTest is BaseTest {
 
         uint256 balance = uniswapV3Wrapper.balanceOf(ALICE, tokenId);
         vm.expectRevert(bytes(Errors.RESERVE_INACTIVE));
+        pool.supplyERC1155(address(uniswapV3Wrapper), tokenId, balance, BOB, 0);
+    }
+
+    function test_supply_reverts_if_disabled_for_lp() public {
+        vm.stopPrank();
+        vm.startPrank(ADMIN);
+        IPoolConfigurator configurator = IPoolConfigurator(poolTesting.addressesProvider.getPoolConfigurator());
+        configurator.setDisabledForLP(address(usdc), true);
+
+        vm.startPrank(ALICE);
+        (uint256 tokenId, uint256 amount0, uint256 amount1) = _acquireWrapperUniswapV3Position(
+            address(usdc), address(weth), 1000e6, 1e18, UniswapV3Testing.PositionType.Both
+        );
+
+        uint256 balance = uniswapV3Wrapper.balanceOf(ALICE, tokenId);
+        vm.expectRevert(bytes(Errors.RESERVE_INACTIVE));
+        pool.supplyERC1155(address(uniswapV3Wrapper), tokenId, balance, BOB, 0);
+
+        vm.startPrank(ADMIN);
+        configurator.setDisabledForLP(address(usdc), false);
+
+        vm.startPrank(ALICE);
         pool.supplyERC1155(address(uniswapV3Wrapper), tokenId, balance, BOB, 0);
     }
 }

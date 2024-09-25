@@ -365,4 +365,10 @@ interface IPoolConfigurator {
      * @param newMaxERC1155CollateralReserves The count of ERC1155 collateral reserves
      */
     function updateMaxERC1155CollateralReserves(uint256 newMaxERC1155CollateralReserves) external;
+
+    /**
+     * @notice Disables supply of reserve in LP tokens
+     * @param reserve Reserve to disable
+     */
+    function setDisabledForLP(address reserve, bool disabled) external;
 }

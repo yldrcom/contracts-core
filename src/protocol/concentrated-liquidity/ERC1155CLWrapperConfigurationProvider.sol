@@ -35,13 +35,15 @@ contract ERC1155CLWrapperConfigurationProvider is IERC1155ConfigurationProvider 
 
         (bool isActive0, bool isFrozen0,, bool isPaused0) = config0.getFlags();
         (bool isActive1, bool isFrozen1,, bool isPaused1) = config1.getFlags();
+        bool isDisabled0 = config0.getDisabledForLP();
+        bool isDisabled1 = config1.getDisabledForLP();
 
         uint256 liquidationThreshold = Math.min(config0.getLiquidationThreshold(), config1.getLiquidationThreshold());
         uint256 liquidationBonus = Math.max(config0.getLiquidationBonus(), config1.getLiquidationBonus());
         uint256 ltv = Math.min(config0.getLtv(), config1.getLtv());
 
         return DataTypes.ERC1155ReserveConfiguration({
-            isActive: isActive0 && isActive1,
+            isActive: isActive0 && isActive1 && !isDisabled0 && !isDisabled1,
             isFrozen: isFrozen0 || isFrozen1,
             isPaused: isPaused0 || isPaused1,
             ltv: ltv,

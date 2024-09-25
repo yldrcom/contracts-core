@@ -14,15 +14,16 @@ import {YLDRProtocolDataProvider} from "../src/misc/YLDRProtocolDataProvider.sol
 import {YToken} from "../src/protocol/tokenization/YToken.sol";
 import {VariableDebtToken} from "../src/protocol/tokenization/VariableDebtToken.sol";
 import {IPool} from "../src/interfaces/IPool.sol";
+import {BaseProposalGenerator} from "./BaseProposalGenerator.sol";
 
 contract DeployScript is Script {
     function pool(address addressesProvider) public {
         vm.startBroadcast();
         (, address deployer,) = vm.readCallers();
 
-        Pool pool = new Pool(PoolAddressesProvider(addressesProvider));
+        Pool _pool = new Pool(PoolAddressesProvider(addressesProvider));
 
-        console2.log("Pool:", address(pool));
+        console2.log("Pool:", address(_pool));
     }
 
     function protocol(uint256 maxERC1155Reserves, uint256 flashloanFee) public {
@@ -68,5 +69,22 @@ contract DeployScript is Script {
         console2.log("PoolDataProvider:", addressesProvider.getPoolDataProvider());
         console2.log("PriceOracle:", addressesProvider.getPriceOracle());
         console2.log("ACLManager:", addressesProvider.getACLManager());
+    }
+}
+
+contract UpgradeConfigurator is BaseProposalGenerator {
+    function run(PoolAddressesProvider addressesProvider) public {
+        vm.startBroadcast();
+        PoolConfigurator impl = new PoolConfigurator();
+
+        calls.push(
+            MultiSigCall({
+                target: address(addressesProvider),
+                data: abi.encodeCall(PoolAddressesProvider.setPoolConfiguratorImpl, (address(impl)))
+            })
+        );
+
+        vm.stopBroadcast();
+        _simulateAndPrintCalls(addressesProvider.owner());
     }
 }

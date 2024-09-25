@@ -47,7 +47,8 @@ library DataTypes {
         //bit 168-175 eMode category
         //bit 176-211 unbacked mint cap in whole tokens, unbackedMintCap == 0 => minting disabled
         //bit 212-251 debt ceiling for isolation mode with (ReserveConfiguration::DEBT_CEILING_DECIMALS) decimals
-        //bit 252-255 unused
+        //bit 252 whether reserve is disabled for supply in LP tokens
+        //bit 253-255 unused
         uint256 data;
     }
 

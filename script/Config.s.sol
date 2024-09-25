@@ -26,6 +26,7 @@ import {UniswapV3Adapter} from "../src/protocol/concentrated-liquidity/adapters/
 import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {BaseProposalGenerator} from "./BaseProposalGenerator.sol";
+import {IChainlinkAggregator} from "../src/interfaces/ext/IChainlinkAggregator.sol";
 
 contract ConfigScript is BaseProposalGenerator {
     struct InitReserveArgs {
@@ -42,6 +43,7 @@ contract ConfigScript is BaseProposalGenerator {
         uint256 liquidationProtocolFee;
         address treasury;
         bool enableBorrowing;
+        uint256 supplyCapUSD;
     }
 
     function initReserve(InitReserveArgs memory params) public {
@@ -84,6 +86,14 @@ contract ConfigScript is BaseProposalGenerator {
         configurator.configureReserveAsCollateral(
             address(params.underlying), params.ltv, params.liquidationThreshold, params.liquidationBonus
         );
+
+        if (params.supplyCapUSD > 0) {
+            uint256 price = uint256(IChainlinkAggregator(params.priceFeed).latestAnswer());
+            uint256 supplyCap = params.supplyCapUSD * (10 ** IERC20Metadata(params.underlying).decimals()) / price;
+
+            require(supplyCap > 0, "Token price too high, got zero cap");
+            configurator.setSupplyCap(address(params.underlying), params.supplyCapUSD * 1e6);
+        }
     }
 
     function deployCL(
@@ -167,5 +177,22 @@ contract ConfigScript is BaseProposalGenerator {
         );
 
         _simulateAndPrintCalls(multisig);
+    }
+
+    function pauseReserves(IPoolAddressesProvider provider, address emergency) public {
+        IPool pool = IPool(provider.getPool());
+        IPoolConfigurator configurator = IPoolConfigurator(provider.getPoolConfigurator());
+
+        address[] memory reserves = pool.getReservesList();
+        for (uint256 i = 0; i < reserves.length; i++) {
+            calls.push(
+                MultiSigCall({
+                    target: address(configurator),
+                    data: abi.encodeCall(IPoolConfigurator.setReservePause, (reserves[i], true))
+                })
+            );
+        }
+
+        _simulateAndPrintCalls(emergency);
     }
 }

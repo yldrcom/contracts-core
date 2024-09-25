@@ -21,8 +21,9 @@ contract GammaVaultOracleTest is Test {
     }
 
     function test_quickswap() public {
-        GammaVaultOracle oracle =
-            new GammaVaultOracle(IHypervisor(0x1cf4293125913cB3Dea4aD7f2bb4795B9e896CE9), quickswapAdapter, addressesProvider);
+        GammaVaultOracle oracle = new GammaVaultOracle(
+            IHypervisor(0x1cf4293125913cB3Dea4aD7f2bb4795B9e896CE9), quickswapAdapter, addressesProvider
+        );
         assertGt(oracle.latestAnswer(), 0);
     }
 

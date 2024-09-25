@@ -70,7 +70,7 @@ contract PoolConfigurator is Initializable, IPoolConfigurator {
         _disableInitializers();
     }
 
-    function initialize(IPoolAddressesProvider provider) public initializer {
+    function initialize(IPoolAddressesProvider provider) public reinitializer(2) {
         _addressesProvider = provider;
         _pool = IPool(_addressesProvider.getPool());
         require(address(_pool) != address(0), Errors.ZERO_ADDRESS_NOT_VALID);
@@ -368,5 +368,11 @@ contract PoolConfigurator is Initializable, IPoolConfigurator {
             aclManager.isRiskAdmin(msg.sender) || aclManager.isPoolAdmin(msg.sender),
             Errors.CALLER_NOT_RISK_OR_POOL_ADMIN
         );
+    }
+
+    function setDisabledForLP(address asset, bool disabled) external override onlyPoolAdmin {
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool.getConfiguration(asset);
+        currentConfig.setDisabledForLP(disabled);
+        _pool.setConfiguration(asset, currentConfig);
     }
 }

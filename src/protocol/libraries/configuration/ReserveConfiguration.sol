@@ -19,6 +19,7 @@ library ReserveConfiguration {
     uint256 internal constant ACTIVE_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant FROZEN_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant BORROWING_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBFFFFFFFFFFFFFF; // prettier-ignore
+    uint256 internal constant DISABLED_FOR_LP_MASK = 0xEfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff; // prettier-ignore
     uint256 internal constant PAUSED_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFF; // prettier-ignore
     uint256 internal constant FLASHLOAN_ENABLED_MASK =
         0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFFFFFFFFFF; // prettier-ignore
@@ -41,6 +42,7 @@ library ReserveConfiguration {
     uint256 internal constant BORROW_CAP_START_BIT_POSITION = 80;
     uint256 internal constant SUPPLY_CAP_START_BIT_POSITION = 116;
     uint256 internal constant LIQUIDATION_PROTOCOL_FEE_START_BIT_POSITION = 152;
+    uint256 internal constant DISABLED_FOR_LP_START_BIT_POSITION = 252;
 
     uint256 internal constant MAX_VALID_LTV = 65535;
     uint256 internal constant MAX_VALID_LIQUIDATION_THRESHOLD = 65535;
@@ -364,5 +366,14 @@ library ReserveConfiguration {
             (dataLocal & ~BORROW_CAP_MASK) >> BORROW_CAP_START_BIT_POSITION,
             (dataLocal & ~SUPPLY_CAP_MASK) >> SUPPLY_CAP_START_BIT_POSITION
         );
+    }
+
+    function getDisabledForLP(DataTypes.ReserveConfigurationMap memory self) internal pure returns (bool) {
+        return (self.data & ~DISABLED_FOR_LP_MASK) != 0;
+    }
+
+    function setDisabledForLP(DataTypes.ReserveConfigurationMap memory self, bool disabled) internal pure {
+        self.data =
+            (self.data & DISABLED_FOR_LP_MASK) | (uint256(disabled ? 1 : 0) << DISABLED_FOR_LP_START_BIT_POSITION);
     }
 }
