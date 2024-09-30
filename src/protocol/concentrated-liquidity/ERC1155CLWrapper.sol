@@ -27,7 +27,7 @@ contract ERC1155CLWrapper is ERC1155SupplyUpgradeable, IERC721Receiver {
         _disableInitializers();
     }
 
-    function initialize() public reinitializer(3) {
+    function initialize() public reinitializer(4) {
         __ERC1155_init("");
     }
 
@@ -103,6 +103,12 @@ contract ERC1155CLWrapper is ERC1155SupplyUpgradeable, IERC721Receiver {
         distributor.claim(users, tokens, amounts, proofs);
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20(tokens[i]).safeTransfer(rewardsRecipient, amounts[i]);
+        }
+    }
+
+    function withdrawTokens(address[] memory tokens) external {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i]).safeTransfer(rewardsRecipient, IERC20(tokens[i]).balanceOf(address(this)));
         }
     }
 }

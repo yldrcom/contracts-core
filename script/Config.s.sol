@@ -154,12 +154,12 @@ contract ConfigScript is BaseProposalGenerator {
         require(success);
     }
 
-    function upgradeCLWrapper(ERC1155CLWrapper wrapper, IMerkleDistributor merkleDistributor) public {
+    function upgradeCLWrapper(ERC1155CLWrapper wrapper) public {
         ProxyAdmin admin = ProxyAdmin(address(uint160(uint256(vm.load(address(wrapper), ERC1967Utils.ADMIN_SLOT)))));
         address multisig = admin.owner();
 
         vm.startBroadcast();
-        ERC1155CLWrapper newImpl = new ERC1155CLWrapper(wrapper.adapter(), merkleDistributor, multisig);
+        ERC1155CLWrapper newImpl = new ERC1155CLWrapper(wrapper.adapter(), wrapper.distributor(), multisig);
         vm.stopBroadcast();
 
         calls.push(
